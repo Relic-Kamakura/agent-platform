@@ -1,0 +1,6 @@
+[project]
+name = "hello-agent"
+version = "0.1.0"
+description = "第8章ハンズオン: コンテナ契約を自分の Dockerfile で満たす"
+requires-python = ">=3.12"
+dependencies = ["bedrock-agentcore"]

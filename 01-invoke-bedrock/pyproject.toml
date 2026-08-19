@@ -1,0 +1,13 @@
+[project]
+name = "chapter01-invoke-bedrock"
+version = "0.1.0"
+description = "第1章: Bedrock で Claude を呼び出す（写経ハンズオン）"
+requires-python = ">=3.12"
+dependencies = ["boto3"]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["verify"]
+pythonpath = ["."]

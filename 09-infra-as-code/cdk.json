@@ -1,0 +1,32 @@
+{
+  "app": "npx tsx bin/app.ts",
+  "watch": {
+    "include": [
+      "**"
+    ],
+    "exclude": [
+      "node_modules",
+      "cdk.out",
+      "dist"
+    ]
+  },
+  "context": {
+    "_comment": "既定値。npx cdk deploy -c key=value で上書きできる。リージョン/ロールARN/モデルIDはここ以外に書かない。",
+    "region": "ap-northeast-1",
+    "ecrRepositoryName": "agent-platform/agent",
+    "imageTag": "latest",
+    "runtimeName": "agentPlatformAgent",
+    "_comment_role": "既存のAgentCore実行ロールを使う場合のみ設定する。未設定ならCDKが新規作成する。",
+    "_comment_models": "agent/.env.example と同じ値。空文字のmodelIdPrefixはリージョン自動導出を無効化する。",
+    "modelIds": {
+      "orchestrator": "anthropic.claude-sonnet-4-6",
+      "search": "anthropic.claude-haiku-4-5",
+      "review": "anthropic.claude-sonnet-4-6"
+    },
+    "searchProvider": "mock",
+    "maxToolCallsTotal": "12",
+    "maxAgentTurns": "10",
+    "authBypass": "false",
+    "@aws-cdk/core:newStyleStackSynthesis": true
+  }
+}

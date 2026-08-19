@@ -1,0 +1,13 @@
+[project]
+name = "chapter02-first-agent"
+version = "0.1.0"
+description = "第2章: はじめてのエージェント（写経ハンズオン）"
+requires-python = ">=3.12"
+dependencies = ["strands-agents"]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["verify"]
+pythonpath = ["."]

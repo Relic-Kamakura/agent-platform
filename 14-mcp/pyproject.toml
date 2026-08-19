@@ -1,0 +1,13 @@
+[project]
+name = "chapter14-mcp"
+version = "0.1.0"
+description = "第14章: MCP サーバ（写経ハンズオン）"
+requires-python = ">=3.12"
+dependencies = ["strands-agents", "mcp"]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["verify"]
+pythonpath = ["."]

@@ -1,0 +1,28 @@
+"""MCP サーバのツールを使うエージェント。"""
+
+import os
+import sys
+
+from mcp import StdioServerParameters
+from mcp.client.stdio import stdio_client
+from strands import Agent
+from strands.models import BedrockModel
+from strands.tools.mcp import MCPClient
+
+client = MCPClient(
+    lambda: stdio_client(
+        StdioServerParameters(command=sys.executable, args=["01_mcp_server.py"])
+    )
+)
+
+with client:
+    agent = Agent(
+        model=BedrockModel(
+            region_name=os.environ.get("AWS_REGION", "ap-northeast-1"),
+            model_id=os.environ.get("MODEL_ID", "apac.anthropic.claude-haiku-4-5"),
+            max_tokens=512,
+        ),
+        system_prompt="社内データベースを使って質問に答えてください。",
+        tools=client.list_tools_sync(),  # MCP のツールがそのまま tools になる
+    )
+    agent("Acme と Globex の価格を比較して")

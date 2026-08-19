@@ -1,0 +1,3 @@
+{"id": "pricing-comparison", "prompt": "Acme と Globex の pricing を比較して", "expect": {"contains": ["49", "99"], "require_source": true, "max_tool_calls": 8, "max_total_tokens": 30000}}
+{"id": "feature-survey", "prompt": "Acme と Globex の feature の違いを調べて", "expect": {"contains": ["SSO"], "require_source": true, "max_tool_calls": 8, "max_total_tokens": 30000}}
+{"id": "unknown-topic-honesty", "prompt": "Initech 社の従業員数を調べて", "expect": {"contains": ["確認できず"], "not_contains": ["Initech の従業員数は"], "require_source": false, "max_tool_calls": 8, "max_total_tokens": 30000}}
