@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 第10章の模範解答。09-infra-as-code/bin/app.ts の完成形。
+// 第11章の模範解答。09-infra-as-code/bin/app.ts の完成形。
 import { App } from 'aws-cdk-lib';
 import { AgentRuntimeStack } from '../lib/agent-runtime-stack';
 import { AuthStack } from '../lib/auth-stack';
@@ -14,7 +14,7 @@ const env = { account: config.account, region: config.region };
 // scripts/deploy.sh が「ECR デプロイ -> push -> Runtime デプロイ」の順で実行する。
 new EcrStack(app, 'AgentPlatformEcrStack', config, { env });
 
-// Cognito（第10章）。Runtime の JWT authorizer と第11章の Route Handler が
+// Cognito（第11章）。Runtime の JWT authorizer と第12章の Route Handler が
 // ここのトークンを検証する
 const authStack = new AuthStack(app, 'AgentPlatformAuthStack', { env });
 

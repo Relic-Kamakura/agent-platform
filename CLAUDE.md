@@ -23,7 +23,8 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
   - `src/errors.py` 例外定義 / `src/guards.py` 上限ガードとトークン計測
 - `09-infra-as-code/` — CDK。`lib/config.ts` が context を読む唯一の場所
 - `scripts/check_env.sh` — 前提条件チェック。困ったらまずこれ
-- 10 以降の章（auth / frontend / evaluation / security）は Phase 3〜5 で追加される
+- 10 以降の章は knowledge-base / auth / frontend / evaluation / security / mcp /
+  prompt-caching / guardrails / hitl / structured-output（10〜19）
 
 ## コマンド
 
@@ -39,7 +40,7 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
 - 依存解決: `npm ci` / 型: `npx tsc --noEmit`
 - 差分・デプロイ: `npx cdk diff` / `npx cdk deploy --all`（直接 --all は禁止。deploy.sh を使う）
 
-### 11-frontend/
+### 12-streaming/
 
 - 依存解決: `npm ci` / 型: `npm run typecheck` / 開発サーバ: `npm run dev`
 
@@ -47,7 +48,7 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
 
 - 前提条件チェック: `./scripts/check_env.sh`
 - デプロイ一式: `./scripts/deploy.sh`（ECR → イメージ push → Runtime の順序を保証）
-- 章の合格判定: `uv run --project 07-full-app pytest <章>/verify -q`（08, 09 章は `<章>/verify/verify.sh`）
+- 章の合格判定: `uv run --project 07-full-app pytest <章>/verify -q`（08, 09, 11, 12, 14, 17 章は `<章>/verify/verify.sh`）
 
 ## 必ず守る規約
 
@@ -70,12 +71,13 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
 
 ## 章を追加・変更するときの規約
 
-- 文章は @docs/writing-style.md のガイドに従う（予告・総括・空虚な修飾・箇条書き乱用の禁止、
-  実測値と因果メカニズムで書く、README=解説 / exercise.md=手順 の分離）
-
-- 章の構成は agentcore-book (minorun365) の型に合わせる: `# 第N章`、`## N.x` の番号付き節、
-  ハンズオンは `## N.x 【ハンズオン】...` でコマンドを 1 ブロック 1 実行単位で順に置く。
-  実行スクリプトは章直下に `01_*.py` の連番。演習ファイルは分けず README に統合する
+- 文章は @docs/writing-style.md のガイドに従う（本文中の予告・総括・空虚な修飾・
+  箇条書き乱用の禁止、実測値と因果メカニズムで書く）
+- 章の節の並びは固定: 冒頭（到達点）→ `## N.1 概要` → `## N.2 実装のポイント` →
+  `## N.x 【ハンズオン】...` → `## N.last まとめ` → `## 次の章`。手本は
+  `01-invoke-bedrock/README.md`、詳細は writing-style.md の「章の構成」。
+  コマンドは 1 ブロック 1 実行単位、実行スクリプトは章直下に `01_*.py` の連番。
+  演習ファイルは分けず README に統合する
 - 合格判定は機械実行できる形にする（pytest かスクリプト）。「読んだら終わり」の章を作らない
 - verify は solutions を適用した状態で全パスすることを確認してから追加する
 - 空のプレースホルダディレクトリを作らない。実体ができる Phase で章を追加する

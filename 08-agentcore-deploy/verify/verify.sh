@@ -63,7 +63,7 @@ fi
 echo "4. 自作 Dockerfile (hello-agent)"
 HELLO_DIR="$REPO_ROOT/08-agentcore-deploy/hello-agent"
 if [ ! -f "$HELLO_DIR/Dockerfile" ]; then
-  ng "hello-agent/Dockerfile がありません。README の 8.5 に沿って自分で書いてください"
+  ng "hello-agent/Dockerfile がありません。README の 8.4 に沿って自分で書いてください"
 else
   if docker buildx build --platform linux/arm64 -t hello-agent:verify08 --load "$HELLO_DIR" >/dev/null 2>&1; then
     ok "自作 Dockerfile でビルド成功"
@@ -82,7 +82,7 @@ else
       echo "$BODY" | grep -q '"echo": *"test"' && ok "POST /invocations -> echo 応答" \
         || ng "/invocations の応答が想定と違います: $BODY"
     else
-      ng "自作コンテナの /ping が 200 になりません（0.0.0.0 bind か CMD を確認。8.2 の罠参照）"
+      ng "自作コンテナの /ping が 200 になりません（0.0.0.0 bind か CMD を確認。8.1.2 の罠参照）"
     fi
     docker rm -f hello-verify08 >/dev/null 2>&1 || true
   else

@@ -2,8 +2,52 @@
 
 章であると同時に、動くコードの本体です。ハンズオン課題はありません。代わりに、
 第3〜6章の演習とこれ以降の章は、すべてこのディレクトリを改造対象にします。
+終えると、1 リクエストがどのファイルをどの順に通るか、どのファイルがどの章に
+対応するかを言える状態になります。
 
-## 7.1 【ハンズオン】まず動かす
+依存を先に入れてください。
+
+```bash
+cd 07-full-app
+uv sync
+```
+
+## 7.1 概要
+
+### 7.1.1 このアプリは何か
+
+競合リサーチエージェントです。調査依頼を受け取り、観点への分解・Web 検索・
+報告への統合・出力の検証までを 3 つのエージェントで分担します。役割ごとにモデルを
+変えてあり、判断が要る Orchestrator と ReviewAgent は Sonnet、クエリ生成と要約だけの
+SearchAgent は Haiku です（第5章）。
+
+構成には設計判断がひとつ埋まっています。SearchAgent は Orchestrator が
+ツールとして呼びます（agents-as-tools）が、ReviewAgent はモデルの裁量に任せず、
+`orchestrator.py` のコードで決定的に最後に 1 回実行します。検証をモデルの気分で
+省略させないためです。
+
+### 7.1.2 1 リクエストの一生
+
+```mermaid
+graph LR
+    CL[クライアント] -->|POST /invocations| M["src/main.py"]
+    M --> O["Orchestrator<br/>(Sonnet)"]
+    O -->|investigate ツール| S["SearchAgent<br/>(Haiku)"]
+    S -->|web_search| P[検索プロバイダ]
+    O -.->|コードで必ず 1 回| R["ReviewAgent<br/>(Sonnet)"]
+```
+
+1. `src/main.py` が POST /invocations を受ける。HTTP 契約を知るのはこのファイルだけ
+2. Orchestrator (Sonnet) が依頼を調査観点に分解する
+3. 観点ごとに investigate ツール = SearchAgent (Haiku) が web_search で調べ、事実と出典を返す
+4. Orchestrator が報告に統合する
+5. コードが ReviewAgent (Sonnet) を必ず 1 回実行して検証する
+6. revise 判定なら修正を 1 回だけ試みて、結果を返す
+
+すべてのエージェントに guards（ツール上限・ターン上限・トークン計測）が付きます。
+ガードなしのエージェントはこのリポジトリに存在しません。
+
+## 7.2 【ハンズオン】まず動かす
 
 読む前に動かした方が解像度が上がります。
 
@@ -29,19 +73,9 @@ troubleshooting.md 参照）。
 SERVER_PORT=8181 uv run python -m src.main
 ```
 
-## 7.2 1 リクエストの一生
+## 7.3 実装のポイント
 
-1. `src/main.py` が POST /invocations を受ける。HTTP 契約を知るのはこのファイルだけ
-2. Orchestrator (Sonnet) が依頼を調査観点に分解する
-3. 観点ごとに investigate ツール = SearchAgent (Haiku) が web_search で調べ、事実と出典を返す
-4. Orchestrator が報告に統合する
-5. コードが ReviewAgent (Sonnet) を必ず 1 回実行して検証する
-6. revise 判定なら修正を 1 回だけ試みて、結果を返す
-
-すべてのエージェントに guards（ツール上限・ターン上限・トークン計測）が付きます。
-ガードなしのエージェントはこのリポジトリに存在しません。
-
-## 7.3 ファイルと章の対応
+### 7.3.1 ファイルと章の対応
 
 | ファイル | 内容 | 章 |
 | --- | --- | --- |
@@ -55,7 +89,7 @@ SERVER_PORT=8181 uv run python -m src.main
 | `tests/`（38 件） | LLM を呼ばないテスト | 6 |
 | `src/main.py` / `Dockerfile` | エントリポイントとコンテナ | 8 |
 
-## 7.4 普段のコマンド
+### 7.3.2 普段のコマンド
 
 ```bash
 uv run pytest
@@ -68,10 +102,17 @@ uv run ruff check . && uv run mypy src
 設定は `cp .env.example .env` して編集します。各値の根拠は `.env.example` の
 コメントにあります。`.env` はコミットしないでください。
 
-## 7.5 読み方の提案
+### 7.3.3 読み方の提案
 
 `src/main.py`（60 行で骨格が見える）→ `orchestrator.py`（本体）→ `config.py`
 （設定の出どころ）の順が最短です。残りは対応する章を進めるときに精読すれば足ります。
+
+## 7.4 まとめ
+
+このディレクトリは教材の題材であると同時に、以降すべての章が改造していく本体です。
+**HTTP 契約は main.py、環境変数は config.py、上限ガードは guards.py という
+「知る場所を 1 つに絞る」構造**が、演習で安心して改造できる理由です。
+`uv run pytest` が通ることを確認したら、次は第8章でこの本体をコンテナに載せます。
 
 ## 次の章
 

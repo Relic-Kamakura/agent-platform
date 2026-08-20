@@ -1,4 +1,4 @@
-// エージェント基盤への転送ヘルパー（提供コード。第11章のハンズオン対象は route.ts 側）。
+// エージェント基盤への転送ヘルパー（提供コード。第12章のハンズオン対象は route.ts 側）。
 //
 // LOCAL_AGENT_URL が設定されていればローカルの 07-full-app（:8080）へ、
 // 無ければ AgentCore Runtime（AGENT_RUNTIME_ARN）へ転送する。

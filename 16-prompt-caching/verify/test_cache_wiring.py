@@ -1,4 +1,4 @@
-"""第15章の合格判定。設定とモデル生成の配線を検査する（AWS 不要）。"""
+"""第16章の合格判定。設定とモデル生成の配線を検査する（AWS 不要）。"""
 
 from __future__ import annotations
 
@@ -19,8 +19,8 @@ def _app_dir() -> pathlib.Path:
 def test_setting_exists_with_rationale() -> None:
     settings = Settings()
     if not hasattr(settings, "enable_prompt_cache"):
-        pytest.fail("Settings に enable_prompt_cache を追加してください（15.3 要件 1）。")
-    assert settings.enable_prompt_cache is False, "既定は False にしてください（15.3 要件 1）。"
+        pytest.fail("Settings に enable_prompt_cache を追加してください（16.3 要件 1）。")
+    assert settings.enable_prompt_cache is False, "既定は False にしてください（16.3 要件 1）。"
 
     config_src = (_app_dir() / "src/config.py").read_text(encoding="utf-8")
     idx = config_src.find("enable_prompt_cache")
@@ -34,7 +34,7 @@ def test_cache_config_wired_when_enabled() -> None:
     model = build_model(Settings(enable_prompt_cache=True), "search")
     cache = model.get_config().get("cache_config")
     assert cache is not None, (
-        "enable_prompt_cache=True のとき BedrockModel に cache_config が渡っていません（15.3 要件 2）。"
+        "enable_prompt_cache=True のとき BedrockModel に cache_config が渡っていません（16.3 要件 2）。"
     )
     assert getattr(cache, "strategy", None) == "auto", "CacheConfig(strategy='auto') を使ってください。"
 

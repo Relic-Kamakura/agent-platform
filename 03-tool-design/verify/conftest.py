@@ -20,7 +20,7 @@ def fetch_page_module():
     except ImportError:
         pytest.fail(
             "07-full-app/src/tools/fetch_page.py がまだありません。"
-            "README の 3.5 ハンズオンの要件に沿って実装してください。"
+            "README の 3.3 ハンズオンの要件に沿って実装してください。"
         )
     return fetch_page
 

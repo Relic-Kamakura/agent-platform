@@ -1,4 +1,4 @@
-"""第12章の合格判定。judges の挙動と、自作ケースの追加を検査する（AWS 不要）。"""
+"""第13章の合格判定。judges の挙動と、自作ケースの追加を検査する（AWS 不要）。"""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ try:
     from judges import judge_case
 except ModuleNotFoundError:
     pytest.fail(
-        "12-evaluation/judges.py がまだありません。README の 12.3 に沿って書いてください。",
+        "13-evaluation/judges.py がまだありません。README の 13.3 に沿って書いてください。",
         pytrace=False,
     )
 
@@ -50,7 +50,7 @@ def test_limits() -> None:
 def test_failures_are_messages_not_bools() -> None:
     failures = judge_case("r", {}, 0, {"contains": ["x"]})
     assert all(isinstance(f, str) and len(f) > 5 for f in failures), (
-        "判定は bool ではなく、理由が読める文字列で返してください（12.3 の設計方針）。"
+        "判定は bool ではなく、理由が読める文字列で返してください（13.3 の設計方針）。"
     )
 
 
@@ -64,7 +64,7 @@ def test_learner_added_cases() -> None:
     assert len(ids) == len(set(ids)), "ケース ID が重複しています。"
     added = [case for case in cases if case["id"] not in BASE_IDS]
     assert len(added) >= 2, (
-        f"自作ケースを 2 件以上追加してください（12.4）。現在の追加数: {len(added)}"
+        f"自作ケースを 2 件以上追加してください（13.4）。現在の追加数: {len(added)}"
     )
     for case in added:
         assert case.get("prompt"), f"{case['id']}: prompt が空です。"

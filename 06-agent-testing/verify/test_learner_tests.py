@@ -16,7 +16,7 @@ TEST_FILE = APP_DIR / "tests" / "test_fetch_page.py"
 def _source() -> str:
     if not TEST_FILE.exists():
         pytest.fail(
-            "07-full-app/tests/test_fetch_page.py がまだありません。README の 6.4 ハンズオンを確認してください。"
+            "07-full-app/tests/test_fetch_page.py がまだありません。README の 6.3 ハンズオンを確認してください。"
         )
     return TEST_FILE.read_text(encoding="utf-8")
 

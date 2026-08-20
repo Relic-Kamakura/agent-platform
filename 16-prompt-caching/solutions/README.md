@@ -1,4 +1,4 @@
-# 第15章 模範解答
+# 第16章 模範解答
 
 ## config.py への追加（「コスト・暴走対策」の節）
 
@@ -36,6 +36,6 @@ def build_model(settings: Settings, role: Role) -> BedrockModel:
 
 ```
 # プロンプトキャッシュ。書き込み割増があるため開発中は false、
-# ターン数の多い本番ワークロードで true にして第12章の eval で前後比較する
+# ターン数の多い本番ワークロードで true にして第13章の eval で前後比較する
 ENABLE_PROMPT_CACHE=false
 ```

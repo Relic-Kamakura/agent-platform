@@ -1,4 +1,4 @@
-"""第18章の模範解答。07-full-app/src/agents/review_agent.py の完成形。
+"""第19章の模範解答。07-full-app/src/agents/review_agent.py の完成形。
 
 ReviewAgent: Orchestrator の出力を検証する。判定は構造化出力で受け取る。
 

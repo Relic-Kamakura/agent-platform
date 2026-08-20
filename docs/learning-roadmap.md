@@ -5,17 +5,18 @@
 
 | Tier 項目 | 章 |
 | --- | --- |
-| 1-1 エージェントループ | 02-first-agent |
+| 1-1 エージェントループ | 02-agent-loop |
 | 1-2 ツール設計 | 03-tool-design |
 | 1-3 マルチエージェント | 05-multi-agent |
 | 1-4 セーフガード | 04-cost-control |
 | 1-5 エラー設計 | 03-tool-design |
 | 1-6 テスト | 06-agent-testing |
-| 1-7 認証・認可 / 基盤 | 01-invoke-bedrock, 08-agentcore-deploy, 09-infra-as-code（+ 10-auth 予定） |
-| 1-8 評価 | 12-evaluation |
-| 1-9 インジェクション耐性 | 13-security |
-| 1-10 ストリーミング | 11-frontend |
-| Tier 2 各項目 | 14-mcp / 15-prompt-caching / 16-guardrails / 17-hitl / 18-structured-output |
+| 1-7 認証・認可 / 基盤 | 01-invoke-bedrock, 08-agentcore-deploy, 09-infra-as-code, 11-auth |
+| 1-8 評価 | 13-evaluation |
+| 1-9 インジェクション耐性 | 14-prompt-injection |
+| 1-10 ストリーミング | 12-streaming |
+| Tier 2 各項目 | 15-mcp / 16-prompt-caching / 17-guardrails / 18-hitl / 19-structured-output |
+| Tier 3-1 の基礎（RAG / Knowledge Bases） | 10-knowledge-base |
 | Tier 3 各項目 | 99-appendix（入口ドキュメント） |
 
 - 対象: エージェント開発案件への参画を目指す部内メンバー（G4）
@@ -32,7 +33,7 @@
 | CoT (Chain of Thought) | 問題を思考ステップに分解させるプロンプト技法 | Orchestrator の「観点に分解してから調べる」システムプロンプトが該当 |
 | セーフガード（アプリ層） | ツール上限・ターン上限などコードで掛ける制御 | `src/guards.py` に実装済み |
 | ガードレール（マネージド層） | Bedrock Guardrails。入出力のフィルタリング | 未実装（Tier 2） |
-| RAG / Knowledge Bases | 外部知識の検索拡張生成。KB は AWS のマネージド RAG | 対象外（Tier 3。別モジュールとして学ぶ） |
+| RAG / Knowledge Bases | 外部知識の検索拡張生成。KB は AWS のマネージド RAG | 第10章で基礎（仕組みと retrieve ツール）を扱う。本格構成は Tier 3 |
 | プロンプトマネジメント | プロンプトの版管理と、変更時の退行検知 | 本質は「Git で版管理 + evals で退行検知」。ツール（Bedrock Prompt Management）はその後 |
 | HITL (Human-in-the-Loop) | エージェントの判断に人間の承認を挟む設計 | 未実装だが、実装基盤（`BeforeToolCallEvent` hook）は済み（Tier 2 演習） |
 
@@ -67,7 +68,7 @@
 
 | # | 項目 | 備考 |
 | --- | --- | --- |
-| 3-1 | RAG + Bedrock Knowledge Bases | 頻出。ただし本教材の題材（Web 検索型）と混ぜない。KB + S3 + ベクトル検索の最小構成を**別モジュール**として作る |
+| 3-1 | RAG + Bedrock Knowledge Bases | 頻出。仕組みの基礎と最小の retrieve は第10章で扱う。KB + S3 + ベクトル検索の本格構成は引き続き**別モジュール**として作る（本教材の題材と混ぜない） |
 | 3-2 | マルチターン会話 / AgentCore Memory | 現状のワンショット構成を会話型に拡張する題材 |
 | 3-3 | オブザーバビリティ（OTel / AgentCore Observability） | 分散トレース。運用フェーズの案件に入る前に |
 | 3-4 | AgentCore Gateway | 既存 API の MCP ツール化 |

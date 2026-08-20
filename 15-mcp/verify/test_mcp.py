@@ -1,4 +1,4 @@
-"""第14章の合格判定。サーバ起動からツール実行まで、プロトコル越しに検証する（LLM なし）。"""
+"""第15章の合格判定。サーバ起動からツール実行まで、プロトコル越しに検証する（LLM なし）。"""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ SERVER = CHAPTER_DIR / "01_mcp_server.py"
 @pytest.fixture(scope="module")
 def mcp_client():
     if not SERVER.exists():
-        pytest.fail("01_mcp_server.py がありません。README の 14.2 に沿って書いてください。")
+        pytest.fail("01_mcp_server.py がありません。README の 15.3 に沿って書いてください。")
     from mcp import StdioServerParameters
     from mcp.client.stdio import stdio_client
     from strands.tools.mcp import MCPClient
@@ -39,7 +39,7 @@ def test_tool_docstring_travels_over_protocol(mcp_client) -> None:
     description = str(spec.get("description", ""))
     assert "含まないもの" in description, (
         "docstring の 3 節（含まないもの）がプロトコル越しに届いていません。"
-        "MCP でも docstring がそのままツール定義になります（14.2）。"
+        "MCP でも docstring がそのままツール定義になります（15.3）。"
     )
 
 

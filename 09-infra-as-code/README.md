@@ -4,12 +4,32 @@ CDK (TypeScript) の本体であり、IaC を学ぶ章です。終えると、L2
 新しめのサービスを L1 で書け、IAM 実行ロールの信頼ポリシーに何を書くべきか、
 なぜスタックを分けるのかを説明できるようになります。
 
-## 9.1 L2 が無いサービスを書く
+依存を先に入れてください。
 
-CDK のコンストラクタには階層があります。
+```bash
+cd 09-infra-as-code
+npm ci
+```
+
+## 9.1 概要
+
+### 9.1.1 CDK とは
+
+インフラを TypeScript のコードとして定義し、CloudFormation テンプレートに変換して
+デプロイする IaC ツールです。コンソールの手作業と違い、何を作るかがコードレビューと
+差分確認（`npx cdk diff`）の対象になり、同じ構成を何度でも再現できます。
+
+```mermaid
+graph LR
+    TS["lib/*.ts<br/>(TypeScript)"] -->|cdk synth| CF["CloudFormation<br/>テンプレート"] -->|cdk deploy| R[AWS リソース]
+```
+
+コンストラクタには階層があります。
 
 - **L2**（`ecr.Repository` など） — 良い既定値とヘルパー付きの高水準 API
 - **L1**（`Cfn` 始まり） — CloudFormation リソースと 1 対 1。全プロパティを自分で書く
+
+### 9.1.2 L2 が無いサービスを書く
 
 AgentCore のような新しいサービスには L2 がまだありません。
 【開発時の実話】「stable な L2 Runtime がある」と書いた Web 記事を信じて設計し、
@@ -25,7 +45,9 @@ ls 09-infra-as-code/node_modules/aws-cdk-lib/aws-bedrockagentcore/lib/
 `lib/agent-runtime-stack.ts` は `CfnRuntime` を直接使っています。L1 は手間な代わり、
 CloudFormation リファレンスがそのまま読めるようになる副産物があります。
 
-## 9.2 スタックを 2 つに分けた理由
+## 9.2 実装のポイント
+
+### 9.2.1 スタックを 2 つに分けた理由
 
 AgentCore Runtime は、作成時点で ECR にイメージが存在することを要求します。
 ECR と Runtime を同じスタックに入れると、CloudFormation は「空のリポジトリを参照する
@@ -42,7 +64,7 @@ Runtime」を作ろうとして失敗します。
 2. `scripts/deploy.sh` が「ECR デプロイ → イメージ push → Runtime デプロイ」を強制する
 3. `cdk deploy --all` の直叩きは禁止（CLAUDE.md の禁止事項）
 
-## 9.3 IAM 実行ロール。レビューで見られる場所
+### 9.2.2 IAM 実行ロール。レビューで見られる場所
 
 `resolveExecutionRole()` が Runtime の実行ロールを定義しています。
 読みどころは信頼ポリシーです。
@@ -62,7 +84,7 @@ Runtime」を作ろうとして失敗します。
 ロールを自分で作れない組織向けに、context で既存ロール ARN を渡すと
 新規作成をスキップする分岐も入れてあります。
 
-## 9.4 環境差分は context で注入する
+### 9.2.3 環境差分は context で注入する
 
 リージョン・モデル ID・ロール ARN はコードに書かず、`cdk.json` の context に
 既定値を置いて `-c` で上書きします。context を読むのは `lib/config.ts` の
@@ -75,7 +97,7 @@ npx cdk deploy -c region=us-east-1 -c imageTag=v1.2.0
 `cdk synth` も覚えてください。テンプレート生成だけでデプロイはしないので、
 AWS 認証なしで「この変更で何が作られるか」を確認できます。次のハンズオンで使います。
 
-## 9.5 【ハンズオン】context 経由で Runtime の環境変数を追加する
+## 9.3 【ハンズオン】context 経由で Runtime の環境変数を追加する
 
 エージェントの `LOG_LEVEL` を CDK context から Runtime に注入できるようにします。
 
@@ -106,7 +128,14 @@ cd .. && ./09-infra-as-code/verify/verify.sh
 考えてみてください（記述・任意）。`-c logLevel=DEBUG` と `07-full-app/.env` の
 `LOG_LEVEL=DEBUG` は、それぞれいつ効くでしょうか。
 
+## 9.4 まとめ
+
+CloudFormation が保証するのはリソースの存在までで、「イメージが push 済みか」の
+ような管理外の状態には手が届きません。だからスタックを分け、順序は
+`scripts/deploy.sh` に持たせる。**IaC の境界を見極めて、足りない保証を手順で補う**
+のがこの章の核心です。verify を通したら、実デプロイの確認は
+docs/aws-checklist.md の該当項目で回収してください。
+
 ## 次の章
 
-第10章（Cognito / JWT）は Phase 3 で追加されます。それまでに第0〜9章の
-未消化のハンズオンを片付けておくのがおすすめです。
+[第10章 ナレッジベース](../10-knowledge-base/)

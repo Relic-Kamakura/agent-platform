@@ -36,7 +36,7 @@ uv run --project 07-full-app pytest 03-tool-design/verify -q
 | --- | --- |
 | [00-dev-environment](00-dev-environment/) | uv / Docker / AWS CLI で開発環境を整える |
 | [01-invoke-bedrock](01-invoke-bedrock/) | Bedrock で Claude を呼ぶ。クロスリージョン推論とモデル ID の解決 |
-| [02-first-agent](02-first-agent/) | エージェントループの仕組み。ReAct と CoT を実物のログで理解する |
+| [02-agent-loop](02-agent-loop/) | エージェントループの仕組み。ReAct と CoT を実物のログで理解する |
 | [03-tool-design](03-tool-design/) | ツール設計。docstring 仕様書・エラー設計・リトライ |
 | [04-cost-control](04-cost-control/) | hooks による上限とトークン計測。暴走を仕組みで止める |
 | [05-multi-agent](05-multi-agent/) | 役割分割とモデルの使い分け。裁量とコードの境界 |
@@ -44,15 +44,16 @@ uv run --project 07-full-app pytest 03-tool-design/verify -q
 | [07-full-app](07-full-app/) | 完成形の通読（演習の改造対象） |
 | [08-agentcore-deploy](08-agentcore-deploy/) | AgentCore Runtime のコンテナ契約・ARM64・デプロイ |
 | [09-infra-as-code](09-infra-as-code/) | CDK。IAM ロール設計とデプロイ順序 |
-| [10-auth](10-auth/) | 認証・認可。Cognito / JWT / Runtime の authorizer |
-| [11-frontend](11-frontend/) | Next.js。JWT 検証つき Route Handler とストリーミング表示 |
-| [12-evaluation](12-evaluation/) | 評価。判定関数・ケース設計・改善ループ |
-| [13-security](13-security/) | プロンプトインジェクション耐性と多層防御 |
-| [14-mcp](14-mcp/) | MCP サーバ。ツールのプロトコル分離 |
-| [15-prompt-caching](15-prompt-caching/) | プロンプトキャッシュ。前方一致とコスト実測 |
-| [16-guardrails](16-guardrails/) | Bedrock Guardrails。マネージド層の内容フィルタ |
-| [17-hitl](17-hitl/) | HITL。取り消せない操作への承認ゲート |
-| [18-structured-output](18-structured-output/) | 構造化出力。テキストパースの撤去 |
+| [10-knowledge-base](10-knowledge-base/) | RAG の仕組みと Bedrock Knowledge Bases。retrieve をツールとして設計する |
+| [11-auth](11-auth/) | 認証・認可。Cognito / JWT / Runtime の authorizer |
+| [12-streaming](12-streaming/) | Next.js。JWT 検証つき Route Handler とストリーミング表示 |
+| [13-evaluation](13-evaluation/) | 評価。判定関数・ケース設計・改善ループ |
+| [14-prompt-injection](14-prompt-injection/) | プロンプトインジェクション耐性と多層防御 |
+| [15-mcp](15-mcp/) | MCP サーバ。ツールのプロトコル分離 |
+| [16-prompt-caching](16-prompt-caching/) | プロンプトキャッシュ。前方一致とコスト実測 |
+| [17-guardrails](17-guardrails/) | Bedrock Guardrails。マネージド層の内容フィルタ |
+| [18-hitl](18-hitl/) | HITL。取り消せない操作への承認ゲート |
+| [19-structured-output](19-structured-output/) | 構造化出力。テキストパースの撤去 |
 | [99-appendix](99-appendix/) | 発展領域の入口（RAG / Memory / OTel / Gateway） |
 
 Tier 分けと習得判定は [docs/learning-roadmap.md](docs/learning-roadmap.md) にあります。
@@ -60,8 +61,9 @@ Tier 分けと習得判定は [docs/learning-roadmap.md](docs/learning-roadmap.m
 ## 順序と前提
 
 - 00 → 06 は直列（03 で作ったツールを 06 でテストする依存がある）
-- 08・09 は 03 まで終えていれば並行できる。10 は 9 の後、11 は 10 の後
-- 12 → 13 は連続で（13 の耐性 eval は 12 のハーネスに載る）。14〜18 は独立
+- 08・09 は 03 まで終えていれば並行できる。10 は 01 まで終えていれば独立に進められる
+- 11 は 9 の後、12 は 11 の後
+- 13 → 14 は連続で（14 の耐性 eval は 13 のハーネスに載る）。15〜19 は独立
 - すべての章の合格判定は AWS 認証なしで通せる。実機確認（要 AWS）は
   [docs/aws-checklist.md](docs/aws-checklist.md) で後からまとめて回収できる
 

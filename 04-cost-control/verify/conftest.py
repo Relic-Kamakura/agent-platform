@@ -19,6 +19,6 @@ def cost_limiter_cls():
         from src.guards import CostLimiter  # type: ignore[attr-defined]
     except ImportError:
         pytest.fail(
-            "src/guards.py に CostLimiter がまだありません。README の 4.4 ハンズオンの要件を確認してください。"
+            "src/guards.py に CostLimiter がまだありません。README の 4.3 ハンズオンの要件を確認してください。"
         )
     return CostLimiter

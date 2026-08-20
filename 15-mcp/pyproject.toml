@@ -1,7 +1,7 @@
 [project]
-name = "chapter14-mcp"
+name = "chapter15-mcp"
 version = "0.1.0"
-description = "第14章: MCP サーバ（写経ハンズオン）"
+description = "第15章: MCP サーバ（写経ハンズオン）"
 requires-python = ">=3.12"
 dependencies = ["strands-agents", "mcp"]
 

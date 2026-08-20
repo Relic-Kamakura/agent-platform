@@ -1,12 +1,12 @@
-// 第10章の模範解答。09-infra-as-code/lib/auth-stack.ts として配置する。
+// 第11章の模範解答。09-infra-as-code/lib/auth-stack.ts として配置する。
 import { CfnOutput, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import type { Construct } from 'constructs';
 
 /**
  * Cognito User Pool と App Client。
- * ここが発行するアクセストークンを、Route Handler（第11章）と
- * AgentCore Runtime の JWT authorizer（第10章で配線）の両方が検証する。
+ * ここが発行するアクセストークンを、Route Handler（第12章）と
+ * AgentCore Runtime の JWT authorizer（第11章で配線）の両方が検証する。
  */
 export class AuthStack extends Stack {
   public readonly discoveryUrl: string;

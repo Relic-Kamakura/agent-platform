@@ -87,7 +87,7 @@ class ResearchOrchestrator:
         """調査を 1 回実行する。
 
         on_stage: 進捗ステージ ("research" / "review" / "revise") ごとに呼ばれる。
-        ストリーミング応答（第11章）が UI へ進捗を流すために使う。
+        ストリーミング応答（第12章）が UI へ進捗を流すために使う。
         """
         notify = on_stage or (lambda _stage: None)
 

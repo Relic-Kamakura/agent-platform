@@ -29,6 +29,6 @@ def pricing_module():
     except ImportError:
         pytest.fail(
             "07-full-app/src/agents/pricing_agent.py がまだありません。"
-            "README の 5.5 ハンズオンの要件に沿って実装してください。"
+            "README の 5.3 ハンズオンの要件に沿って実装してください。"
         )
     return pricing_agent

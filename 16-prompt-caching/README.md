@@ -1,13 +1,18 @@
-# 第15章 プロンプトキャッシュ
+# 第16章 プロンプトキャッシュ
 
 この章を終えると、プロンプトキャッシュを設定で有効化でき、どんなプロンプト構造なら
 効くのか（効かないのか）を説明できるようになります。実装は 07-full-app への追加です。
 
-## 15.1 仕組み — キャッシュは前方一致
+## 16.1 概要
+
+### 16.1.1 何を解決するか
 
 エージェントはループのたびに、システムプロンプト・ツール定義・会話履歴の全体を
 モデルへ再送します（API はステートレス。第2章）。ターンが進むほど同じ前半部分を
 毎回フルコストで処理し直している——ここに効くのがプロンプトキャッシュです。
+前回と重なる部分の処理をモデル側が再利用し、その分の課金を下げる仕組みです。
+
+### 16.1.2 前方一致の仕組み
 
 仕組みは前方一致です。リクエストの先頭からの並びが前回と一致した部分は、
 モデル側が処理済みの状態を再利用し、大幅に安い単価で課金されます。
@@ -23,17 +28,18 @@
 - ツール定義の順序が実行のたびに変わる（set から生成している等）
 - ターンの途中でモデルやツール構成を切り替える
 
-07-full-app のシステムプロンプトが固定文字列で、動的な値を含まないのは
-この伏線でもありました。
-
-## 15.2 Strands での有効化
+## 16.2 実装のポイント
 
 Strands の `BedrockModel` は `cache_config` を受け取ります（実機で確認済み）。
 
 - `CacheConfig(strategy="auto")` — キャッシュポイントの配置を自動で行う。まずこれ
 - `CacheConfig(strategy="anthropic", ttl=...)` — Anthropic 方式の明示配置。細かく制御したいとき
 
-## 15.3 【ハンズオン】設定で切り替えられるようにする
+07-full-app のシステムプロンプトが固定文字列で、動的な値を含まないのは
+この伏線でもありました。現在時刻を埋め込みたくなった時点で、16.1.2 の
+「先頭 1 バイトの差」に引っかかり、キャッシュは全ターンで死にます。
+
+## 16.3 【ハンズオン】設定で切り替えられるようにする
 
 規約どおり、有効/無効は `.env` で切り替えられるようにします。
 
@@ -49,21 +55,21 @@ Strands の `BedrockModel` は `cache_config` を受け取ります（実機で�
 判定を流します（AWS 不要）。
 
 ```bash
-uv run --project 07-full-app pytest 15-prompt-caching/verify -q
+uv run --project 07-full-app pytest 16-prompt-caching/verify -q
 ```
 
 `3 passed` で合格です。
 
-## 15.4 【ハンズオン・要 AWS】効果を実測する
+## 16.4 【ハンズオン・要 AWS】効果を実測する
 
-第12章の eval にコスト集計があるので、前後比較がそのまま計測になります。
+第13章の eval にコスト集計があるので、前後比較がそのまま計測になります。
 
 ```bash
-ENABLE_PROMPT_CACHE=false uv run --project 07-full-app python 12-evaluation/run_eval.py
+ENABLE_PROMPT_CACHE=false uv run --project 07-full-app python 13-evaluation/run_eval.py
 ```
 
 ```bash
-ENABLE_PROMPT_CACHE=true uv run --project 07-full-app python 12-evaluation/run_eval.py
+ENABLE_PROMPT_CACHE=true uv run --project 07-full-app python 13-evaluation/run_eval.py
 ```
 
 トークン数の内訳と所要時間を比べてください。マルチエージェント構成（第5章）は
@@ -71,6 +77,14 @@ ENABLE_PROMPT_CACHE=true uv run --project 07-full-app python 12-evaluation/run_e
 効きます。単価の詳細は Bedrock の料金表で確認すること（モデルごとに
 キャッシュ読み取り・書き込みの係数が違うため、ここには書かない）。
 
+## 16.5 まとめ
+
+プロンプトキャッシュは **「先頭からの並びが前回と一致した部分だけ安くなる」** という
+単純な規則で動き、効くかどうかはプロンプトの構造で決まります。だから有効化は
+`cache_config` の 1 行でも、システムプロンプトを固定文字列に保つ設計判断のほうが
+本体です。まだなら 16.4 の実測比較を
+[docs/aws-checklist.md](../docs/aws-checklist.md) で回収してください。
+
 ## 次の章
 
-[第16章 Bedrock Guardrails](../16-guardrails/)
+[第17章 Bedrock Guardrails](../17-guardrails/)

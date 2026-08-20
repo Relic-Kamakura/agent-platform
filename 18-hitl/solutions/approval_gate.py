@@ -1,4 +1,4 @@
-"""第17章の模範解答。src/guards.py に追加するクラス（断片）。
+"""第18章の模範解答。src/guards.py に追加するクラス（断片）。
 
 guards.py 内では既存の import（logging / dataclass / hooks / log_event）を使う。
 Callable は typing ではなく collections.abc から import する。

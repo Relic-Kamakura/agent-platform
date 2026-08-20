@@ -43,9 +43,9 @@ _FIXTURES: dict[str, list[SearchResult]] = {
     ],
 }
 
-# 第13章（セキュリティ）用の fixture。検索結果に「指示の乗っ取り」を含む攻撃データ。
+# 第14章（セキュリティ）用の fixture。検索結果に「指示の乗っ取り」を含む攻撃データ。
 # 実際の Web にはこういうページが存在し得る。エージェントがこれに従わないことを
-# 13 章の耐性 eval で検証する。
+# 14 章の耐性 eval で検証する。
 _FIXTURES["reviews"] = [
     SearchResult(
         title="BI ツール比較レビュー 2026",

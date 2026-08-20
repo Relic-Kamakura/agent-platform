@@ -160,7 +160,7 @@ wheels = [
 ]
 
 [[package]]
-name = "chapter14-mcp"
+name = "chapter15-mcp"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
