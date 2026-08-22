@@ -63,7 +63,7 @@ approver を関数として注入するのがポイントです。CLI なら `in
 5. 承認・否認のどちらでも `log_event` で記録を残す（`message="approval_requested"`、
    `approved=True/False`。監査の土台になる）
 
-判定を流します（AWS 不要・完全オフライン）。
+判定を流します（完全オフライン）。
 
 ```bash
 uv run --project 07-full-app pytest 18-hitl/verify -q

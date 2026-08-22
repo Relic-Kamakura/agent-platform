@@ -65,7 +65,7 @@ Strands の `Agent` は `structured_output_model` に Pydantic モデルを渡�
 6. `07-full-app/tests/test_agents.py` の `_parse_verdict` のテストを、
    `_outcome_from` のテスト（ok / revise / None の 3 パス）に置き換える
 
-判定を流します（AWS 不要）。
+判定を流します。
 
 ```bash
 uv run --project 07-full-app pytest 19-structured-output/verify -q
@@ -77,7 +77,7 @@ cd 07-full-app && uv run pytest -q
 
 両方通れば合格です。詰まったら `solutions/review_agent.py` を見てください。
 
-## 19.4 【要 AWS】挙動を確認する
+## 19.4 挙動を確認する
 
 第13章の eval を流し、退行が無いことを確認してください。
 

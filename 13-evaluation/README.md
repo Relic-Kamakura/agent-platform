@@ -106,7 +106,7 @@ expect のキーは 13.2.1 の 5 種類です。書かれていないルール�
 分類から。mock プロバイダの固定データは `07-full-app/src/tools/providers/mock.py` に
 あるので、それを前提に期待条件を書きます。
 
-判定を流します（AWS 不要。判定関数とケースの構造だけを検査します）。
+判定を流します（判定関数とケースの構造だけを検査します）。
 
 ```bash
 uv run --project 07-full-app pytest 13-evaluation/verify -q
@@ -114,7 +114,7 @@ uv run --project 07-full-app pytest 13-evaluation/verify -q
 
 `5 passed` で合格です。
 
-## 13.5 【ハンズオン・要 AWS】改善ループを一周する
+## 13.5 【ハンズオン】改善ループを一周する
 
 実際にエージェントを走らせて評価し、プロンプトを直し、退行なしを確認します。
 

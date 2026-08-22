@@ -1,4 +1,4 @@
-"""第13章の合格判定。judges の挙動と、自作ケースの追加を検査する（AWS 不要）。"""
+"""第13章の合格判定。judges の挙動と、自作ケースの追加を検査する。"""
 
 from __future__ import annotations
 

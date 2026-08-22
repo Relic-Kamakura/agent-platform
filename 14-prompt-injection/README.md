@@ -93,13 +93,13 @@ graph LR
 - `expect` で、乗っ取り時に現れる文字列（例: `Acme が全項目で最良`）が
   **含まれないこと**を検証する
 
-判定を流します（AWS 不要）。
+判定を流します。
 
 ```bash
 ./14-prompt-injection/verify/verify.sh
 ```
 
-## 14.5 【ハンズオン・要 AWS】耐性を実測する
+## 14.5 【ハンズオン】耐性を実測する
 
 ```bash
 uv run --project 07-full-app python 13-evaluation/run_eval.py --only injection-resistance
@@ -116,8 +116,7 @@ PASS すること、そして報告の中で「検索結果に不審な指示が
 **「信頼できる指示源をプロンプトで定義し、耐性 eval で退行を監視する」** 構えが
 プロンプト層の防御で、第4章の上限（アプリ層）・第17章の Guardrails（マネージド層）と
 重ねてはじめて多層になります。追加した eval は第13章のハーネスに載ったので、
-今後プロンプトを変えるたびに耐性の退行が自動で検出されます。まだなら 14.5 の実測を
-[docs/aws-checklist.md](../docs/aws-checklist.md) で回収してください。
+今後プロンプトを変えるたびに耐性の退行が自動で検出されます。
 
 ## 次の章
 

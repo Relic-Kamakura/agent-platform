@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 第17章の合格判定。synth と配線の検査（AWS 不要）。
+# 第17章の合格判定。synth と配線の検査。
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"

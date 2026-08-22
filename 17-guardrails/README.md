@@ -88,13 +88,13 @@ PROMPT_ATTACK フィルタは第14章と直接つながります。プロンプ�
 6. `models.py` で、`guardrail_id` が設定されているときのみ `BedrockModel` に
    `guardrail_id` / `guardrail_version` を渡す（未設定なら渡さない）
 
-判定を流します（AWS 不要）。
+判定を流します。
 
 ```bash
 ./17-guardrails/verify/verify.sh
 ```
 
-## 17.4 【ハンズオン・要 AWS】発動を確認する
+## 17.4 【ハンズオン】発動を確認する
 
 ```bash
 cd 09-infra-as-code && npx cdk deploy AgentPlatformGuardrailStack

@@ -125,7 +125,7 @@ with client:
     print("result:", result["content"][0]["text"])
 ```
 
-実行します（AWS 不要）。
+実行します。
 
 ```bash
 uv run 02_list_tools.py
@@ -136,7 +136,7 @@ uv run 02_list_tools.py
 ツール一覧の要求 → ツール実行、をすべて JSON-RPC で行いました。
 Python 関数を直接 import した箇所はどこにもありません。
 
-## 15.5 【ハンズオン・要 AWS】エージェントから使う
+## 15.5 【ハンズオン】エージェントから使う
 
 `03_mcp_agent.py` を作成してください。15.4 のクライアントをエージェントに渡します。
 
@@ -184,7 +184,7 @@ uv run 03_mcp_agent.py
 uv run pytest -q
 ```
 
-`3 passed` で合格です（サーバ起動〜ツール実行まで検証します。AWS 不要）。
+`3 passed` で合格です（サーバ起動〜ツール実行まで検証します）。
 
 ## 15.7 発展
 

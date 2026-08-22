@@ -1,6 +1,6 @@
 """評価ハーネス。cases.jsonl の各ケースでエージェントを実行し、judges で判定する。
 
-実行（リポジトリルートから。要 AWS = Bedrock 呼び出しが発生する）:
+実行（リポジトリルートから。Bedrock 呼び出しが発生する）:
     uv run --project 07-full-app python 13-evaluation/run_eval.py
     uv run --project 07-full-app python 13-evaluation/run_eval.py --only pricing-comparison
 

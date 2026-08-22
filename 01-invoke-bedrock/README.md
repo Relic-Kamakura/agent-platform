@@ -139,7 +139,7 @@ usage = response["usage"]
 print(f"tokens: in={usage['inputTokens']} out={usage['outputTokens']}")
 ```
 
-実行します(要 AWS。未認証ならスキップして 1.4 へ進み、認証後に戻ってくる)。
+実行します。
 
 ```bash
 uv run 01_converse.py
@@ -186,7 +186,7 @@ if __name__ == "__main__":
         print(f"{region:16} -> {resolve_model_id('anthropic.claude-haiku-4-5', region)}")
 ```
 
-実装できたら動かします(AWS 不要)。
+実装できたら動かします。
 
 ```bash
 uv run 02_inference_profile.py
@@ -238,7 +238,7 @@ uv run 03_config_check.py
 本体ではさらに、解決後の実 ID を起動ログに出す・不正な設定は起動時に落とす、という
 運用の工夫が乗っています。`.env.example` の [確定] / [未確定] コメントも読んでおいてください。
 
-## 1.6 【ハンズオン・要 AWS】実在確認
+## 1.6 【ハンズオン】実在確認
 
 ID を間違えると `ValidationException` が返ります。案件初日にこれを打つ癖をつけてください。
 

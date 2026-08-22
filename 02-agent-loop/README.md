@@ -98,7 +98,7 @@ if __name__ == "__main__":
     print(f"\ncycles: {result.metrics.cycle_count}")
 ```
 
-実行します（要 AWS。未認証なら書くところまで進めて、実行は後で回収する）。
+実行します。
 
 ```bash
 uv run 01_agent.py
@@ -144,7 +144,7 @@ uv run 01_agent.py
 3. `Agent` の `tools` に `now` と `char_count` の両方を渡す
 4. `__main__` では「『こんにちは世界』は何文字？」と質問する
 
-実行します（要 AWS）。
+実行します。
 
 ```bash
 uv run 02_add_tool.py
@@ -173,7 +173,7 @@ for question in ("こんにちは", "今日は何日？『こんにちは世界�
     print(f"  cycles={result.metrics.cycle_count}  tokens={usage.get('totalTokens')}")
 ```
 
-実行します（要 AWS）。
+実行します。
 
 ```bash
 uv run 03_metrics.py
@@ -189,7 +189,7 @@ uv run 03_metrics.py
 uv run pytest -q
 ```
 
-`6 passed` で合格です（AWS 不要。エージェントの構造だけを検査します）。
+`6 passed` で合格です（エージェントの構造だけを検査します）。
 
 ## 2.8 まとめ
 

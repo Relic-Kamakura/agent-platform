@@ -129,7 +129,7 @@ if __name__ == "__main__":
         print(f"{s:.2f} | {c[:40]}")
 ```
 
-実装できたら動かします(AWS 不要)。
+実装できたら動かします。
 
 ```bash
 uv run 01_mini_rag.py
@@ -145,7 +145,7 @@ uv run pytest -q
 
 `6 passed` で合格です。詰まったら `solutions/01_mini_rag.py` を見てください。
 
-## 10.4 【ハンズオン・要 AWS】Bedrock Knowledge Bases で同じことをする
+## 10.4 【ハンズオン】Bedrock Knowledge Bases で同じことをする
 
 自作したパイプラインのマネージド版を 1 回呼びます。Knowledge Base の作成は
 コンソールから行ってください(S3 バケットにテキストを数枚置き、Knowledge Base を

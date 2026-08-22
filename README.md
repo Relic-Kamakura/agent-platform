@@ -22,8 +22,6 @@ AI エージェント開発を、動くコードを改造しながら習得す�
 1. fork するか個人ブランチを切る（ハンズオンで本体 `07-full-app/` を書き換えるため）
 2. `00-dev-environment/README.md` を開き、指示どおりに環境を作る
 3. 以降は番号順。詰まったら各章の `solutions/` を見てよい
-4. AWS 認証が無い間は要 AWS の確認を飛ばしてよい。復旧したら
-   [docs/aws-checklist.md](docs/aws-checklist.md) の順にまとめて回収する
 
 ```bash
 # 合格判定の例（章によっては verify.sh）
@@ -64,8 +62,6 @@ Tier 分けと習得判定は [docs/learning-roadmap.md](docs/learning-roadmap.m
 - 08・09 は 03 まで終えていれば並行できる。10 は 01 まで終えていれば独立に進められる
 - 11 は 9 の後、12 は 11 の後
 - 13 → 14 は連続で（14 の耐性 eval は 13 のハーネスに載る）。15〜19 は独立
-- すべての章の合格判定は AWS 認証なしで通せる。実機確認（要 AWS）は
-  [docs/aws-checklist.md](docs/aws-checklist.md) で後からまとめて回収できる
 
 ## 困ったら
 

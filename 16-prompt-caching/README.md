@@ -52,7 +52,7 @@ Strands の `BedrockModel` は `cache_config` を受け取ります（実機で�
 3. `.env.example` に `ENABLE_PROMPT_CACHE=false` を根拠コメント付きで追記する
 4. 既存テストを壊さない
 
-判定を流します（AWS 不要）。
+判定を流します。
 
 ```bash
 uv run --project 07-full-app pytest 16-prompt-caching/verify -q
@@ -60,7 +60,7 @@ uv run --project 07-full-app pytest 16-prompt-caching/verify -q
 
 `3 passed` で合格です。
 
-## 16.4 【ハンズオン・要 AWS】効果を実測する
+## 16.4 【ハンズオン】効果を実測する
 
 第13章の eval にコスト集計があるので、前後比較がそのまま計測になります。
 
@@ -82,8 +82,7 @@ ENABLE_PROMPT_CACHE=true uv run --project 07-full-app python 13-evaluation/run_e
 プロンプトキャッシュは **「先頭からの並びが前回と一致した部分だけ安くなる」** という
 単純な規則で動き、効くかどうかはプロンプトの構造で決まります。だから有効化は
 `cache_config` の 1 行でも、システムプロンプトを固定文字列に保つ設計判断のほうが
-本体です。まだなら 16.4 の実測比較を
-[docs/aws-checklist.md](../docs/aws-checklist.md) で回収してください。
+本体です。
 
 ## 次の章
 

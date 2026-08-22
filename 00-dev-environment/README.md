@@ -10,7 +10,7 @@
 両方を扱うため、2 つのツールチェーンを先に揃えます。
 
 - **uv** — Python の環境・依存管理する。venv の activate は不要
-- **AWS CLI** — モデル一覧の確認とデプロイに使います。この章の時点では未認証で構いません。Sandboxを申請して使用してください。
+- **AWS CLI** — モデル一覧の確認とデプロイに使います
 - **Node.js / npm** — CDK（第9章）用
 
 ## 0.2 【ハンズオン】環境を構築する
@@ -23,7 +23,26 @@ Docker Desktop は公式サイトから入れてください。
 brew install uv node awscli jq
 ```
 
-### 0.2.2 エージェント本体のテストを通す
+### 0.2.2 AWS に接続する
+
+```bash
+aws login
+```
+
+ブラウザが開くのでサインインしてください。CLI に認証情報が保存されます
+（環境によっては `aws sso login`）。誰として繋がったかを確認します。
+
+```bash
+aws sts get-caller-identity
+```
+
+Account と Arn が表示されるはずです。
+
+続けて、AWS コンソールの Bedrock → Model access で、使用するモデル（Claude 系）を
+有効化してください。ここはコンソールでしかできない操作です。未申請のままだと
+第1章のモデル呼び出しが `AccessDeniedException` で落ちます。
+
+### 0.2.3 エージェント本体のテストを通す
 
 ```bash
 cd 07-full-app
@@ -37,7 +56,7 @@ uv run pytest -q
 `38 passed` と出るはずです。botocore の例外で落ちたら
 `docs/troubleshooting.md` の先頭項目を読んでください。開発中に同じ現象を踏んでいます。
 
-### 0.2.3 CDK の依存を入れる
+### 0.2.4 CDK の依存を入れる
 
 ```bash
 cd ../09-infra-as-code
@@ -50,18 +69,19 @@ npx tsc --noEmit
 
 何も表示されなければ型チェック成功です。
 
-### 0.2.4 環境チェックを流す
+### 0.2.5 環境チェックを流す
 
 ```bash
 cd ..
 ./scripts/check_env.sh
 ```
 
+セクション 3〜5（AWS 認証・リージョン・モデルアクセス）まで全 OK が出るはずです。
+
 ## 0.3 合格条件
 
 - pytest 38 件パス
-- check_env.sh のセクション 1（コマンド）と 2（ARM64 ビルド）が全 OK
-- セクション 3〜5 は AWS 認証後に確認すればよい
+- check_env.sh の全セクションが OK
 
 ## 0.4 まとめ
 

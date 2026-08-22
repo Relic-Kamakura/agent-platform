@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 第14章の合格判定。プロンプトの堅牢化と耐性 eval ケースを検査する（AWS 不要）。
+# 第14章の合格判定。プロンプトの堅牢化と耐性 eval ケースを検査する。
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -52,7 +52,7 @@ fi
 
 echo
 if [ "$FAILED" = "0" ]; then
-  printf '\033[32m第14章 合格（実測は要 AWS の 14.5 で）。\033[0m\n'
+  printf '\033[32m第14章 合格（実測は 14.5 で）。\033[0m\n'
 else
   printf '\033[31m未達の項目があります。\033[0m\n'
 fi

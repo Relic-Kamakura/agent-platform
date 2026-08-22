@@ -117,7 +117,7 @@ CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth AgentPlatformRuntimeStack | grep 
 
 詰まったら `solutions/` を見てください。
 
-## 11.4 【ハンズオン・要 AWS】トークンを取得して呼び出す
+## 11.4 【ハンズオン】トークンを取得して呼び出す
 
 デプロイし、テストユーザを作り、実際のトークンで呼び出します。
 
@@ -152,8 +152,7 @@ aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH \
 この分離が OpenID Connect の設計で、だからアプリの入口（Route Handler）と基盤
 （Runtime の JWT authorizer）の **二重の門番** を同じ User Pool から配線できます。
 次の第12章では、この経路のブラウザ側、つまり③の JWT 検証を持つ Route Handler を
-自分で書きます。AWS 認証が無い場合は 11.4 を飛ばし、`docs/aws-checklist.md` で
-後から回収してください。
+自分で書きます。
 
 ## 次の章
 

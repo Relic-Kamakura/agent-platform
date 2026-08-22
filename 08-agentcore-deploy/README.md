@@ -97,7 +97,7 @@ curl -XPOST http://127.0.0.1:8181/invocations \
   -H 'Content-Type: application/json' -d '{"prompt":""}'
 ```
 
-空プロンプトはモデルを呼ばずにエラー応答を返す設計なので、AWS 認証なしで
+空プロンプトはモデルを呼ばずにエラー応答を返す設計なので、ローカルのコンテナだけで
 契約検証ができます。終わったら片付けます。
 
 ```bash
@@ -152,7 +152,7 @@ verify.sh が本体（8.3）と自作 Dockerfile（8.4）の両方を自動判�
 ./08-agentcore-deploy/verify/verify.sh
 ```
 
-## 8.5 【ハンズオン・要 AWS】デプロイして 1 回呼び出す
+## 8.5 【ハンズオン】デプロイして 1 回呼び出す
 
 ```bash
 ./scripts/deploy.sh

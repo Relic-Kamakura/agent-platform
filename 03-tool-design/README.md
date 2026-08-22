@@ -105,7 +105,7 @@ uv run --project 07-full-app pytest 03-tool-design/verify -q
 
 `6 passed` で合格です。詰まったら `solutions/fetch_page.py` を見て構いません。
 
-余裕があれば（要 AWS）、作ったツールを `02-agent-loop/01_agent.py` に追加し、
+余裕があれば、作ったツールを `02-agent-loop/01_agent.py` に追加し、
 「https://example.com の内容を要約して」で呼ばれることを確認してください。
 
 ## 3.4 まとめ

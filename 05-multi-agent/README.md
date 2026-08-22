@@ -113,7 +113,7 @@ uv run --project 07-full-app pytest 05-multi-agent/verify -q
 cd 07-full-app && uv run pytest -q
 ```
 
-両方通れば合格です。余裕があれば（要 AWS）、mock プロバイダのまま
+両方通れば合格です。余裕があれば、mock プロバイダのまま
 「Acme と Globex の pricing を比較して」で比較表が返ることを確認してください。
 
 ## 5.4 まとめ
