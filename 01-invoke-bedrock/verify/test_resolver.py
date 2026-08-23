@@ -12,7 +12,7 @@ try:
     impl = import_module("02_inference_profile")
 except ModuleNotFoundError:
     pytest.fail(
-        "02_inference_profile.py がまだありません。README の 1.4 に沿って作成してください。",
+        "02_inference_profile.py がまだありません。README の 1.5 に沿って作成してください。",
         pytrace=False,
     )
 
@@ -30,7 +30,7 @@ except ModuleNotFoundError:
 def test_derive_prefix(region: str, expected: str) -> None:
     assert impl.derive_prefix(region) == expected, (
         f"derive_prefix({region!r}) が {expected!r} になりません。"
-        "README 1.4 のヒント（末尾 2 要素を落とす・補正表を通す）を読み直してください。"
+        "README 1.5 のヒント（末尾 2 要素を落とす・補正表を通す）を読み直してください。"
     )
 
 
@@ -50,7 +50,7 @@ def test_resolve_priority() -> None:
 
 def test_converse_script_exists() -> None:
     path = pathlib.Path(__file__).resolve().parents[1] / "01_converse.py"
-    assert path.exists(), "01_converse.py がありません。README 1.3 の写経から始めてください。"
+    assert path.exists(), "01_converse.py がありません。README 1.4 の写経から始めてください。"
     source = path.read_text(encoding="utf-8")
     assert "converse" in source, "01_converse.py で client.converse(...) を呼んでください。"
     assert "usage" in source, "01_converse.py で消費トークン（response['usage']）も表示してください。"

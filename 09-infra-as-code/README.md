@@ -36,14 +36,16 @@ AgentCore のような新しいサービスには L2 がまだありません。
 実装段階で `node_modules` の型定義を開いたら存在しませんでした。
 aws-cdk-lib 2.264.0 の aws-bedrockagentcore に入っているのは L1 だけです。
 
-持ち帰るべきは確認方法です。記事より型定義。
+この失敗から持ち帰るべきは確認方法です。Web 記事の記述より、
+手元の `node_modules` にある型定義を信頼してください。
 
 ```bash
 ls 09-infra-as-code/node_modules/aws-cdk-lib/aws-bedrockagentcore/lib/
 ```
 
-`lib/agent-runtime-stack.ts` は `CfnRuntime` を直接使っています。L1 は手間な代わり、
-CloudFormation リファレンスがそのまま読めるようになる副産物があります。
+`lib/agent-runtime-stack.ts` は `CfnRuntime` を直接使っています。L1 は全プロパティを
+自分で書く手間がかかる代わり、CloudFormation リファレンスがそのまま読めるように
+なる副産物があります。
 
 ## 9.2 実装のポイント
 
@@ -62,7 +64,7 @@ Runtime」を作ろうとして失敗します。
 
 1. スタックを EcrStack と AgentRuntimeStack に分割する
 2. `scripts/deploy.sh` が「ECR デプロイ → イメージ push → Runtime デプロイ」を強制する
-3. `cdk deploy --all` の直叩きは禁止（CLAUDE.md の禁止事項）
+3. `cdk deploy --all` の直接実行は禁止（CLAUDE.md の禁止事項）
 
 ### 9.2.2 IAM 実行ロール。レビューで見られる場所
 
@@ -126,12 +128,13 @@ cd .. && ./09-infra-as-code/verify/verify.sh
 ```
 
 考えてみてください（記述・任意）。`-c logLevel=DEBUG` と `07-full-app/.env` の
-`LOG_LEVEL=DEBUG` は、それぞれいつ効くでしょうか。
+`LOG_LEVEL=DEBUG` は、それぞれどの環境（ローカル実行とデプロイ済み Runtime）の
+ログ設定に反映されるでしょうか。
 
 ## 9.4 まとめ
 
 CloudFormation が保証するのはリソースの存在までで、「イメージが push 済みか」の
-ような管理外の状態には手が届きません。だからスタックを分け、順序は
+ような管理外の状態は保証できません。だからスタックを分け、順序は
 `scripts/deploy.sh` に持たせる。**IaC の境界を見極めて、足りない保証を手順で補う**
 のがこの章の核心です。
 

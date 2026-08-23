@@ -72,3 +72,9 @@ def invoke(payload: dict) -> dict | Iterator[dict]:
 
     result = _orchestrator.run(question)
     return {"request_id": request_id, **result.to_payload()}
+
+
+if __name__ == "__main__":
+    # BedrockAgentCoreApp.run() は host 省略時に 127.0.0.1 へ bind するため、
+    # コンテナ契約 (0.0.0.0:8080) を満たすよう明示する。SERVER_PORT はローカル開発用の逃し先
+    app.run(host=_settings.server_host, port=_settings.server_port)

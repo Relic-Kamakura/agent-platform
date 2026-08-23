@@ -22,7 +22,7 @@ def build_model(settings: Settings, role: Role) -> BedrockModel:
     kwargs = {}
     if settings.enable_prompt_cache:
         # strategy="auto": キャッシュポイントの配置を Strands に任せる。
-        # システムプロンプト・ツール定義が固定（動的な値を含まない）ことが効く前提
+        # システムプロンプト・ツール定義が固定（動的な値を含まない）ことがキャッシュ再利用の前提
         kwargs["cache_config"] = CacheConfig(strategy="auto")
     return BedrockModel(
         region_name=settings.aws_region,

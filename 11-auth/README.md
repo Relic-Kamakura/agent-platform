@@ -20,7 +20,7 @@ inbound JWT authorizer を配線できるようになります。「誰がエー
 
 ### 11.1.2 認証経路の全体像
 
-このリポジトリの完成形の経路です。AWS の認証情報をブラウザに出さないことが柱です。
+このリポジトリの完成形の経路です。設計の原則は、AWS の認証情報をブラウザに置かないことです。
 
 ```
 ブラウザ ── ①ログイン ──→ Cognito（ID/アクセストークンを発行）
@@ -32,8 +32,8 @@ Next.js Route Handler（サーバ側）── ③JWT を検証 ── ④AWS SDK
 AgentCore Runtime ── ⑤Runtime 側でも JWT authorizer が検証（この章で配線）
 ```
 
-③と⑤で二重に検証しているのは役割が違うからです。③はアプリの入口の門番、
-⑤は「Route Handler を経由しない直叩き」を防ぐ基盤側の門番です。
+③と⑤で二重に検証しているのは役割が違うからです。③はアプリの入口での検証、
+⑤は Route Handler を経由せずに Runtime を直接呼び出す経路を塞ぐ、基盤側の検証です。
 
 ### 11.1.3 Cognito と JWT の仕組み
 
@@ -41,11 +41,11 @@ Cognito User Pool はユーザディレクトリ + トークン発行者です�
 3 種のトークンが返ります。
 
 - **ID トークン** — ユーザ属性（メール等）を含む。画面表示用
-- **アクセストークン** — API 呼び出しの認可に使う。今回の主役
-- **リフレッシュトークン** — 上 2 つを再発行するための長寿命トークン
+- **アクセストークン** — API 呼び出しの認可に使う。この章で使うのはこれ
+- **リフレッシュトークン** — ID トークンとアクセストークンを再発行するための長寿命トークン
 
 検証側は署名を確かめる必要があります。User Pool は公開鍵一覧（JWKS）を
-既知の URL で公開しており、その入口が **discovery URL** です。
+既知の URL で公開しており、その場所を検証側に知らせる URL が **discovery URL** です。
 
 ```
 https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/openid-configuration
@@ -65,8 +65,8 @@ Runtime には JWT authorizer を設定できます（`CfnRuntime` の
 - `allowedAudience` — aud クレームの許可リスト
 
 これを設定すると、`InvokeAgentRuntime` の呼び出しに有効な JWT が必要になります。
-第9章で書いた `AgentRuntimeStack` は既にこの口（`jwtDiscoveryUrl` /
-`jwtAllowedClients` props）を持っています。この章では Cognito 側を作って配線します。
+第9章で書いた `AgentRuntimeStack` は、この設定を受け取る props
+（`jwtDiscoveryUrl` / `jwtAllowedClients`）を既に持っています。この章では Cognito 側を作って配線します。
 
 ## 11.3 【ハンズオン】AuthStack を書いて配線する
 
@@ -107,7 +107,8 @@ Runtime 側への配線も確認します。
 CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth AgentPlatformRuntimeStack | grep -A3 CustomJWTAuthorizer
 ```
 
-`DiscoveryUrl` に Cognito の URL（トークン参照）が入っていれば配線成功です。
+`DiscoveryUrl` に Cognito の URL が入っていれば配線成功です
+（synth 時点では実値でなく `Fn::Join` などの参照形式で表示されます）。
 
 ### 11.3.4 合格判定
 
@@ -148,11 +149,11 @@ aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH \
 
 ## 11.5 まとめ
 
-認証は Cognito に任せ、認可の判定は discovery URL を知っている側なら誰でもできる——
-この分離が OpenID Connect の設計で、だからアプリの入口（Route Handler）と基盤
-（Runtime の JWT authorizer）の **二重の門番** を同じ User Pool から配線できます。
-次の第12章では、この経路のブラウザ側、つまり③の JWT 検証を持つ Route Handler を
-自分で書きます。
+トークンの発行は Cognito が担い、検証は discovery URL から公開鍵を取れる側なら
+誰でも行えます。発行と検証を分離しているのが OpenID Connect の設計で、この分離が
+あるから、アプリの入口（Route Handler）と基盤（Runtime の JWT authorizer）の
+**二重の検証** を同じ User Pool から配線できます。次の第12章では、この経路の
+残り、③の JWT 検証を行う Route Handler を自分で書きます。
 
 ## 次の章
 

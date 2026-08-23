@@ -20,6 +20,9 @@
 テストは `07-full-app/tests/conftest.py` でダミーの AWS 認証情報を注入し、環境から独立させている。
 アプリを実際に動かす場合は有効な認証情報を用意する。
 
+第1章のように章のスクリプトで実際に Bedrock を呼ぶ場合は、同じ例外が実行時に出る。
+その章のディレクトリで `uv add 'botocore[crt]'` を実行して依存に追加する。
+
 ### 症状: ローカル起動で `[Errno 48] address already in use`、`curl :8080` が nginx の 404 を返す
 
 **原因**
@@ -144,7 +147,18 @@ AgentCore Runtime は作成時点で `containerUri` のイメージが存在し�
 
 ## Bedrock モデル
 
-（未遭遇）
+### 症状: Converse 呼び出しが `ValidationException: The provided model identifier is invalid` で失敗する
+
+**原因**
+モデル ID の地理接頭辞が呼び出し元リージョンと合っていない。教材の既定値は
+東京前提の `apac.` なので、us-east-1 など他地理のリージョンではそのままだと必ず失敗する。
+さらに接頭辞が合っていても、そのモデルの推論プロファイルがリージョンに存在しない
+場合は同じ例外になる（今回は us-east-1 に Haiku 4.5 のプロファイルが無かった）。
+
+**対処**
+`aws bedrock list-inference-profiles --region <region>` で実在する ID の一覧を確認し、
+第1章のスクリプトは環境変数 `MODEL_ID`、本体は `07-full-app/.env` の `MODEL_ID_*` を
+一覧にある ID に合わせる。`./scripts/check_env.sh` のセクション 5 がこの確認を自動化している。
 
 ---
 
