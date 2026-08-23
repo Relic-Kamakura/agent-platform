@@ -20,4 +20,5 @@ cdk.out/
 .env.local
 
 # Claude Code のローカル設定
+.clade
 .claude/settings.local.json

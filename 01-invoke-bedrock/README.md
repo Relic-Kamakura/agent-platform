@@ -1,14 +1,20 @@
 # 第1章 Bedrock で Claude を呼び出す
 
 この章を終えると、Bedrock の Converse API を SDK から直接呼べるようになり、
-クロスリージョン推論のモデル ID 解決を自分の手で実装した状態になります。
+1 回の呼び出しの料金を usage から概算でき、同期とストリーミングの応答の差を
+実測した状態になります。
 
 この章は独立した uv プロジェクトです。最初に依存を入れてください。
+`aws login` の認証情報の解決に必要な `botocore[crt]` もここで入ります。
 
 ```bash
 cd 01-invoke-bedrock
 uv sync
 ```
+
+ハンズオンは `exercises/` のコードを自分で完成させる形式です。大枠は書いてあり、
+TODO の部分だけを実装して実行します。完成形は `solutions/` にあり、
+初期状態に戻したくなったら `git checkout -- exercises/` で戻せます。
 
 ## 1.1 概要
 
@@ -18,48 +24,112 @@ Amazon Bedrock は、複数ベンダーの基盤モデル(Anthropic Claude、Ama
 Meta Llama など)を単一の API で呼び出せる AWS のフルマネージドサービスです。
 モデルプロバイダと個別に契約せず、AWS アカウントだけで生成 AI アプリケーションを構築できます。
 
-エンタープライズで選ばれる理由は能力ではなく統制にあります。
+エンタープライズで選ばれる理由は統制にあります。
 
 - 呼び出し権限を IAM で管理できる(API キーの配布・失効管理が不要)
 - データの処理地域を制御できる(1.1.3 の地理境界)
 - 入出力がモデルの学習に使われない
 - CloudTrail / CloudWatch など既存の監査・監視系に乗る
 
-呼び出しには Converse API を使います。モデルごとに違うリクエスト形式を統一した層で、
-ツール定義(第3章)もここで吸収されます。エージェントフレームワーク経由でもエラーは
-この Converse API の形式で返ってくるので、一度フレームワークを介さず直接呼んでおくと、
-障害時にエラーがどの層から来たのかを切り分けやすくなります。
-
 ### 1.1.2 Bedrock が解決すること
 
 | 課題 | Bedrock での解決 |
 | --- | --- |
-| プロバイダごとに API・SDK・課金がバラバラ | Converse API と AWS 請求に統一。モデル乗り換えは ID の差し替えで済む |
+| プロバイダごとに API も SDK も課金もバラバラ | Converse API と AWS 請求に統一。モデル乗り換えは ID の差し替えで済む |
 | API キーの発行・保管・ローテーション | IAM の認証情報で呼び出すため、API キーを発行・管理する作業がそもそも発生しない |
 | 入力データの取り扱い不安 | 入出力はモデルの学習に使われない |
 
-### 1.1.3 クロスリージョン推論プロファイル
+### 1.1.3 Converse API
 
-新しめの Claude は、単一リージョンのオンデマンド呼び出しではなく
-クロスリージョン推論プロファイル経由でしか呼べないものが多くなっています。
-1 リージョンの容量に縛られず、複数リージョンへ自動で負荷分散する仕組みです。
+モデル呼び出しには Converse API を使います。モデルごとに異なるリクエスト形式を
+統一した層で、Claude でも Nova でも同じ形で呼べます。モデルの乗り換えが
+`modelId` の差し替えだけで済むのはこの層のおかげです。
 
-仕様：
+リクエストとレスポンスの構造は 3 つ覚えれば足ります。
 
-- プロファイル ID は地理接頭辞 + モデル ID。`apac.` / `us.` / `eu.`(別途 `global.` もある)
-- リクエストは同一地理内の宛先リージョンへ自動ルーティングされる。
-  `apac.` なら推論ペイロードは APAC 圏の外に出ない
-- 宛先リージョンを自分で有効化しておく必要はない
-- 追加料金なし。課金は**呼び出し元リージョンの単価**で計算される
-- 地理プロファイルの宛先リストは不変。AWS が後からリージョンを追加することはない
+- `messages` は `role`（user / assistant）と `content` の配列。会話履歴もこの配列に積む
+- `inferenceConfig` は `maxTokens` や `temperature` など生成の制御
+- レスポンスは `output` に応答本文、`usage` に消費トークン数
 
-厄介なのは接頭辞の導出です。ap-northeast-1 の接頭辞は `ap` ではなく `apac`。
-リージョン名の機械的な切り出しでは足りず、対応表が要ります。
+```python
+response = client.converse(
+    modelId="<推論プロファイル ID>",
+    messages=[
+        {"role": "user", "content": [{"text": "質問文"}]},
+    ],
+    inferenceConfig={"maxTokens": 300},
+)
 
-### 1.1.4 Bedrock の機能の位置づけ
+response["output"]["message"]["content"][0]["text"]  # 応答本文
+response["usage"]  # {"inputTokens": ..., "outputTokens": ..., ...}
+```
 
-Bedrock は「モデル呼び出し」の機能の上に、周辺機能が載る構造です。
-本教材が主に使うのはモデル呼び出しと AgentCore で、エージェント自体は
+ツール定義(第3章)もこの API の `toolConfig` で渡します。エージェントフレームワーク
+経由でもエラーは Converse API の形式で返ってくるため、一度フレームワークを介さず
+直接呼んでおくと、障害時にどの層のエラーかを切り分けやすくなります。
+
+### 1.1.4 トークンと料金
+
+モデルは文章をトークンという単位に分割して処理します。課金もこの単位で、
+入力トークン数 × 入力単価 + 出力トークン数 × 出力単価が 1 回の呼び出しの料金です。
+単価はモデルとリージョンごとに決まり、出力は入力より数倍高くなっています
+（Sonnet 系は入力 $3 / 出力 $15、100万トークンあたり。最新は Bedrock 料金ページで確認）。
+単価が 100万トークンあたりなので、計算はこうなります。
+
+```python
+cost = usage["inputTokens"] * 入力単価 / 1_000_000 + usage["outputTokens"] * 出力単価 / 1_000_000
+```
+
+つまりコストを決めるのは呼び出し回数だけでなく、何を入れて何を出させるかです。
+長いシステムプロンプト、積み上がる会話履歴、冗長な出力がそのまま金額になります。
+レスポンスの `usage` に実測値が入っており、これをログに出し続けることが
+第4章のコスト制御の土台になります。実測は 1.5 で行います。
+
+### 1.1.5 同期・ストリーミング・非同期
+
+呼び出し方は 3 つあり、応答の受け取り方が違います。
+
+| 方式 | API | 応答の受け取り方 |
+| --- | --- | --- |
+| 同期 | `converse` | 生成が終わってから全文を一括で受け取る |
+| ストリーミング | `converse_stream` | 生成されたそばからチャンクで受け取る |
+| 非同期 | `start_async_invoke` | ジョブを投入し、結果は後から S3 で受け取る。動画生成など長時間処理向けで、Claude のテキスト生成では使わない |
+
+ストリーミングの応答はイベントの列です。`converse_stream` の引数は `converse` と
+同じで、受け取り側だけがループになります。本文の断片は `contentBlockDelta`、
+消費トークンは最後の `metadata` イベントに入っています。
+
+```python
+response = client.converse_stream(...)  # 引数は converse と同じ
+
+for event in response["stream"]:
+    if "contentBlockDelta" in event:
+        event["contentBlockDelta"]["delta"]["text"]  # 本文の断片
+    elif "metadata" in event:
+        event["metadata"]["usage"]  # 消費トークン。最後に 1 回だけ届く
+```
+
+体感を決めるのは、最初の 1 文字が出るまでの時間です。同期は全文が完成するまで
+無応答なので、生成に 20 秒かかれば 20 秒無言になります。チャット UI で
+ストリーミングが標準なのはこのためで、差は 1.6 で実測します。応答が長いほど
+同期はタイムアウト上限にも近づきます。AgentCore Runtime の上限も
+同期 15 分、ストリーミング 60 分と別々です（第8章）。
+
+### 1.1.6 クロスリージョン推論プロファイル
+
+新しめの Claude は、単一リージョンのオンデマンド呼び出しではなくクロスリージョン
+推論プロファイル経由でしか呼べないものが多くなっています。ID は地理接頭辞 + モデル ID
+（`us.` / `apac.` / `eu.`、別途 `global.`）で、リクエストは同一地理内の宛先リージョンへ
+自動ルーティングされます。追加料金はなく、課金は**呼び出し元リージョンの単価**です。
+
+接頭辞はリージョン名から機械的に切り出せません（ap-northeast-1 は `ap` ではなく
+`apac`）。この導出は本体 `07-full-app/src/config.py` の `derive_inference_prefix()` が
+対応表として実装しており、`.env` のモデル ID との連結もそこで行います。
+
+### 1.1.7 Bedrock の機能の位置づけ
+
+Bedrock はモデル呼び出しの上に周辺機能が載る構造です。
+この教材が主に使うのはモデル呼び出しと AgentCore で、エージェント自体は
 マネージドの Bedrock Agents ではなく Strands Agents で自前実装します。
 
 ```mermaid
@@ -79,15 +149,15 @@ graph TB
     AC -->|エージェントをホストし<br/>モデルを呼ぶ| API
 ```
 
-| 機能 | 何をするものか | 本教材での扱い |
+| 機能 | 何をするものか | この教材での扱い |
 | --- | --- | --- |
 | AgentCore | エージェントをコンテナとしてホストする実行基盤 | 第8章(+ 付録B/C/D) |
 | エージェント | LLM が自律的にツールを呼びタスクを進める仕組み | 第2〜7章(Strands で自前実装) |
 | ナレッジベース | 社内文書などの検索拡張生成(RAG) | 第10章 |
-| プロンプトマネジメント | プロンプトの版管理と退行検知。本質は「Git + 評価」 | 第13章 |
+| プロンプトマネジメント | プロンプトの版管理と退行検知。実体は Git と評価の組み合わせ | 第13章 |
 | ガードレール | 入出力の内容フィルタ(マネージド層のセーフガード) | 第17章 |
 | 自動推論チェック | 論理検証によるハルシネーション検出。ガードレールの一機能 | 第17章で触れる |
-| フロー | プロンプト・モデル・処理をノードとして繋ぐワークフロー | 対象外(本教材はコードで制御する) |
+| フロー | プロンプトやモデルなどの処理をノードとして繋ぐワークフロー | 対象外(この教材はコードで制御する) |
 | データオートメーション | 非構造化ドキュメントからの情報抽出(IDP) | 対象外(ロードマップ Tier 4) |
 
 ## 1.2 実装のポイント
@@ -102,13 +172,12 @@ Bedrock の呼び出しは boto3 の `bedrock-runtime` クライアントと Con
   この値を積み上げたものが、第4章で作るコスト上限・計測機能の入力データになる
 
 ID を間違えたときの `ValidationException` は「そのモデルは呼べない」としか言わず、
-接頭辞が原因だとは教えてくれません。だから接頭辞の導出規則を関数として持ち、
-起動前に実在確認する(1.3)構えにしています。
+接頭辞が原因だとは教えてくれません。だから起動前に実在確認する(1.3)構えにしています。
 
-以降のハンズオンでは、この仕組みを下から順に自分で作ります。まず自分のリージョンで
-呼べるモデル ID を確認し(1.3)、その ID で Converse API を直接 1 回呼びます(1.4)。
-次にモデル ID の解決規則を自分で実装し(1.5)、それが本体 07-full-app の実装と
-同じ答えを出すことを確かめます(1.6)。
+以降のハンズオンでは、まず自分のリージョンで呼べるモデル ID を確認し(1.3)、
+その ID で Converse API を同期で 1 回呼びます(1.4)。次に `usage` から料金を
+概算し(1.5)、最後に同じ質問をストリーミングで呼んで応答の始まりの速さを
+実測します(1.6)。
 
 ## 1.3 【ハンズオン】呼べるモデル ID を確認する
 
@@ -118,7 +187,7 @@ ID を間違えると `ValidationException` が返り、接頭辞が違うのか
 つけると、この種のエラーを未然に防げます。
 
 ```bash
-aws bedrock list-inference-profiles --region ap-northeast-1 \
+aws bedrock list-inference-profiles --region us-east-1 \
   --query 'inferenceProfileSummaries[].inferenceProfileId' | grep anthropic
 ```
 
@@ -132,21 +201,32 @@ aws bedrock list-inference-profiles --region ap-northeast-1 \
 
 ## 1.4 【ハンズオン】Converse API を直接呼ぶ
 
-`01_converse.py` を作成し、次のコードを自分の手で書いてください。
+`exercises/01_converse.py` を開いてください。クライアントの生成とモデル ID の
+解決は書いてあり、TODO が 3 つ残っています。
+
+1. `client.converse` の呼び出し。`messages` と `inferenceConfig` の形式は 1.1.3 のとおり
+2. 応答テキストの表示。本文は `response["output"]["message"]["content"]` の先頭要素
+3. 消費トークンの表示。`response["usage"]` に入っている
+
+実装できたら TODO コメントを消して実行します。
+
+```bash
+uv run exercises/01_converse.py
+```
+
+既定値（us-east-1 / Sonnet 4.6）と自分の環境が違う場合は、コードの既定値を
+1.3 で確認した ID に書き換えるか、環境変数で上書きします。
+
+```bash
+AWS_REGION=<リージョン> MODEL_ID=<1.3 で確認した ID> uv run exercises/01_converse.py
+```
+
+応答テキストが 1〜2 行と、`tokens: in=... out=...` が表示されるはずです。
+
+<details>
+<summary>解答例</summary>
 
 ```python
-import os
-
-import boto3
-
-# Bedrock Runtime を呼び出すクライアントを生成
-client = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "ap-northeast-1"))
-
-# モデル ID。地理接頭辞の意味は 1.1.3 のとおり。既定値は東京用なので、
-# 1.3 の一覧に無ければ環境変数 MODEL_ID で上書きする
-model_id = os.environ.get("MODEL_ID", "apac.anthropic.claude-haiku-4-5")
-
-# Converse API 呼び出し
 response = client.converse(
     modelId=model_id,
     messages=[
@@ -155,133 +235,115 @@ response = client.converse(
     inferenceConfig={"maxTokens": 300},
 )
 
-# 応答テキストを表示
 print(response["output"]["message"]["content"][0]["text"])
 
-# 消費トークン。第4章のコスト計測はこの値の積み上げ
 usage = response["usage"]
 print(f"tokens: in={usage['inputTokens']} out={usage['outputTokens']}")
 ```
 
-実行します。東京の場合は既定値のままで動きます。
+全文は `solutions/01_converse.py` にあります。
+
+</details>
+
+## 1.5 【ハンズオン】トークンを計測して料金を概算する
+
+1.4 で表示した `usage` が料金の実データです。`exercises/02_count_tokens.py` を
+開いてください。呼び出し部分は書いてあり、TODO が 2 つ残っています。
+
+1. 1 回分の料金の計算。式は入力トークン数 × 入力単価 + 出力トークン数 × 出力単価で、
+   ファイル冒頭の単価は 100万トークンあたりの USD
+2. 長さの違う 3 つの質問。一語で答えられるものから、長い説明を求めるものまで
+
+実装できたら TODO コメントを消して実行します。
 
 ```bash
-uv run 01_converse.py
+uv run exercises/02_count_tokens.py
 ```
 
-東京以外の場合はリージョンと 1.3 で確認した ID を指定します。
+3 行の結果が出るはずです。入力トークンの差は数十程度なのに、出力トークンの差で
+料金が 1 桁変わることを確認してください。単価が入力の 5 倍ある出力を
+どれだけ絞れるかが、コストの大半を決めます。
 
-```bash
-AWS_REGION=<リージョン> MODEL_ID=<1.3 で確認した ID> uv run 01_converse.py
-```
-
-応答テキストが 1〜2 行と、`tokens: in=... out=...` が表示されるはずです。
-
-`MissingDependencyException: ... botocore[crt]` で落ちたら、`aws login` の
-認証情報の解決に crt 拡張が要ります。追加して再実行してください。
-
-```bash
-uv add 'botocore[crt]'
-```
-
-## 1.5 【ハンズオン】モデル ID の解決を自分で実装する
-
-導出の規則を関数として自分で書きます。`02_inference_profile.py` を作成し、
-次の骨組みから始めてください。
+<details>
+<summary>解答例</summary>
 
 ```python
-"""リージョン名から Bedrock 推論プロファイル ID を解決する。"""
-
-# リージョン接頭辞 -> 推論プロファイル接頭辞の補正表。
-# "ap" 系だけプロファイル側は "apac" になる
-PREFIX_OVERRIDES = {"ap": "apac"}
+    cost = usage["inputTokens"] * PRICE_INPUT / 1_000_000 + usage["outputTokens"] * PRICE_OUTPUT / 1_000_000
+    print(f"in={usage['inputTokens']:4} out={usage['outputTokens']:4} cost=${cost:.6f} <- {text}")
 
 
-def derive_prefix(region: str) -> str:
-    """リージョン名から地理接頭辞を導出する。
-
-    例: "ap-northeast-1" -> "apac" / "us-east-1" -> "us" / "us-gov-east-1" -> "us-gov"
-    ヒント: 末尾の 2 要素（"northeast", "1"）を落とした残りが接頭辞の元。
-    us-gov-east-1 のような 4 要素のリージョン名も正しく扱うこと。
-    """
-    raise NotImplementedError  # ここを自分で実装する
-
-
-def resolve_model_id(base_id: str, region: str, prefix: str | None = None, full: str | None = None) -> str:
-    """実際に Bedrock へ渡すモデル ID を組み立てる。
-
-    優先順位:
-      1. full が指定されていれば、連結せずそのまま返す（逃げ道）
-      2. prefix が指定されていればそれを使う。空文字 "" は「接頭辞なし」の意味
-      3. どちらも無ければ region から derive_prefix() で導出する
-    """
-    raise NotImplementedError  # ここを自分で実装する
-
-
-if __name__ == "__main__":
-    for region in ("ap-northeast-1", "us-east-1", "eu-central-1", "us-gov-east-1"):
-        print(f"{region:16} -> {resolve_model_id('anthropic.claude-haiku-4-5', region)}")
+ask("1+1 は？答えだけ")
+ask("エージェント開発を学ぶ手順を 3 項目で")
+ask("エージェント開発を学ぶ手順を詳しく説明して")
 ```
 
-実装できたら動かします。
+全文は `solutions/02_count_tokens.py` にあります。
+
+</details>
+
+## 1.6 【ハンズオン】ストリーミングで呼ぶ
+
+同期との違いである、最初の文字が出るまでの時間を実測します。
+`exercises/03_streaming.py` を開いてください。時間計測の枠は書いてあり、
+TODO が 3 つ残っています。
+
+1. `converse_stream` での呼び出し。引数は `converse` と同じ
+2. `contentBlockDelta` イベントのテキストを逐次表示し、最初のチャンクの
+   経過時間を `first_token_at` に記録する
+3. `metadata` イベントから `usage` を取り出す。消費トークンは最後にまとめて届く
+
+実装できたら TODO コメントを消して実行します。
 
 ```bash
-uv run 02_inference_profile.py
+uv run exercises/03_streaming.py
 ```
 
-4 行の対応が表示され、ap-northeast-1 の行が `apac.anthropic.claude-haiku-4-5` に
-なっているはずです。合格判定を流します。
+文章が少しずつ表示され、最後に 2 つの時間が出るはずです。total が数秒かかっても、
+first_token はその何分の一かに収まります。この差がそのまま体感の差で、
+第12章ではこれをフロントエンドまで通します。1.5 の 3 つ目と同じ質問なので、
+トークン数がほぼ同じであることも確認してください。
+
+<details>
+<summary>解答例</summary>
+
+```python
+response = client.converse_stream(
+    modelId=model_id,
+    messages=[
+        {"role": "user", "content": [{"text": "エージェント開発を学ぶ手順を詳しく説明して"}]},
+    ],
+    inferenceConfig={"maxTokens": 500},
+)
+
+for event in response["stream"]:
+    if "contentBlockDelta" in event:
+        if first_token_at is None:
+            first_token_at = time.perf_counter() - start
+        print(event["contentBlockDelta"]["delta"]["text"], end="", flush=True)
+    elif "metadata" in event:
+        usage = event["metadata"]["usage"]
+```
+
+全文は `solutions/03_streaming.py` にあります。
+
+</details>
+
+合格判定を流します。
 
 ```bash
 uv run pytest -q
 ```
 
-`7 passed` で合格です。詰まったら `solutions/02_inference_profile.py` を見てください。
-
-## 1.6 【ハンズオン】本体の実装と突き合わせる
-
-同じ規則が本体 `07-full-app/src/config.py` に実装されています。この対応表は
-Strands Agents ライブラリの内部実装から取ったもので、自分の実装・本体・ライブラリの
-3 者が同じ規則を持っていることになります。自分の実装と本体が同じ答えを出すことを
-確認するスクリプト `03_config_check.py` を書いてください。
-
-```python
-"""自分の実装と 07-full-app の実装の突き合わせ。"""
-
-import pathlib
-import sys
-
-# 本体の config.py を import できるようにする
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "07-full-app"))
-
-from importlib import import_module
-
-my_impl = import_module("02_inference_profile")
-
-REGIONS = ["ap-northeast-1", "ap-southeast-2", "us-east-1", "eu-west-1", "us-gov-east-1"]
-
-for region in REGIONS:
-    mine = my_impl.derive_prefix(region)
-    print(f"{region:16} mine={mine}")
-
-print("\n07-full-app 側の実装は src/config.py の derive_inference_prefix() を読んで確認する")
-```
-
-```bash
-uv run 03_config_check.py
-```
-
-表示された接頭辞と、`07-full-app/src/config.py` の `derive_inference_prefix()` を
-読み比べてください。同じ対応表・同じ切り出しになっているはずです。
-本体ではさらに、解決後の実 ID を起動ログに出す・不正な設定は起動時に落とす、という
-運用の工夫が乗っています。`.env.example` の [確定] / [未確定] コメントも読んでおいてください。
+`3 passed` で合格です。詰まったら `solutions/` を見てください。
 
 ## 1.7 まとめ
 
-Bedrock の中核は「モデルを IAM 認証・統一 API で呼べるようにする」ことであり、
-その上の周辺機能はすべて独立に採否を選べます。この章で作った **「ID はコードに書かず解決規則で導出し、
-起動前に実在確認する」** という構えは、この先すべての章のモデル呼び出しが乗る前提です。
-エージェント(第2章)も結局はこの Converse API の繰り返しです。
+Bedrock の中核は、モデルを IAM 認証と統一 API(Converse)で呼べるようにすることであり、
+その上の周辺機能はすべて独立に採否を選べます。この章で身につけた
+**呼ぶ前に実在確認し、usage を必ず見る**という構えは、この先すべての章の
+モデル呼び出しが乗る前提です。トークン計測は第4章のコスト制御へ、ストリーミングは
+第12章のフロントエンドへつながります。エージェント(第2章)も結局はこの
+Converse API の繰り返しです。
 
 ## 次の章
 

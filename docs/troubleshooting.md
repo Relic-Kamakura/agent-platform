@@ -20,7 +20,8 @@
 テストは `07-full-app/tests/conftest.py` でダミーの AWS 認証情報を注入し、環境から独立させている。
 アプリを実際に動かす場合は有効な認証情報を用意する。
 
-第1章のように章のスクリプトで実際に Bedrock を呼ぶ場合は、同じ例外が実行時に出る。
+章のスクリプトで実際に Bedrock を呼ぶ場合は、同じ例外が実行時に出る。
+第1章は `pyproject.toml` に `botocore[crt]` を同梱済み。他の章で出たら
 その章のディレクトリで `uv add 'botocore[crt]'` を実行して依存に追加する。
 
 ### 症状: ローカル起動で `[Errno 48] address already in use`、`curl :8080` が nginx の 404 を返す
@@ -150,15 +151,30 @@ AgentCore Runtime は作成時点で `containerUri` のイメージが存在し�
 ### 症状: Converse 呼び出しが `ValidationException: The provided model identifier is invalid` で失敗する
 
 **原因**
-モデル ID の地理接頭辞が呼び出し元リージョンと合っていない。教材の既定値は
-東京前提の `apac.` なので、us-east-1 など他地理のリージョンではそのままだと必ず失敗する。
-さらに接頭辞が合っていても、そのモデルの推論プロファイルがリージョンに存在しない
-場合は同じ例外になる（今回は us-east-1 に Haiku 4.5 のプロファイルが無かった）。
+モデル ID の地理接頭辞が呼び出し元リージョンと合っていない（当時の既定値は
+東京前提の `apac.` で、us-east-1 からの呼び出しで失敗した）。接頭辞が合っていても、
+そのモデルの推論プロファイルがリージョンに存在しない場合は同じ例外になる
+（us-east-1 に Haiku 4.5 のプロファイルが無かった）。
 
 **対処**
 `aws bedrock list-inference-profiles --region <region>` で実在する ID の一覧を確認し、
 第1章のスクリプトは環境変数 `MODEL_ID`、本体は `07-full-app/.env` の `MODEL_ID_*` を
 一覧にある ID に合わせる。`./scripts/check_env.sh` のセクション 5 がこの確認を自動化している。
+
+### 症状: Converse 呼び出しが `ResourceNotFoundException: ... marked by provider as Legacy` で失敗する
+
+**原因**
+Claude 3 Haiku など旧世代モデルは提供元が Legacy に指定しており、直近 30 日の
+利用実績が無いアカウントからの新規呼び出しがブロックされる。推論プロファイル一覧には
+載ったままなので、`check_env.sh`（プロファイルの存在だけを見る）は OK と誤判定する。
+
+**対処**
+現行世代のモデル ID に切り替える。ACTIVE / LEGACY の別は次で確認できる。
+
+```bash
+aws bedrock list-foundation-models --region <region> --by-provider anthropic \
+  --query 'modelSummaries[].{id:modelId,status:modelLifecycle.status}' --output table
+```
 
 ---
 

@@ -46,9 +46,9 @@ Account と Arn が表示されるはずです。次にリージョンを確認�
 aws configure get region
 ```
 
-何も出なければ `aws configure set region ap-northeast-1` で設定します。教材は
-東京前提です。別リージョンで進める場合はモデル ID の地理接頭辞が変わるため、
-第1章 1.3 の手順で呼べる ID を確認して `07-full-app/.env` を合わせてください。
+何も出なければ `aws configure set region us-east-1` のように自分のリージョンを
+設定します。リージョンによってモデル ID の地理接頭辞（`us.` / `apac.` / `eu.`）が
+変わるため、第1章 1.3 の手順で呼べる ID を確認し、`07-full-app/.env` を合わせてください。
 
 最後に AWS コンソールの Bedrock → Model access で Claude 系モデルを有効化します。
 **リージョンごとの設定**です。未申請だと第1章で `AccessDeniedException` になります。
