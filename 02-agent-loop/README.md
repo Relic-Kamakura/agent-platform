@@ -14,7 +14,20 @@ uv sync
 
 ## 2.1 概要
 
-### 2.1.1 エージェント = ループする LLM 呼び出し
+### 2.1.1 Strands Agents とは
+
+この章から使う Strands Agents は、AWS が公開しているオープンソースの
+エージェント開発フレームワーク(Python)です。エージェントの中身 — モデル呼び出しの
+繰り返し、ツールの実行、会話履歴の管理 — を実装済みで、開発者はモデル・
+システムプロンプト・ツールの 3 つを渡すだけでエージェントが動きます。
+本体 `07-full-app/` のエージェントもこれで書かれています。
+
+第1章 1.1.7 の表にあった Bedrock の機能「エージェント」(マネージドの
+Bedrock Agents)とは別物です。あちらは AWS がループを預かるサービス、
+Strands は自分のコードとしてループを持つフレームワークで、本教材は
+挙動を細部まで観察・制御できる後者で作ります。
+
+### 2.1.2 エージェント = ループする LLM 呼び出し
 
 第1章の `01_converse.py` は 1 回呼んで終わりでした。エージェントとの違いは
 ループの有無だけです。
@@ -28,7 +41,26 @@ uv sync
 リクエストに追加します。ツールを実行するのはモデルではなく、モデルを呼び出している
 側のコード、つまりこの章で自分が書く Python コードです。
 
-### 2.1.2 ReAct と CoT
+2.3 で書くエージェント（now ツール 1 つ）の場合、この往復は次のシーケンスに
+なります。1 周 = モデル呼び出し 1 回で、ハンズオンで観察する `cycles: 2` の実体です。
+
+```mermaid
+sequenceDiagram
+    participant Code as 自分の Python コード<br/>(Strands Agent)
+    participant Model as Bedrock<br/>(モデル)
+    participant Tool as now ツール
+
+    Code->>Model: 1 周目: 質問 + ツール一覧
+    Model-->>Code: toolUse「now を使いたい」
+    Note over Code: モデルではなく<br/>コード側がツールを実行する
+    Code->>Tool: now() を実行
+    Tool-->>Code: "2026-08-23T09:00:00+00:00"
+    Code->>Model: 2 周目: 履歴 + toolResult
+    Model-->>Code: テキスト応答 = 最終回答
+    Note over Code,Model: 応答が toolUse である限り<br/>この往復が繰り返される
+```
+
+### 2.1.3 ReAct と CoT
 
 このループには ReAct という名前が付いています。推論だけで完結させず、
 外部と相互作用しながら考える方が幻覚が減る、という提案から来たパターンです。
@@ -42,6 +74,12 @@ Strands の `Agent` はこの往復の実装で、1 往復を cycle と呼びま
 組み立てと実行はこの形です。
 
 ```python
+@tool  # 普通の関数をツールにするデコレータ
+def now() -> str:
+    """現在の日時を UTC の ISO 8601 形式で返す。"""  # docstring がそのままモデルに渡る
+    return datetime.now(UTC).isoformat()
+
+
 agent = Agent(
     model=BedrockModel(region_name="<リージョン>", model_id="<モデル ID>", max_tokens=512),
     system_prompt="<エージェントへの指示>",
@@ -59,12 +97,11 @@ result.metrics.accumulated_usage     # 消費トークンの累計（dict。合�
 
 ## 2.3 【ハンズオン】最小のエージェントを書く
 
-`exercises/01_agent.py` を開いてください。now ツールの本体と main は書いてあり、
-TODO が 3 つ残っています。
+`exercises/01_agent.py` を開いてください。now ツールは docstring まで含めて
+書いてあり、TODO が 2 つ残っています。
 
-1. now の docstring に 3 節（受け取るもの / 返すもの / 含まないもの）を書き足す
-2. `Agent` の組み立て。形は 2.2 のとおりで、モデルと system_prompt と tools を渡す
-3. `result.metrics.cycle_count` の表示
+1. `Agent` の組み立て。形は 2.2 のとおりで、モデルと system_prompt と tools を渡す
+2. `result.metrics.cycle_count` の表示
 
 実装できたら TODO コメントを消して実行します。
 

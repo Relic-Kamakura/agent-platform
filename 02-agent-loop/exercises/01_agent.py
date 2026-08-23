@@ -20,14 +20,14 @@ def now() -> str:
 
     「今日」「現在」など、実行時点の日時が必要な質問に答えるときに使う。
 
-    TODO(1): この下に 3 節（受け取るもの / 返すもの / 含まないもの）を書き足す。
-    このツールは引数を取らず、ISO 8601 の日時文字列を 1 つ返す。
-    タイムゾーン変換と日付計算はしない。
+    受け取るもの: なし
+    返すもの: ISO 8601 形式の日時文字列 1 つ
+    含まないもの: タイムゾーン変換、日付計算
     """
     return datetime.now(UTC).isoformat()
 
 
-# TODO(2): Agent を組み立てる。
+# TODO(1): Agent を組み立てる。
 #   - model には BedrockModel。region_name は環境変数 AWS_REGION（既定 us-east-1）、
 #     model_id は MODEL_ID、max_tokens は 512
 #   - system_prompt は「質問に日本語で簡潔に答えてください。日時が必要なら now ツールを使ってください。」
@@ -36,5 +36,5 @@ agent = ...
 
 if __name__ == "__main__":
     result = agent("今日は何日ですか？")
-    # TODO(3): ループが何周したかを表示する。result.metrics.cycle_count に入っている
+    # TODO(2): ループが何周したかを表示する。result.metrics.cycle_count に入っている
     print(...)

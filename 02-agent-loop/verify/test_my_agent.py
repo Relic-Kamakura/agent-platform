@@ -45,7 +45,10 @@ def test_01_agent_docstring_sections() -> None:
     fn = getattr(mod.now, "__wrapped__", mod.now)
     doc = fn.__doc__ or ""
     for section in ("受け取るもの", "返すもの", "含まないもの"):
-        assert section in doc, f"now の docstring に「{section}」がありません（2.3 の TODO(1)）。"
+        assert section in doc, (
+            f"now の docstring に「{section}」がありません。"
+            "3 節はモデルに渡る仕様書なので消さずに残してください（2.2 参照）。"
+        )
 
 
 def test_02_has_both_tools() -> None:
