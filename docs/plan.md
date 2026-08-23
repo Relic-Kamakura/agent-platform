@@ -6,6 +6,27 @@ G4 向け AI エージェント開発基盤ひな形。競合リサーチエー�
 - ステータス: **全 20 章（00〜19）+ 付録の実装完了。実機確認は各章のハンズオン内で実施する**
 - 最終更新: 2026-08-23
 
+## 既定モデルを Haiku 4.5 に統一（2026-08-23）
+
+学習時の実行コストを抑えるため、教材全体の既定モデルを安価な Haiku 4.5 に統一した
+（Bedrock 単価: 入力 $1 / 出力 $5 per 100万トークン。Anthropic 発表と料金集計サイトで裏取り。
+リージョンにより 1 割高の場合あり）。
+
+- ID は実機一覧で確認した **`us.anthropic.claude-haiku-4-5-20251001-v1:0`**（日付付きのみ。
+  Sonnet 4.6 のような短縮 ID は存在せず、当初の `us.anthropic.claude-haiku-4-5` は
+  ValidationException になった）。Converse スモークテストで応答を確認済み（in=23 / out=51）
+- 対象: 第1・2章の exercises / solutions、第1章の料金例と 02_count_tokens の単価
+  （$3/$15 → $1/$5）、15-mcp の既定（古い `apac.` 接頭辞も `us.` に統一)、
+  07-full-app の 3 役割の既定、cdk.json の modelIds と region
+- **東京の Haiku 4.5 は `apac.` ではなく国別 `jp.` プロファイルのみ**（実機一覧で確認）。
+  これに伴い本体の既定リージョンを us-east-1 に変更し、`jp` / `global` を
+  既知接頭辞に追加。東京で使う場合は `BEDROCK_MODEL_ID_PREFIX=jp` を明示する
+- 07-full-app の役割別変数（ORCHESTRATOR / SEARCH / REVIEW）は維持。実案件で
+  orchestrator / review を上位モデルに差し替えるための分割で、第5章の解説も
+  「既定は全役割 Haiku、差し替えの判断材料」を示す形に改訂
+- Phase 0 の環境変数表（MODEL_ID_ORCHESTRATOR = Sonnet 系）は当時の設計記録として残すが、
+  既定値は本エントリが上書きする
+
 ## ハンズオン方式の変更: 穴埋め方式（2026-08-23）
 
 ハンズオンの標準を**穴埋め方式**に変更した。学習者が修正するコードを solutions とは
@@ -16,10 +37,16 @@ G4 向け AI エージェント開発基盤ひな形。競合リサーチエー�
   ハンズオン節の末尾に開閉式（`<details>`）の解答例を付ける
 - verify は「TODO が残っていれば該当節を案内して fail / solutions を exercises に
   適用すれば全パス」のラウンドトリップを守る
-- 適用状況: **第1・2章に適用済み**（第1章: exercises 3 本 + verify 3 件 /
+- あわせて**ハンズオンの章内完結を恒久ルール化**（2026-08-23、writing-style.md に明文化）。
+  編集・実行するファイルはすべて章内に置き、本体 07-full-app は読み比べの対象とする
+- 適用状況: **第1〜3章に適用済み**（第1章: exercises 3 本 + verify 3 件 /
   第2章: exercises 3 本 + verify 6 件。第2章は既定値も us-east-1 / Sonnet 4.6 に統一し、
-  botocore[crt] を同梱）。第3章以降は順次移行する。移行完了時に root README と
-  writing-style.md の旧方式（写経/要件実装）の記述を整理する
+  botocore[crt] を同梱 / 第3章: 章内完結の uv プロジェクト化。exercises/fetch_page.py の
+  TODO 4 つを埋め、章直下の 01_/02_ スクリプトで動かし、章内 pytest 7 件で判定。
+  第3章は本体 07-full-app への参照を持たない完全独立の章とした。
+  fetch_page の完成品は本体に同梱してあり、第6章はそれをテスト対象にする）。
+  第4章以降は順次移行する（本体を改造する旧方式の章は移行時に章内完結へ改める）。
+  移行完了時に root README と writing-style.md の旧方式（写経/要件実装）の記述を整理する
 
 同日、第1章を実機ハンズオンの結果に合わせて再構成した。実在確認（list-inference-profiles）を
 先頭の 1.3 に移動、接頭辞リゾルバ実装のハンズオンは削除して解説（1.1.6）に縮約、

@@ -17,9 +17,9 @@ uv sync
 ### 7.1.1 このアプリは何か
 
 競合リサーチエージェントです。調査依頼を受け取り、観点への分解・Web 検索・
-報告への統合・出力の検証までを 3 つのエージェントで分担します。役割ごとにモデルを
-変えてあり、判断が要る Orchestrator と ReviewAgent は Sonnet、クエリ生成と要約だけの
-SearchAgent は Haiku です（第5章）。
+報告への統合・出力の検証までを 3 つのエージェントで分担します。モデルは役割ごとに
+環境変数で差し替えられ、既定は全役割とも安価な Haiku 4.5 です。実案件では判断が要る
+Orchestrator と ReviewAgent を上位モデルに差し替えます（第5章）。
 
 構成には設計判断がひとつ埋まっています。SearchAgent は Orchestrator が
 ツールとして呼びます（agents-as-tools）が、ReviewAgent はモデルの裁量に任せず、
@@ -31,17 +31,17 @@ SearchAgent は Haiku です（第5章）。
 ```mermaid
 graph LR
     CL[クライアント] -->|POST /invocations| M["src/main.py"]
-    M --> O["Orchestrator<br/>(Sonnet)"]
-    O -->|investigate ツール| S["SearchAgent<br/>(Haiku)"]
+    M --> O["Orchestrator"]
+    O -->|investigate ツール| S["SearchAgent"]
     S -->|web_search| P[検索プロバイダ]
-    O -.->|コードで必ず 1 回| R["ReviewAgent<br/>(Sonnet)"]
+    O -.->|コードで必ず 1 回| R["ReviewAgent"]
 ```
 
 1. `src/main.py` が POST /invocations を受ける。HTTP 契約を知るのはこのファイルだけ
-2. Orchestrator (Sonnet) が依頼を調査観点に分解する
-3. 観点ごとに investigate ツール = SearchAgent (Haiku) が web_search で調べ、事実と出典を返す
+2. Orchestrator が依頼を調査観点に分解する
+3. 観点ごとに investigate ツール = SearchAgent が web_search で調べ、事実と出典を返す
 4. Orchestrator が報告に統合する
-5. コードが ReviewAgent (Sonnet) を必ず 1 回実行して検証する
+5. コードが ReviewAgent を必ず 1 回実行して検証する
 6. revise 判定なら修正を 1 回だけ試みて、結果を返す
 
 すべてのエージェントに guards（ツール上限・ターン上限・トークン計測）が付きます。

@@ -37,7 +37,7 @@ def build_guards(settings: Settings, role: str) -> Guards:
 
 ```python
     # 1 リクエストで消費してよい入力トークンの概算上限。
-    # 根拠: Sonnet 系の入力単価と「1 リクエスト数十円まで」という運用目安から逆算した暫定値。
+    # 根拠: 既定モデルの単価と「1 リクエスト数十円まで」という運用目安から逆算した暫定値。
     # 実測（token_usage ログ）を集計してから調整すること。
     max_total_input_tokens: int = Field(default=50_000, ge=1000)
 ```

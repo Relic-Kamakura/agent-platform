@@ -1,43 +1,34 @@
-"""ハンズオン 3.3 の模範解答。exercises/fetch_page.py の完成形。"""
+"""Web ページ本文の取得ツール。第3章の題材で、章内ハンズオンで同等物を自作する。
+1 ツール 1 責務: 「URL を受け取り、本文テキストを返す」のみ。要約・抽出はしない。
+"""
 
 from __future__ import annotations
 
+import logging
 import time
 
 import httpx
 from strands import tool
 
+from ..config import Settings
+from ..errors import SearchProviderTimeout, ToolError, format_tool_error
+from ..observability import log_event
 
-class PageFetchError(Exception):
-    """ページ取得の失敗。retryable と hint がモデルへの返答に含まれる。"""
+logger = logging.getLogger(__name__)
+
+
+class PageFetchError(ToolError):
+    """ページ取得の失敗。"""
 
     retryable = False
     hint = "この URL の本文は取得できません。検索結果のスニペットの範囲で報告してください。"
 
 
-class PageFetchTimeout(PageFetchError):
-    """タイムアウト。時間を置けば直る可能性があるので retryable。"""
+def build_fetch_page_tool(settings: Settings):
+    """設定を束縛した fetch_page ツールを返す。"""
 
-    retryable = True
-    hint = "時間を置いて再試行するか、別の出典を使ってください。"
-
-
-def format_tool_error(exc: PageFetchError) -> str:
-    """例外を、モデルが読んで次の判断ができる文字列に整形する。"""
-    return "\n".join(
-        [
-            f"ERROR[{type(exc).__name__}]: {exc}",
-            f"retryable: {'yes' if exc.retryable else 'no'}",
-            f"next_action: {exc.hint}",
-        ]
-    )
-
-
-def build_fetch_page_tool(timeout_seconds: float, max_retries: int):
-    """タイムアウトとリトライ回数を束縛した fetch_page ツールを返す。
-
-    値をコードに書かず外から注入するための作り。
-    """
+    timeout = settings.http_timeout_seconds
+    max_retries = settings.http_max_retries
 
     @tool
     def fetch_page(url: str, max_chars: int = 4000) -> str:
@@ -47,6 +38,7 @@ def build_fetch_page_tool(timeout_seconds: float, max_retries: int):
 
         受け取るもの:
             url: 取得したいページの URL。http:// か https:// で始まるものだけを渡すこと。
+                web_search の結果に含まれる出典 URL をそのまま渡すのが典型的な使い方。
             max_chars: 返す本文の最大文字数。既定 4000。長いページは先頭から切り詰められる。
 
         返すもの:
@@ -66,7 +58,7 @@ def build_fetch_page_tool(timeout_seconds: float, max_retries: int):
         last_error: Exception | None = None
         for attempt in range(max_retries + 1):
             try:
-                with httpx.Client(timeout=timeout_seconds, follow_redirects=True) as client:
+                with httpx.Client(timeout=timeout, follow_redirects=True) as client:
                     response = client.get(url)
             except httpx.TimeoutException as exc:
                 last_error = exc
@@ -74,19 +66,21 @@ def build_fetch_page_tool(timeout_seconds: float, max_retries: int):
                 if response.status_code >= 500:
                     last_error = PageFetchError(f"{url} が {response.status_code} を返しました。")
                 elif response.status_code >= 400:
-                    # 4xx はリトライしても直らない。即座に報告する
+                    # 4xx はリトライしても直らない。即座に報告する。
                     return format_tool_error(
                         PageFetchError(f"{url} が {response.status_code} を返しました。")
                     )
                 else:
-                    return response.text[:max_chars]
+                    body = response.text[:max_chars]
+                    log_event(logger, logging.INFO, "fetch_page", url=url, chars=len(body))
+                    return body
 
             if attempt < max_retries:
                 time.sleep(2**attempt)
 
         if isinstance(last_error, httpx.TimeoutException):
             return format_tool_error(
-                PageFetchTimeout(
+                SearchProviderTimeout(
                     f"{url} の取得が {max_retries + 1} 回ともタイムアウトしました。"
                 )
             )

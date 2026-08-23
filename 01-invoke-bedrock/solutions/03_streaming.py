@@ -6,7 +6,7 @@ import time
 import boto3
 
 client = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "us-east-1"))
-model_id = os.environ.get("MODEL_ID", "us.anthropic.claude-sonnet-4-6")
+model_id = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
 start = time.perf_counter()
 first_token_at = None

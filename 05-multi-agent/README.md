@@ -32,19 +32,22 @@
 ### 5.2.1 この構成とモデル割り当て
 
 ```
-依頼 → Orchestrator (Sonnet) ─ investigate ツール → SearchAgent (Haiku) ─ web_search
+依頼 → Orchestrator ─ investigate ツール → SearchAgent ─ web_search
               │
-              └→ 報告完成後、コードが ReviewAgent (Sonnet) を必ず 1 回実行
+              └→ 報告完成後、コードが ReviewAgent を必ず 1 回実行
                  revise 判定なら修正を 1 回だけ
 ```
 
-- Orchestrator — 観点への分解と統合。判断を伴うので上位モデル
+- Orchestrator — 観点への分解と統合。判断を伴うので、実案件では上位モデルの候補
 - SearchAgent — クエリ整形と事実抽出だけの定型処理。軽量モデルで足りる
-- ReviewAgent — 出典欠落・推測混入の検出。見逃しが信頼性に直結するので上位モデル
+- ReviewAgent — 出典欠落・推測混入の検出。見逃しが信頼性に直結するので、実案件では上位モデルの候補
 
 役割ごとに理由を付けてモデルを選ぶ。これがコスト最適化の実体です。
-Haiku と Sonnet の単価差はおよそ 3〜5 倍あるので、全員に Sonnet を配ると
-費用はそれだけで数倍になります。
+この教材の既定は学習コストを抑えるため全役割とも Haiku 4.5 にしてありますが、
+役割ごとに環境変数（`MODEL_ID_ORCHESTRATOR` など）を分けてあるのは、実案件で
+Orchestrator / ReviewAgent だけを上位モデルに差し替えるためです。
+Haiku（入力 $1 / 出力 $5、100万トークンあたり）と Sonnet（$3 / $15）の単価差は
+3 倍あるので、理由なく全役割に上位モデルを配ると費用はそれだけで数倍になります。
 
 ### 5.2.2 agents-as-tools
 

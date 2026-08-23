@@ -22,8 +22,8 @@ from .pricing_agent import build_pricing_agent_tool
 
 ## 設計のポイント
 
-- **モデルは search ロール（軽量）**。表への整形は定型処理であり、Sonnet を使うのはコストの無駄。
-  「どの競合を比較すべきか」という判断は Orchestrator（Sonnet）側に残っている
+- **モデルは search ロール（軽量）**。表への整形は定型処理であり、上位モデルを使うのはコストの無駄。
+  「どの競合を比較すべきか」という判断は Orchestrator 側に残っている
 - **compare_pricing と investigate の棲み分けを docstring で明示**。
   これが無いと Orchestrator はどちらを使うべきか毎回迷う（= 挙動が不安定になる）
 - **専門エージェントにもガードを付ける**。ガードなしのエージェントを 1 体でも作ると、

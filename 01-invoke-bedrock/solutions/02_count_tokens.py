@@ -5,11 +5,11 @@ import os
 import boto3
 
 # Bedrock 料金ページの単価（USD / 100万トークン）。モデルとリージョンに合わせて直す
-PRICE_INPUT = 3.00
-PRICE_OUTPUT = 15.00
+PRICE_INPUT = 1.00
+PRICE_OUTPUT = 5.00
 
 client = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "us-east-1"))
-model_id = os.environ.get("MODEL_ID", "us.anthropic.claude-sonnet-4-6")
+model_id = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
 
 def ask(text: str) -> None:

@@ -153,8 +153,13 @@ AgentCore Runtime は作成時点で `containerUri` のイメージが存在し�
 **原因**
 モデル ID の地理接頭辞が呼び出し元リージョンと合っていない（当時の既定値は
 東京前提の `apac.` で、us-east-1 からの呼び出しで失敗した）。接頭辞が合っていても、
-そのモデルの推論プロファイルがリージョンに存在しない場合は同じ例外になる
-（us-east-1 に Haiku 4.5 のプロファイルが無かった）。
+そのモデルの推論プロファイルがリージョンに存在しない場合は同じ例外になる。
+
+ID の「形」の違いでも起きる（2026-08-23 実機一覧で確認）。Haiku 4.5 の
+プロファイルは日付付きの `us.anthropic.claude-haiku-4-5-20251001-v1:0` だけで、
+Sonnet 4.6 のような短縮 ID（`us.anthropic.claude-haiku-4-5`）は存在しない。
+さらに東京（ap-northeast-1）の Haiku 4.5 は地理接頭辞 `apac.` ではなく
+国別 `jp.` のプロファイルのみで、リージョン名からの導出（ap → apac）では組み立てられない。
 
 **対処**
 `aws bedrock list-inference-profiles --region <region>` で実在する ID の一覧を確認し、

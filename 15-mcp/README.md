@@ -161,8 +161,8 @@ client = MCPClient(
 with client:
     agent = Agent(
         model=BedrockModel(
-            region_name=os.environ.get("AWS_REGION", "ap-northeast-1"),
-            model_id=os.environ.get("MODEL_ID", "apac.anthropic.claude-haiku-4-5"),
+            region_name=os.environ.get("AWS_REGION", "us-east-1"),
+            model_id=os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0"),
             max_tokens=512,
         ),
         system_prompt="社内データベースを使って質問に答えてください。",

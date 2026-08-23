@@ -20,7 +20,10 @@ Role = Literal["orchestrator", "search", "review"]
 # 根拠: strands.models.bedrock._get_default_model_with_warning が使っている対応表と同じ。
 # ap-northeast-1 のようにリージョン接頭辞 "ap" と推論プロファイル接頭辞 "apac" がずれるものがある。
 _REGION_PREFIX_OVERRIDES = {"ap": "apac"}
-_KNOWN_INFERENCE_PREFIXES = {"us", "eu", "apac", "us-gov"}
+# "jp" は国別プロファイルの接頭辞。新しいモデルには地理（apac）ではなく国別（jp）の
+# プロファイルしか無いものがある（例: Haiku 4.5。ap-northeast-1 の実機一覧で確認、2026-08-23）。
+# その場合は導出に頼らず BEDROCK_MODEL_ID_PREFIX=jp を明示する。
+_KNOWN_INFERENCE_PREFIXES = {"us", "eu", "apac", "us-gov", "jp", "global"}
 
 
 def derive_inference_prefix(region: str) -> str:
@@ -38,10 +41,12 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     # --- AWS ------------------------------------------------------------
-    # 既定 ap-northeast-1: AgentCore Runtime が東京で利用可能なことを AWS の
-    # 「Supported AWS Regions」表で確認済み（Runtime / Memory / Gateway / Identity / Observability）。
-    # 所属組織のリージョン方針が違う場合のみ変更する。
-    aws_region: str = "ap-northeast-1"
+    # 既定 us-east-1: 既定モデル（Haiku 4.5）の推論プロファイルが us. 接頭辞で
+    # 実在することを実機の一覧で確認済み（2026-08-23）。
+    # 東京（ap-northeast-1）で使う場合は AWS_REGION に加えて BEDROCK_MODEL_ID_PREFIX=jp を
+    # 設定する。東京の Haiku 4.5 は apac. ではなく jp. プロファイルのみ（同日実機確認）。
+    # AgentCore Runtime 自体は東京でも利用可能（AWS「Supported AWS Regions」表で確認済み）。
+    aws_region: str = "us-east-1"
 
     # --- モデル ID -------------------------------------------------------
     # 未設定ならリージョンから自動導出する（ap-northeast-1 -> "apac"）。
@@ -50,18 +55,19 @@ class Settings(BaseSettings):
 
     # 役割別のベース ID（接頭辞を含まない）。
     #
-    # [確定] orchestrator / review の "anthropic.claude-sonnet-4-6" は
-    #        strands-agents 1.52.0 の既定モデル ID と同一。命名は確実。
-    # [未確定] search の Haiku 系 ID は本セッションで実機確認していない。
-    #        `./scripts/check_env.sh` が実在確認を行うので、失敗したらそこで表示される ID に直すこと。
+    # 既定は全役割とも Haiku 4.5。学習時の実行コストを抑えるための割り当てで、
+    # Bedrock 単価は入力 $1 / 出力 $5（100万トークンあたり、2026-08 時点）と
+    # Sonnet 系（$3 / $15）の 1/3。実案件では判断を伴う orchestrator / review を
+    # 上位モデルに差し替える想定で、そのために役割ごとに変数を分けている（第5章）。
+    # ID の実在は `./scripts/check_env.sh` が確認する。失敗したら表示される ID に直すこと。
     #
-    # 役割ごとのモデル割り当て理由:
-    #   orchestrator: 調査観点への分解と、複数の検索結果の統合。判断を伴うので上位モデル。
+    # 役割ごとの性質（実案件でモデルを割り当て直すときの判断材料）:
+    #   orchestrator: 調査観点への分解と、複数の検索結果の統合。判断を伴う（上位モデル候補）。
     #   search:       クエリ整形と検索結果の要約のみ。定型処理なので軽量モデルで足りる。
-    #   review:       出力の事実整合・出典有無の検証。見逃しが致命的なので上位モデル。
-    model_id_orchestrator: str = "anthropic.claude-sonnet-4-6"
-    model_id_search: str = "anthropic.claude-haiku-4-5"
-    model_id_review: str = "anthropic.claude-sonnet-4-6"
+    #   review:       出力の事実整合・出典有無の検証。見逃しが致命的（上位モデル候補）。
+    model_id_orchestrator: str = "anthropic.claude-haiku-4-5-20251001-v1:0"
+    model_id_search: str = "anthropic.claude-haiku-4-5-20251001-v1:0"
+    model_id_review: str = "anthropic.claude-haiku-4-5-20251001-v1:0"
 
     # 接頭辞の連結を使わず ID を丸ごと指定したい場合の逃げ道。
     model_id_orchestrator_full: str | None = None

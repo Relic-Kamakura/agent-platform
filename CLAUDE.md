@@ -17,7 +17,8 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
 ## ディレクトリの要点
 
 - `NN-*/` — 学習の章。各章は README（章番号付き節 + 【ハンズオン】節）+ verify/（合格判定）+ solutions/
-- `07-full-app/` — エージェント本体。**演習はこのコードを改造する**
+- `07-full-app/` — エージェント本体（完成形）。**ハンズオンは各章内で完結させ、
+  本体は読み比べの対象にする**（旧方式で本体を改造する章が一部残っており、穴埋め移行時に改める）
   - `src/main.py` エントリポイント（HTTP 契約はここだけ）/ `src/config.py` 環境変数を読む唯一の場所
   - `src/agents/` オーケストレータと専門エージェント / `src/tools/` 1 ファイル 1 ツール
   - `src/errors.py` 例外定義 / `src/guards.py` 上限ガードとトークン計測

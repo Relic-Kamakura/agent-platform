@@ -109,7 +109,7 @@ result.metrics.accumulated_usage     # 消費トークンの累計（dict。合�
 uv run exercises/01_agent.py
 ```
 
-既定値（us-east-1 / Sonnet 4.6）と自分の環境が違う場合は、第1章 1.3 で確認した ID を
+既定値（us-east-1 / Haiku 4.5）と自分の環境が違う場合は、第1章 1.3 で確認した ID を
 `MODEL_ID` と `AWS_REGION` で渡してください。回答のあとに `cycles: 2` が出るはずです。
 1 周目でモデルが now を使うと判断し、2 周目でツール結果を見て回答を組み立てた、
 という意味です。
@@ -163,7 +163,7 @@ if __name__ == "__main__":
 実際のログで見るとこうなります。本体 07-full-app を 1 回呼んだときの抜粋です。
 
 ```
-[ops]         {"message": "startup", "orchestrator": "apac.anthropic..."}   ← ループ外の運用ログ
+[ops]         {"message": "startup", "orchestrator": "us.anthropic..."}   ← ループ外の運用ログ
 [Reasoning]   モデル応答: "依頼を『Acme の価格』『Globex の価格』の 2 観点に分解します"
 [Acting]      {"message": "web_search", "query": "Acme pricing", "hits": 2}
 [Observation] 次ターンの入力に tool_result として検索結果 2 件が追加された

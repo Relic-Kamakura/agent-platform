@@ -46,7 +46,9 @@ class TavilySearchProvider:
         }
         last_error: Exception | None = None
 
-        # 試行回数 = 初回 + リトライ回数。リトライ対象は timeout / 429 / 5xx のみ。
+        # 試行回数 = 初回 + リトライ回数。プロバイダ内でリトライするのは timeout / 5xx のみ。
+        # 429（レート制限）は粘らず即座に例外にする。間隔を置かず送り続けると制限が悪化するため、
+        # retryable: no として「取得済みの情報でまとめる」判断をエージェントに返す（errors.py）。
         for attempt in range(self._max_retries + 1):
             try:
                 with httpx.Client(timeout=self._timeout) as client:

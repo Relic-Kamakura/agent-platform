@@ -2,15 +2,23 @@
 
 from __future__ import annotations
 
+import pathlib
+
 import httpx
 import pytest
 
 
+def test_no_todo_left(fetch_page_module) -> None:
+    source = pathlib.Path(fetch_page_module.__file__).read_text(encoding="utf-8")
+    assert "TODO" not in source, (
+        "exercises/fetch_page.py に TODO が残っています。README 3.3 に沿って実装し、"
+        "終わったら TODO コメントを消してください。"
+    )
+
+
 # --- docstring: LLM 向け仕様書になっているか --------------------------------
 def test_docstring_has_required_sections(fetch_page_module) -> None:
-    from src.config import Settings
-
-    tool = fetch_page_module.build_fetch_page_tool(Settings())
+    tool = fetch_page_module.build_fetch_page_tool(timeout_seconds=1.0, max_retries=2)
     fn = getattr(tool, "__wrapped__", tool)
     doc = fn.__doc__ or ""
     for section in ("受け取るもの", "返すもの", "含まないもの"):
@@ -31,7 +39,7 @@ class _Response:
 def _client_returning(response_factory):
     class _Client:
         def __init__(self, *args, **kwargs) -> None:
-            # タイムアウトがハードコードでなく設定から来ていることを検査する
+            # タイムアウトがハードコードでなく注入値から来ていることを検査する
             _client_returning.captured_timeout = kwargs.get("timeout")
 
         def __enter__(self):
@@ -57,7 +65,7 @@ def test_timeout_comes_from_settings(monkeypatch: pytest.MonkeyPatch, fetch_page
     monkeypatch.setattr(httpx, "Client", _client_returning(lambda: _Response("ok")))
     fetch_page_tool(url="https://example.com")
     assert _client_returning.captured_timeout == 1.0, (
-        "httpx.Client の timeout に settings.http_timeout_seconds が渡っていません。"
+        "httpx.Client の timeout に build_fetch_page_tool の timeout_seconds が渡っていません。"
     )
 
 
