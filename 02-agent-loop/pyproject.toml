@@ -1,13 +1,16 @@
 [project]
 name = "chapter02-agent-loop"
 version = "0.1.0"
-description = "第2章: はじめてのエージェント（写経ハンズオン）"
+description = "第2章: はじめてのエージェント（穴埋めハンズオン）"
 requires-python = ">=3.12"
-dependencies = ["strands-agents"]
+dependencies = [
+    "botocore[crt]>=1.43.72",
+    "strands-agents",
+]
 
 [dependency-groups]
 dev = ["pytest"]
 
 [tool.pytest.ini_options]
 testpaths = ["verify"]
-pythonpath = ["."]
+pythonpath = ["exercises"]

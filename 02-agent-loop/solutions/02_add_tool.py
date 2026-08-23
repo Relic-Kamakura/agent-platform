@@ -4,8 +4,8 @@ from datetime import UTC, datetime
 from strands import Agent, tool
 from strands.models import BedrockModel
 
-# モデル ID は環境変数から。既定値は東京リージョンの推論プロファイル（第1章参照）
-MODEL_ID = os.environ.get("MODEL_ID", "apac.anthropic.claude-haiku-4-5")
+# モデル ID。第1章 1.3 の手順で確認した、自分のリージョンで呼べる ID に合わせる
+MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-sonnet-4-6")
 
 
 @tool
@@ -40,7 +40,7 @@ def char_count(text: str) -> str:
 
 agent = Agent(
     model=BedrockModel(
-        region_name=os.environ.get("AWS_REGION", "ap-northeast-1"),
+        region_name=os.environ.get("AWS_REGION", "us-east-1"),
         model_id=MODEL_ID,
         max_tokens=512,
     ),

@@ -16,8 +16,9 @@ G4 向け AI エージェント開発基盤ひな形。競合リサーチエー�
   ハンズオン節の末尾に開閉式（`<details>`）の解答例を付ける
 - verify は「TODO が残っていれば該当節を案内して fail / solutions を exercises に
   適用すれば全パス」のラウンドトリップを守る
-- 適用状況: **第1章のみ適用済み**（exercises/01_converse.py / 02_count_tokens.py /
-  03_streaming.py、verify 3 件）。第2章以降は順次移行する。移行完了時に root README と
+- 適用状況: **第1・2章に適用済み**（第1章: exercises 3 本 + verify 3 件 /
+  第2章: exercises 3 本 + verify 6 件。第2章は既定値も us-east-1 / Sonnet 4.6 に統一し、
+  botocore[crt] を同梱）。第3章以降は順次移行する。移行完了時に root README と
   writing-style.md の旧方式（写経/要件実装）の記述を整理する
 
 同日、第1章を実機ハンズオンの結果に合わせて再構成した。実在確認（list-inference-profiles）を

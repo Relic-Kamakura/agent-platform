@@ -4,9 +4,8 @@ from datetime import UTC, datetime
 from strands import Agent, tool
 from strands.models import BedrockModel
 
-# モデル ID の解決規則は第1章で実装したとおり。
-# 自分のリージョンで呼べる ID に合わせて MODEL_ID を設定する
-MODEL_ID = os.environ.get("MODEL_ID", "apac.anthropic.claude-haiku-4-5")
+# モデル ID。第1章 1.3 の手順で確認した、自分のリージョンで呼べる ID に合わせる
+MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-sonnet-4-6")
 
 
 @tool
@@ -25,7 +24,7 @@ def now() -> str:
 # エージェント本体。tools に渡した関数の docstring がモデルに渡る
 agent = Agent(
     model=BedrockModel(
-        region_name=os.environ.get("AWS_REGION", "ap-northeast-1"),
+        region_name=os.environ.get("AWS_REGION", "us-east-1"),
         model_id=MODEL_ID,
         max_tokens=512,
     ),
