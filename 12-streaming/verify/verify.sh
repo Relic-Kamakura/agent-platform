@@ -16,8 +16,13 @@ ok "npm ci 済み"
 echo "2. Route Handler の存在と内容"
 ROUTE="app/api/invoke/route.ts"
 if [ ! -f "$ROUTE" ]; then
-  ng "$ROUTE がありません。README の 12.3 に沿って書いてください"
+  ng "$ROUTE がありません。exercises/route.ts をコピーして README の 12.3 に沿って埋めてください"
   exit 1
+fi
+if grep -q "TODO" "$ROUTE"; then
+  ng "TODO が残っています。README の 12.3 に沿って実装し、終わったら TODO コメントを消してください"
+else
+  ok "TODO が残っていない"
 fi
 grep -q "CognitoJwtVerifier" "$ROUTE" && ok "aws-jwt-verify で検証している" \
   || ng "JWT の検証に aws-jwt-verify の CognitoJwtVerifier を使ってください（12.2.1）"

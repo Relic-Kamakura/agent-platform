@@ -1,19 +1,21 @@
-# 第11章 認証と認可 — Cognito / JWT
+# 第11章 認証と認可
 
-この章を終えると、Cognito User Pool を CDK で自分で書き、AgentCore Runtime に
-inbound JWT authorizer を配線できるようになります。「誰がエージェントを呼べるか」を
-コードで定義する章です。
+この章を終えると、Cognito User Pool を CDK で自分で書き、AgentCore Runtime に inbound JWT authorizer を設定する形を説明できるようになります。
+「誰がエージェントを呼べるか」をコードで定義する章です。
 
-実装は第9章と同じ `09-infra-as-code/` に追加します。
+この章は独立した CDK プロジェクトです。最初に依存を入れてください。
+
+```bash
+cd 11-auth
+npm ci
+```
 
 ## 11.1 概要
 
 ### 11.1.1 認証と認可
 
-認証（authentication）は「相手が誰か」を確かめることで、認可（authorization）は
-「その相手に何を許すか」を決めることです。この章で作るのは、認証の仕組み
-（Cognito がユーザを確認してトークンを発行する）と、それに基づく認可の判定
-（有効なトークンを持つ呼び出しだけを Runtime に通す）の両方です。
+認証（authentication）は「相手が誰か」を確かめることで、認可（authorization）は「その相手に何を許すか」を決めることです。
+この章で作るのは、認証の仕組み（Cognito がユーザを確認してトークンを発行する）と、それに基づく認可の判定（有効なトークンを持つ呼び出しだけを Runtime に通す）の両方です。
 
 エージェントは呼び出されるたびに Bedrock のトークン費用が発生します。
 認可の無い API として公開すれば、誰でもそのコストを積み上げられてしまいます。
@@ -29,102 +31,142 @@ inbound JWT authorizer を配線できるようになります。「誰がエー
    ▼
 Next.js Route Handler（サーバ側）── ③JWT を検証 ── ④AWS SDK で InvokeAgentRuntime
    ▼
-AgentCore Runtime ── ⑤Runtime 側でも JWT authorizer が検証（この章で配線）
+AgentCore Runtime ── ⑤Runtime 側でも JWT authorizer が検証
 ```
 
-③と⑤で二重に検証しているのは役割が違うからです。③はアプリの入口での検証、
-⑤は Route Handler を経由せずに Runtime を直接呼び出す経路を塞ぐ、基盤側の検証です。
+③と⑤で二重に検証しているのは役割が違うからです。
+③はアプリの入口での検証、⑤は Route Handler を経由せずに Runtime を直接呼び出す経路を塞ぐ、基盤側の検証です。
+この章が扱うのは①の Cognito と⑤の JWT authorizer です。
 
 ### 11.1.3 Cognito と JWT の仕組み
 
-Cognito User Pool はユーザディレクトリ + トークン発行者です。ログインに成功すると
-3 種のトークンが返ります。
+Cognito User Pool はユーザディレクトリ + トークン発行者です。ログインに成功すると 3 種のトークンが返ります。
 
-- **ID トークン** — ユーザ属性（メール等）を含む。画面表示用
-- **アクセストークン** — API 呼び出しの認可に使う。この章で使うのはこれ
-- **リフレッシュトークン** — ID トークンとアクセストークンを再発行するための長寿命トークン
+- ID トークン — ユーザ属性（メール等）を含む。画面表示用
+- アクセストークン — API 呼び出しの認可に使う。この章で使うのはこれ
+- リフレッシュトークン — 上の 2 つを再発行するための長寿命トークン
 
-検証側は署名を確かめる必要があります。User Pool は公開鍵一覧（JWKS）を
-既知の URL で公開しており、その場所を検証側に知らせる URL が **discovery URL** です。
+検証側は署名を確かめる必要があります。
+User Pool は公開鍵一覧（JWKS）を既知の URL で公開しており、その場所を検証側に知らせる URL が discovery URL です。
 
 ```
 https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/openid-configuration
 ```
 
-検証側はこの URL から JWKS の場所を知り、公開鍵で署名を検証し、
-`iss`（発行者）と `aud` / `client_id`（宛先）が想定どおりかを確かめます。
+検証側はこの URL から JWKS の場所を知り、公開鍵で署名を検証し、`iss`（発行者）と `aud` / `client_id`（宛先）が想定どおりかを確かめます。
 これは OpenID Connect の標準的な仕組みで、Cognito 固有ではありません。
 
-## 11.2 実装のポイント — inbound JWT authorizer
+## 11.2 実装のポイント
 
-Runtime には JWT authorizer を設定できます（`CfnRuntime` の
-`authorizerConfiguration.customJwtAuthorizer`。型定義で確認済み）。
+### 11.2.1 Runtime 側の JWT authorizer
 
-- `discoveryUrl`（必須） — 11.1.3 の URL。ここから鍵を取って検証する
-- `allowedClients` — 許可する App Client ID の一覧
-- `allowedAudience` — aud クレームの許可リスト
+AgentCore Runtime には JWT authorizer を設定できます（`CfnRuntime` の `authorizerConfiguration.customJwtAuthorizer`。型定義で確認済み）。
+設定の形はこうなります。
+
+```ts
+new agentcore.CfnRuntime(this, 'AgentRuntime', {
+  // ...（第9章で書いた Runtime の定義）
+  authorizerConfiguration: {
+    customJwtAuthorizer: {
+      // 11.1.3 の URL。ここから鍵を取って検証する
+      discoveryUrl: authStack.discoveryUrl,
+      // 許可する App Client ID の一覧。他の Client のトークンは弾く
+      allowedClients: [authStack.clientId],
+    },
+  },
+});
+```
 
 これを設定すると、`InvokeAgentRuntime` の呼び出しに有効な JWT が必要になります。
-第9章で書いた `AgentRuntimeStack` は、この設定を受け取る props
-（`jwtDiscoveryUrl` / `jwtAllowedClients`）を既に持っています。この章では Cognito 側を作って配線します。
+第9章の Runtime スタックはこの 2 値を props で受け取れるようにしてあり、この章で作る AuthStack の公開プロパティ（`discoveryUrl` / `clientId`）をそのまま渡せば配線が完成します。
 
-## 11.3 【ハンズオン】AuthStack を書いて配線する
+### 11.2.2 この章で書く AuthStack
 
-### 11.3.1 AuthStack を書く
+Cognito 側は L2 が揃っているので、`cognito.UserPool` と `pool.addClient()` で書けます。
+判断が要るのは設定値のほうです。
 
-`09-infra-as-code/lib/auth-stack.ts` を新規作成してください。要件:
+- `selfSignUpEnabled: false` — 社内利用の想定で、ユーザは管理者が作る。true にすると誰でもアカウントを作れてしまい、認可を付けた意味が消える
+- `authFlows: { userPassword: true }` — 11.4 で CLI からログインするため。本番の Web アプリでは SRP / Hosted UI を検討する
+- `removalPolicy: DESTROY` — ひな形なので消しやすさ優先。本番では RETAIN にする
 
-1. `AuthStack` クラス。`cognito.UserPool` を 1 つ作る
-   - `selfSignUpEnabled: false`（社内利用。管理者がユーザを作る）
-   - `signInAliases: { email: true }`
-   - パスワードポリシーは CDK の既定でよい
-   - ひな形なので `removalPolicy: DESTROY`（理由コメントを書く）
-2. `pool.addClient()` で App Client を 1 つ作る
-   - `authFlows: { userPassword: true }`（ハンズオンで CLI からログインするため）
-   - `generateSecret: false`
-3. 公開プロパティとして `discoveryUrl: string` と `clientId: string` を持たせる
-   - discoveryUrl は `pool.userPoolProviderUrl` に
-     `/.well-known/openid-configuration` を連結して組み立てる
-4. `CfnOutput` で UserPoolId / ClientId / DiscoveryUrl を出力する
+## 11.3 【ハンズオン】AuthStack を書く
 
-### 11.3.2 bin/app.ts に配線する
-
-`AuthStack` を生成し、`AgentRuntimeStack` に `jwtDiscoveryUrl` と
-`jwtAllowedClients: [authStack.clientId]` を渡してください。
-スタック名は `AgentPlatformAuthStack` とします。
-
-### 11.3.3 synth で確認する
+編集するのは `lib/auth-stack.ts` の 1 ファイルだけです。骨組みをコピーして作ります。
 
 ```bash
-cd 09-infra-as-code
-CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth AgentPlatformAuthStack | grep -E 'UserPool|Client' | head
+mkdir -p lib && cp exercises/auth-stack.ts lib/auth-stack.ts
 ```
 
-`AWS::Cognito::UserPool` と `AWS::Cognito::UserPoolClient` が出るはずです。
-Runtime 側への配線も確認します。
+### 11.3.1 TODO を 4 つ埋める
+
+`lib/auth-stack.ts` を開いてください。クラスの枠と公開プロパティは書いてあり、TODO が 4 つ残っています。
+
+1. `cognito.UserPool` を作る（設定値は 11.2.2 のとおり）
+2. `pool.addClient()` で App Client を作る
+3. `discoveryUrl` と `clientId` を組み立てる。discoveryUrl は `pool.userPoolProviderUrl` に `/.well-known/openid-configuration` を連結する
+4. `CfnOutput` で UserPoolId / ClientId / DiscoveryUrl を出力する。11.4 のコマンドで使う値です
+
+エントリポイント `bin/app.ts` は用意してあり（編集不要）、このファイルを `AgentPlatformAuthStack` として読み込みます。
+
+### 11.3.2 synth で確認する
+
+実装できたら TODO コメントを消し、CloudFormation テンプレートに変換してみます。
 
 ```bash
-CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth AgentPlatformRuntimeStack | grep -A3 CustomJWTAuthorizer
+npx cdk synth AgentPlatformAuthStack | grep -E 'Cognito::UserPool|USER_PASSWORD'
 ```
 
-`DiscoveryUrl` に Cognito の URL が入っていれば配線成功です
-（synth 時点では実値でなく `Fn::Join` などの参照形式で表示されます）。
+`AWS::Cognito::UserPool` と `AWS::Cognito::UserPoolClient`、認証フローの `USER_PASSWORD_AUTH` が出るはずです。
 
-### 11.3.4 合格判定
+### 11.3.3 合格判定
 
 ```bash
-./11-auth/verify/verify.sh
+./verify/verify.sh
 ```
 
-詰まったら `solutions/` を見てください。
+型チェックと synth の結果から、UserPool / App Client / discovery URL の形 / CfnOutput を検査します。
 
-## 11.4 【ハンズオン】トークンを取得して呼び出す
+<details>
+<summary>解答例</summary>
 
-デプロイし、テストユーザを作り、実際のトークンで呼び出します。
+```ts
+    const pool = new cognito.UserPool(this, 'UserPool', {
+      // 社内利用の想定。ユーザは管理者が作る
+      selfSignUpEnabled: false,
+      signInAliases: { email: true },
+      // ひな形なので消しやすさ優先。本番では RETAIN に変えること
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    const client = pool.addClient('AppClient', {
+      // USER_PASSWORD_AUTH: ハンズオンで CLI からログインするため。
+      // 本番の Web アプリでは SRP / Hosted UI を検討する
+      authFlows: { userPassword: true },
+      generateSecret: false,
+    });
+
+    // OIDC の discovery URL。JWT 検証側はここから JWKS の場所を知る
+    this.discoveryUrl = `${pool.userPoolProviderUrl}/.well-known/openid-configuration`;
+    this.clientId = client.userPoolClientId;
+
+    new CfnOutput(this, 'UserPoolId', { value: pool.userPoolId });
+    new CfnOutput(this, 'ClientId', { value: this.clientId });
+    new CfnOutput(this, 'DiscoveryUrl', { value: this.discoveryUrl });
+```
+
+全文は `solutions/auth-stack.ts` にあります。
+
+</details>
+
+## 11.4 【ハンズオン】デプロイしてトークンを取得する
+
+作った AuthStack をデプロイし、テストユーザのトークンで呼び出しを確かめます。
 
 ```bash
-cd 09-infra-as-code && npx cdk deploy AgentPlatformAuthStack AgentPlatformRuntimeStack
+npx cdk deploy AgentPlatformAuthStack
 ```
+
+Outputs に UserPoolId / ClientId / DiscoveryUrl が表示されるはずです。以降のコマンドの `<UserPoolId>` / `<ClientId>` をこの値で置き換えてください。
 
 ```bash
 aws cognito-idp admin-create-user --user-pool-id <UserPoolId> \
@@ -144,16 +186,14 @@ aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH \
   --query 'AuthenticationResult.AccessToken' --output text
 ```
 
-取得したアクセストークンを Bearer として `InvokeAgentRuntime` を呼び、
-トークン無しだと拒否されることも確認してください。
+`eyJ` で始まる長い文字列（JWT）が出るはずです。
+第9章の Runtime に 11.2.1 の authorizer を設定してデプロイ済みなら、このトークンを Bearer として `InvokeAgentRuntime` を呼べること、トークン無しだと拒否されることまで確認できます。
 
 ## 11.5 まとめ
 
-トークンの発行は Cognito が担い、検証は discovery URL から公開鍵を取れる側なら
-誰でも行えます。発行と検証を分離しているのが OpenID Connect の設計で、この分離が
-あるから、アプリの入口（Route Handler）と基盤（Runtime の JWT authorizer）の
-**二重の検証** を同じ User Pool から配線できます。次の第12章では、この経路の
-残り、③の JWT 検証を行う Route Handler を自分で書きます。
+トークンの発行は Cognito が担い、検証は discovery URL から公開鍵を取れる側なら誰でも行えます。
+発行と検証を分離しているのが OpenID Connect の設計で、この分離があるから、アプリの入口（Route Handler）と基盤（Runtime の JWT authorizer）の二重の検証を同じ User Pool から配線できます。
+次の第12章では、この経路の残り、③の JWT 検証を行う Route Handler を自分で書きます。
 
 ## 次の章
 

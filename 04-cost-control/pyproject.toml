@@ -1,0 +1,12 @@
+[project]
+name = "chapter04-cost-control"
+version = "0.1.0"
+description = "第4章: コストと暴走の制御（穴埋めハンズオン）"
+requires-python = ">=3.12"
+dependencies = ["strands-agents", "botocore[crt]"]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["verify"]

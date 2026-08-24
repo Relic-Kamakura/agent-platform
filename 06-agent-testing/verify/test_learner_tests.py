@@ -1,4 +1,4 @@
-"""演習 06 の合格判定。受講者が書いたテストそのものを検査・実行する。"""
+"""演習 06 の合格判定。学習者が書いたテストそのものを検査し、実行する。"""
 
 from __future__ import annotations
 
@@ -8,17 +8,22 @@ import sys
 
 import pytest
 
-from conftest import APP_DIR
-
-TEST_FILE = APP_DIR / "tests" / "test_fetch_page.py"
+from conftest import CHAPTER_DIR, TEST_FILE
 
 
 def _source() -> str:
     if not TEST_FILE.exists():
         pytest.fail(
-            "07-full-app/tests/test_fetch_page.py がまだありません。README の 6.3 ハンズオンを確認してください。"
+            "exercises/test_fetch_page.py がありません。README の 6.3 ハンズオンを確認してください。"
         )
     return TEST_FILE.read_text(encoding="utf-8")
+
+
+def test_no_todo_left() -> None:
+    assert "TODO" not in _source(), (
+        "exercises/test_fetch_page.py に TODO が残っています。README 6.3 に沿ってテストを追加し、"
+        "終わったら TODO コメントを消してください。"
+    )
 
 
 def test_has_at_least_four_test_functions() -> None:
@@ -39,7 +44,7 @@ def test_mocks_httpx_instead_of_real_network() -> None:
     assert "monkeypatch" in source or "mock" in source.lower(), (
         "httpx をモックしてください。実ネットワークに依存するテストは CI で使えません。"
     )
-    assert "httpx" in source, "httpx のモック（_Client パターン等）が見つかりません。"
+    assert "httpx" in source, "httpx のモック（_client パターン等）が見つかりません。"
 
 
 def test_covers_error_format() -> None:
@@ -50,8 +55,8 @@ def test_covers_error_format() -> None:
 
 def test_learner_tests_actually_pass() -> None:
     result = subprocess.run(
-        [sys.executable, "-m", "pytest", "tests/test_fetch_page.py", "-q", "--no-header"],
-        cwd=APP_DIR,
+        [sys.executable, "-m", "pytest", "exercises/test_fetch_page.py", "-q", "--no-header"],
+        cwd=CHAPTER_DIR,
         capture_output=True,
         text=True,
         timeout=120,

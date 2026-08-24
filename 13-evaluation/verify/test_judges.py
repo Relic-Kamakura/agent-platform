@@ -15,11 +15,22 @@ try:
     from judges import judge_case
 except ModuleNotFoundError:
     pytest.fail(
-        "13-evaluation/judges.py がまだありません。README の 13.3 に沿って書いてください。",
+        "13-evaluation/judges.py がまだありません。exercises/judges.py を章直下にコピーし、"
+        "README の 13.3 に沿って TODO を埋めてください。",
         pytrace=False,
     )
 
 BASE_IDS = {"pricing-comparison", "feature-survey", "unknown-topic-honesty"}
+
+
+def test_no_todo_left() -> None:
+    import judges as mod
+
+    source = pathlib.Path(mod.__file__).read_text(encoding="utf-8")
+    assert "TODO" not in source, (
+        "judges.py に TODO が残っています。README の 13.3 に沿って実装し、"
+        "終わったら TODO コメントを消してください。"
+    )
 
 
 def test_contains_and_not_contains() -> None:

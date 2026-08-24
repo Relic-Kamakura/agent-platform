@@ -1,0 +1,12 @@
+[project]
+name = "chapter19-structured-output"
+version = "0.1.0"
+description = "第19章: 構造化出力（穴埋めハンズオン）"
+requires-python = ">=3.12"
+dependencies = ["strands-agents", "botocore[crt]", "pydantic"]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["verify"]

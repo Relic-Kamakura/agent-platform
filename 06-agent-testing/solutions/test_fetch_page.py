@@ -1,32 +1,41 @@
-"""演習 06 の模範解答。07-full-app/tests/test_fetch_page.py として配置する。
+"""ハンズオン 6.3 の模範解答。exercises/test_fetch_page.py の完成形。
 
-観点: 「このテストが落ちるのはどんなバグが入ったときか」を各テストに書いている。
+各テストに「このテストが落ちるのはどんなバグが入ったときか」を書いている。
 """
 
 from __future__ import annotations
 
+import pathlib
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "target"))
+
 import httpx
 import pytest
 
-from src.config import Settings
-from src.tools.fetch_page import build_fetch_page_tool
+from fetch_page import build_fetch_page_tool
 
 
-def _tool(**settings_kwargs):
-    settings = Settings(http_timeout_seconds=1.0, http_max_retries=2, **settings_kwargs)
-    tool = build_fetch_page_tool(settings)
+def _tool():
+    """テスト対象。タイムアウト 1 秒・リトライ 2 回で束縛し、@tool のラップを外す。"""
+    tool = build_fetch_page_tool(timeout_seconds=1.0, max_retries=2)
     return getattr(tool, "__wrapped__", tool)
 
 
 class _Response:
+    """httpx のレスポンスの偽物。テストが使う属性だけを持つ。"""
+
     def __init__(self, text: str, status_code: int = 200) -> None:
         self.text = text
         self.status_code = status_code
 
 
 def _client(response_factory):
+    """httpx.Client と差し替える偽クラスを作る。get() が response_factory の結果を返す。"""
+
     class _Client:
         def __init__(self, *args, **kwargs) -> None: ...
+
         def __enter__(self):
             return self
 
@@ -55,7 +64,7 @@ def test_non_http_url_is_rejected_without_network() -> None:
 
 
 def test_timeout_retries_then_reports(monkeypatch: pytest.MonkeyPatch) -> None:
-    # 落ちるとき: リトライ回数が設定と乖離する、または例外を握りつぶす
+    # 落ちるとき: リトライ回数が設定と乖離する、または例外を握りつぶすバグ
     calls = {"n": 0}
 
     def _raise():

@@ -16,7 +16,8 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
 
 ## ディレクトリの要点
 
-- `NN-*/` — 学習の章。各章は README（章番号付き節 + 【ハンズオン】節）+ verify/（合格判定）+ solutions/
+- `NN-*/` — 学習の章。各章は README（章番号付き節 + 【ハンズオン】節）+ exercises/（TODO 付き骨組み）+
+  verify/（合格判定）+ solutions/。多くの章は独立した uv プロジェクト
 - `07-full-app/` — エージェント本体（完成形）。**ハンズオンは各章内で完結させ、
   本体は読み比べの対象にする**（旧方式で本体を改造する章が一部残っており、穴埋め移行時に改める）
   - `src/main.py` エントリポイント（HTTP 契約はここだけ）/ `src/config.py` 環境変数を読む唯一の場所
@@ -49,7 +50,9 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
 
 - 前提条件チェック: `./scripts/check_env.sh`
 - デプロイ一式: `./scripts/deploy.sh`（ECR → イメージ push → Runtime の順序を保証）
-- 章の合格判定: `uv run --project 07-full-app pytest <章>/verify -q`（08, 09, 11, 12, 14, 17 章は `<章>/verify/verify.sh`）
+- 章の合格判定: 各章ディレクトリで `uv run pytest -q`。例外は
+  13 章（`uv run --project 07-full-app pytest 13-evaluation/verify -q`）、
+  08・09・11・12 章（`<章>/verify/verify.sh`）、17 章（verify.sh と章内 pytest の両方）
 
 ## 必ず守る規約
 

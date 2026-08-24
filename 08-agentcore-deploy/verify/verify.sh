@@ -13,7 +13,12 @@ FAILED=0
 ok() { printf '  \033[32mOK\033[0m    %s\n' "$1"; }
 ng() { printf '  \033[31mNG\033[0m    %s\n' "$1"; FAILED=1; }
 
-cleanup() { docker rm -f "$CONTAINER" >/dev/null 2>&1 || true; }
+INVOKE_BODY="$(mktemp)"
+cleanup() {
+  docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+  docker rm -f hello-verify08 >/dev/null 2>&1 || true
+  rm -f "$INVOKE_BODY"
+}
 trap cleanup EXIT
 
 echo "1. ARM64 イメージのビルド"
@@ -51,10 +56,10 @@ else
   ng "GET /ping が 200 になりません。docker logs $CONTAINER を確認（127.0.0.1 bind の罠は troubleshooting.md）"
 fi
 
-INVOKE_CODE="$(curl -s -m 10 -o /tmp/verify08_invoke.json -w '%{http_code}' \
+INVOKE_CODE="$(curl -s -m 10 -o "$INVOKE_BODY" -w '%{http_code}' \
   -XPOST "http://127.0.0.1:$PORT/invocations" \
   -H 'Content-Type: application/json' -d '{"prompt":""}' 2>/dev/null || true)"
-if [ "$INVOKE_CODE" = "200" ] && grep -q "prompt" /tmp/verify08_invoke.json; then
+if [ "$INVOKE_CODE" = "200" ] && grep -q "prompt" "$INVOKE_BODY"; then
   ok "POST /invocations -> 200 (空プロンプトのエラー応答)"
 else
   ng "POST /invocations が期待どおり応答しません (HTTP $INVOKE_CODE)"
@@ -63,7 +68,9 @@ fi
 echo "4. 自作 Dockerfile (hello-agent)"
 HELLO_DIR="$REPO_ROOT/08-agentcore-deploy/hello-agent"
 if [ ! -f "$HELLO_DIR/Dockerfile" ]; then
-  ng "hello-agent/Dockerfile がありません。README の 8.4 に沿って自分で書いてください"
+  ng "hello-agent/Dockerfile がありません。exercises/Dockerfile をコピーして 8.4.1 の TODO を埋めてください"
+elif grep -q "TODO" "$HELLO_DIR/Dockerfile"; then
+  ng "hello-agent/Dockerfile に TODO が残っています。README の 8.4.1 に沿って埋め、TODO コメントを消してください"
 else
   if docker buildx build --platform linux/arm64 -t hello-agent:verify08 --load "$HELLO_DIR" >/dev/null 2>&1; then
     ok "自作 Dockerfile でビルド成功"

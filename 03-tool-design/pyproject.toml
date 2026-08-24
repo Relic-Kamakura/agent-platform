@@ -3,7 +3,7 @@ name = "chapter03-tool-design"
 version = "0.1.0"
 description = "第3章: ツール設計（穴埋めハンズオン）"
 requires-python = ">=3.12"
-dependencies = ["httpx", "strands-agents"]
+dependencies = ["httpx", "strands-agents", "botocore[crt]"]
 
 [dependency-groups]
 dev = ["pytest"]

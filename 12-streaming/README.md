@@ -1,10 +1,9 @@
 # 第12章 フロントエンドとストリーミング
 
-この章を終えると、JWT 検証つきの Route Handler を自分で書き、エージェントの
-進捗をストリーミングで表示する画面が手元で動くようになります。
+この章を終えると、JWT 検証つきの Route Handler を自分で書き、エージェントの進捗をストリーミングで表示する画面が手元で動くようになります。
+Next.js（App Router）の骨組みは用意してあり、書くのはサーバ側の 1 ファイルだけです。
 
-Next.js（App Router）の骨組みは用意してあります。書くのはサーバ側の 1 ファイル、
-`app/api/invoke/route.ts` です。
+最初に依存を入れ、開発用の設定ファイルを作ってください。
 
 ```bash
 cd 12-streaming
@@ -14,21 +13,19 @@ cp .env.local.example .env.local
 
 ## 12.1 概要
 
-### 12.1.1 ストリーミングとは
+### 12.1.1 ストリーミング
 
 ストリーミングは、応答の完成を待たずに、できた部分から順に送り続ける方式です。
-エージェントの調査は数十秒かかります。無反応の画面が数十秒続くと、利用者には
-壊れたように見えるため、進捗を順に表示します。
+エージェントの調査は数十秒かかります。無反応の画面が数十秒続くと利用者には壊れたように見えるため、進捗を順に表示します。
 
-UX のためだけではありません。AgentCore のタイムアウトは同期 15 分・ストリーミング
-60 分です（第8章）。同期呼び出しでは 15 分を超えた処理が打ち切られるため、
-ストリーミングは長い処理の結果を失わないための選択でもあります。
+画面のためだけではありません。
+AgentCore Runtime のタイムアウトは同期 15 分・ストリーミング 60 分です（第8章）。
+同期呼び出しでは 15 分を超えた処理が打ち切られるため、ストリーミングは長い処理の結果を失わないための選択でもあります。
 
-### 12.1.2 経路設計 — なぜ Route Handler を挟むのか
+### 12.1.2 経路設計
 
-ブラウザから AgentCore Runtime を直接呼ぶ構成にすると、AWS の認証情報か
-署名の仕組みをブラウザに置くことになります。そこで間にサーバ側の
-Route Handler を挟みます。
+ブラウザから AgentCore Runtime を直接呼ぶ構成にすると、AWS の認証情報か署名の仕組みをブラウザに置くことになります。
+そこで間にサーバ側の Route Handler を挟みます。
 
 ```
 ブラウザ ── アクセストークン ──→ /api/invoke（Route Handler）
@@ -37,9 +34,9 @@ Route Handler を挟みます。
                                    ③ 応答ストリームをそのまま返す
 ```
 
-`lib/backend.ts`（提供コード）が②を担当します。`LOCAL_AGENT_URL` があれば
-ローカルの 07-full-app へ、無ければ Runtime へ転送する 2 経路です。
-この 2 経路のおかげで、この章のハンズオンはデプロイなしで全経路を通して動かせます。
+②は提供コード `lib/backend.ts` が担当します。
+`LOCAL_AGENT_URL` があればローカルの 07-full-app へ、無ければ Runtime へ転送する 2 経路になっていて、この章のハンズオンはデプロイなしで全経路を動かせます。
+この章で書くのは①と③、つまり認可の門番とストリームの受け渡しです。
 
 ## 12.2 実装のポイント
 
@@ -47,55 +44,120 @@ Route Handler を挟みます。
 
 検証は `aws-jwt-verify` に任せます。自前で JWKS を取りに行く必要はありません。
 
-- `CognitoJwtVerifier.create({userPoolId, clientId, tokenUse: "access"})` を
-  **モジュールスコープで 1 度だけ**作る。JWKS がプロセス内にキャッシュされ、
-  リクエストごとの鍵取得を避けられる
-- `verify(token)` が署名・発行者・client_id・有効期限をまとめて検証する
+- `CognitoJwtVerifier.create({userPoolId, clientId, tokenUse: "access"})` をモジュールスコープで 1 度だけ作る。JWKS がプロセス内にキャッシュされ、リクエストごとの鍵取得を避けられる
+- `verify(token)` が署名、発行者、client_id、有効期限をまとめて検証する
 - API の認可に使うのはアクセストークン（第11章 11.1.3）
 
-`AUTH_BYPASS` は、開発時に限って JWT 検証を省略するための設定です。安全に作るコツは 2 つ。判定は
-文字列 `"true"` との厳密比較にする（`1` や `yes` で有効にならない）。
-そしてバイパス時も**認可以外の検証（prompt の必須チェック等）は省かない**。
+`AUTH_BYPASS` は、開発時に限って JWT 検証を省略するための設定です。
+判定は文字列 `"true"` との厳密比較にします。truthy な値をすべて通す判定だと、`1` や `yes` のような意図しない値でも検証が消えるためです。
+バイパスするのは認可だけで、prompt の必須チェックなど他の検証は省きません。
 
-### 12.2.2 ストリームを変換せずに返す
+### 12.2.2 ストリームの受け渡し
 
-本体 07-full-app は payload に `"stream": true` を付けると
-SSE（text/event-stream）で応答します（第7章の `src/streaming.py`）。
+本体 07-full-app は payload に `"stream": true` を付けると SSE（text/event-stream）で応答します（第7章の `src/streaming.py`）。
 流れてくるイベントは 3 種類です。
 
 - `{"event": "stage", "stage": "research" | "review" | "revise"}` — 進捗
 - `{"event": "result", ...}` — 最終レポート
 - `{"event": "error", "detail": ...}` — 失敗
 
-Route Handler の仕事は、このストリームを**変換せずそのまま**ブラウザへ返すことです。
-`await upstream.text()` のように全部読み切ってから返すと、完了までブラウザに
-何も届かず、ストリーミングになりません。`new Response(upstream.body, ...)` と
-body を渡すだけでよい。
+Route Handler の仕事は、このストリームを変換せずそのままブラウザへ返すことです。
+`await upstream.text()` のように全部読み切ってから返すと、完了までブラウザに何も届かず、ストリーミングになりません。
+`new Response(upstream.body, ...)` と body を渡すだけでよい。
 
 ## 12.3 【ハンズオン】route.ts を書く
 
-`app/api/invoke/route.ts` を新規作成してください。要件:
+認可の門番となる Route Handler を作ります。
+編集するのは `app/api/invoke/route.ts` の 1 ファイルだけです。
 
-1. `POST` ハンドラをエクスポートする
-2. `AUTH_BYPASS === "true"` なら認可をスキップ。それ以外は
-   `Authorization: Bearer <token>` を `CognitoJwtVerifier` で検証し、
-   無い・無効なら **401** を返す
-3. body の `prompt` が空なら **400**
-4. `lib/backend.ts` の `invokeBackend()` に転送し、応答を
-   **ストリームのまま**返す（Content-Type も引き継ぐ）
+### 12.3.1 骨組みをコピーする
 
-書けたら判定します。
+```bash
+mkdir -p app/api/invoke
+cp exercises/route.ts app/api/invoke/route.ts
+```
+
+Next.js の App Router はファイルの場所が URL になるため、この配置だけで `POST /api/invoke` が有効になります。
+
+### 12.3.2 TODO を 3 つ埋める
+
+`app/api/invoke/route.ts` を開いてください。
+Verifier の生成と prompt の必須チェックは書いてあり、TODO が 3 つ残っています。
+
+1. `AUTH_BYPASS` の分岐 — 文字列 `'true'` のときだけ認可をスキップする（12.2.1 の厳密比較）
+2. JWT 検証 — `Authorization: Bearer <token>` を取り出して `verifier.verify()` にかけ、無い・無効なら 401 を返す
+3. 転送 — `invokeBackend()` の応答をストリームのまま返す。status と Content-Type も引き継ぐ（12.2.2）
+
+### 12.3.3 合格判定
+
+実装できたら TODO コメントを消し、判定します。
+実装の構造検査と `tsc --noEmit` の型チェックを行います。
 
 ```bash
 ./verify/verify.sh
 ```
 
-詰まったら `solutions/route.ts` を見てください。
+「第12章 合格。」が出るはずです。
+
+<details>
+<summary>解答例</summary>
+
+```typescript
+async function authorize(request: NextRequest): Promise<Response | null> {
+  // 開発時のバイパス。文字列 "true" のときだけ有効にする
+  if (process.env.AUTH_BYPASS === 'true') {
+    return null;
+  }
+  if (!verifier) {
+    return Response.json(
+      { error: 'COGNITO_USER_POOL_ID / COGNITO_CLIENT_ID が未設定です。' },
+      { status: 500 },
+    );
+  }
+
+  const header = request.headers.get('authorization') ?? '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!token) {
+    return Response.json({ error: 'Authorization: Bearer <token> が必要です。' }, { status: 401 });
+  }
+
+  try {
+    await verifier.verify(token); // 署名・iss・client_id・有効期限を検証
+    return null;
+  } catch {
+    return Response.json({ error: 'トークンが無効です。' }, { status: 401 });
+  }
+}
+
+export async function POST(request: NextRequest): Promise<Response> {
+  const denied = await authorize(request);
+  if (denied) {
+    return denied;
+  }
+
+  const body = (await request.json()) as InvokePayload;
+  if (!body.prompt?.trim()) {
+    return Response.json({ error: 'prompt が必要です。' }, { status: 400 });
+  }
+
+  // バックエンドの応答（SSE または JSON）をそのままブラウザへ流す
+  const upstream = await invokeBackend(body);
+  return new Response(upstream.body, {
+    status: upstream.status,
+    headers: {
+      'Content-Type': upstream.headers.get('Content-Type') ?? 'application/json',
+    },
+  });
+}
+```
+
+全文は `solutions/route.ts` にあります。
+
+</details>
 
 ## 12.4 【ハンズオン】ローカル一気通貫
 
-デプロイ不要で、ブラウザ → Route Handler → ローカルエージェント → Bedrock の
-全経路を動かします。
+デプロイ不要で、ブラウザ → Route Handler → ローカルエージェント → Bedrock の全経路を動かします。
 
 ターミナル 1 でエージェントを起動します。
 
@@ -103,31 +165,29 @@ body を渡すだけでよい。
 cd 07-full-app && uv run python -m src.main
 ```
 
-ターミナル 2 でフロントエンドを起動します（`.env.local` は
-`AUTH_BYPASS=true` と `LOCAL_AGENT_URL=http://127.0.0.1:8080` のまま）。
+ターミナル 2 でフロントエンドを起動します。
+`.env.local` は `AUTH_BYPASS=true` と `LOCAL_AGENT_URL=http://127.0.0.1:8080` のままにしてください。
 
 ```bash
 cd 12-streaming && npm run dev
 ```
 
-http://localhost:3000 を開き「調査する」を押すと、「調査中…」「検証中…」の
-進捗が順に現れ、最後にレポートが表示されるはずです。
+http://localhost:3000 を開き「調査する」を押すと、「調査中…」「検証中…」の進捗が順に現れ、最後にレポートが表示されるはずです。
 mock プロバイダのままなので検索は固定データです。
 
 ## 12.5 本番経路
 
 第11章のデプロイ後、`.env.local` を本番向けに切り替えます。
-`AUTH_BYPASS=false`、`LOCAL_AGENT_URL` を消し、`AGENT_RUNTIME_ARN` と
-`COGNITO_*` を CfnOutput の値で埋める。第11章 11.4 で取得したアクセストークンを
-`Authorization` ヘッダに付けて呼び出し、トークン無しが 401 になることも確認します。
+`AUTH_BYPASS=false` にし、`LOCAL_AGENT_URL` を消し、`AGENT_RUNTIME_ARN` と `COGNITO_*` を CfnOutput の値で埋めます。
+第11章 11.4 で取得したアクセストークンを `Authorization` ヘッダに付けて呼び出し、トークン無しが 401 になることも確認してください。
 Amplify Hosting へのデプロイは、この構成がそのまま載ります。
 
 ## 12.6 まとめ
 
-Route Handler の役割は、検証と転送だけを行う **薄い入口** に徹することです。
-AWS の認証情報はサーバ側にだけ置き、入口で JWT を検証し、通ったリクエストの
-応答ストリームは変換せずそのまま返す。読み切ってから返すと進捗がブラウザに
-届かなくなるので、「余計な処理をしない」ことが実装の核心になります。次の第13章では、この画面に流れてくる報告の品質そのものを evals で測ります。
+Route Handler の役割は、検証と転送だけを行う**薄い入口**に徹することです。
+AWS の認証情報はサーバ側にだけ置き、入口で JWT を検証し、通ったリクエストの応答ストリームは変換せずそのまま返す。
+読み切ってから返すと進捗がブラウザに届かなくなるので、余計な処理をしないことが実装の核心になります。
+次の第13章では、この画面に流れてくる報告の品質そのものを evals で測ります。
 
 ## 次の章
 

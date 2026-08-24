@@ -1,13 +1,12 @@
 [project]
 name = "chapter15-mcp"
 version = "0.1.0"
-description = "第15章: MCP サーバ（写経ハンズオン）"
+description = "第15章: MCP サーバ（穴埋めハンズオン）"
 requires-python = ">=3.12"
-dependencies = ["strands-agents", "mcp"]
+dependencies = ["strands-agents", "mcp", "botocore[crt]"]
 
 [dependency-groups]
 dev = ["pytest"]
 
 [tool.pytest.ini_options]
 testpaths = ["verify"]
-pythonpath = ["."]

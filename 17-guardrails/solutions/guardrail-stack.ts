@@ -1,4 +1,4 @@
-// 第17章の模範解答。09-infra-as-code/lib/guardrail-stack.ts として配置する。
+// 第17章の模範解答。17-guardrails/lib/guardrail-stack.ts として配置する。
 import { CfnOutput, Stack, type StackProps } from 'aws-cdk-lib';
 import * as bedrock from 'aws-cdk-lib/aws-bedrock';
 import type { Construct } from 'constructs';

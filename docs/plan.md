@@ -45,8 +45,23 @@ G4 向け AI エージェント開発基盤ひな形。競合リサーチエー�
   TODO 4 つを埋め、章直下の 01_/02_ スクリプトで動かし、章内 pytest 7 件で判定。
   第3章は本体 07-full-app への参照を持たない完全独立の章とした。
   fetch_page の完成品は本体に同梱してあり、第6章はそれをテスト対象にする）。
-  第4章以降は順次移行する（本体を改造する旧方式の章は移行時に章内完結へ改める）。
-  移行完了時に root README と writing-style.md の旧方式（写経/要件実装）の記述を整理する
+  第4章も適用済み（章内完結の uv プロジェクト化。CostLimiter を exercises の穴埋みで実装し、
+  イベントを手で流す 01 スクリプトで動かし、章内 pytest 5 件で判定。旧「本体 guards.py に追加」は廃止。
+  BeforeModelCallEvent.cancel は理由文字列がそのまま最終応答になる打ち切り型であることを
+  Strands ソースで確認し、cancel_tool との使い分けとして 4.2.2 に明記）。
+  **2026-08-24 に全章の移行が完了した。** 第5〜19章もエージェント並行作業で
+  穴埋め + 章内完結に改修（05: 章内ミニ agents-as-tools / 06: 章内同梱の fetch_page にテスト /
+  08: hello-agent Dockerfile の TODO 化 / 09: 章 = CDK 本体のため手順 + 解答例形式 /
+  11・17: 章内ミニ CDK プロジェクト化で他章への編集を全廃 / 12: exercises/route.ts /
+  13: exercises/judges.py + ケース追記例を solutions に追加 / 14: 章内 fixture と
+  hardened_prompt、13 章ハーネスへの依存を撤廃 / 15: server.py の TODO 化 /
+  16: cached_agent(CacheConfig は実在 API を確認、最小キャッシュ長 4096 トークンは一次情報で裏取り) /
+  18: approval_gate / 19: 構造化出力ミニ実装、strands 1.53 で agent.structured_output() が
+  非推奨のため structured_output_model 引数の現行 API を採用）。
+  全章で「素 = 案内付き fail / solutions 適用 = 全パス」のラウンドトリップを実測済み。
+  root README・writing-style.md・CLAUDE.md の旧方式（写経/要件実装・本体改造）の記述も整理した。
+  [未確認] 04 章 02_agent_with_limit.py（実エージェントでの打ち切り観察）は
+  AWS セッション切れで実測未実施。挙動はソース裏取り済みだが、再認証後に 1 回実行して確認する
 
 同日、第1章を実機ハンズオンの結果に合わせて再構成した。実在確認（list-inference-profiles）を
 先頭の 1.3 に移動、接頭辞リゾルバ実装のハンズオンは削除して解説（1.1.6）に縮約、

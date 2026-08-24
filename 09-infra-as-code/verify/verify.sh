@@ -20,7 +20,7 @@ echo "2. cdk.json の既定値"
 if jq -e '.context.logLevel' cdk.json >/dev/null 2>&1; then
   ok 'context に logLevel の既定値がある'
 else
-  ng 'cdk.json の context に "logLevel" を追加してください'
+  ng 'cdk.json の context に "logLevel" を追加してください（README 9.3.2）'
 fi
 
 echo "3. synth への反映 (-c logLevel=DEBUG)"
@@ -28,7 +28,7 @@ SYNTH="$(CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth AgentPlatformRuntimeStac
 if echo "$SYNTH" | grep -q "LOG_LEVEL: DEBUG"; then
   ok "Runtime の EnvironmentVariables に LOG_LEVEL: DEBUG が入っている"
 else
-  ng "synth 結果に LOG_LEVEL: DEBUG がありません。lib/config.ts の agentEnvironment を確認してください"
+  ng "synth 結果に LOG_LEVEL: DEBUG がありません。lib/config.ts の agentEnvironment を確認してください（README 9.3.1）"
 fi
 
 echo "4. 未指定なら注入しない"
@@ -36,7 +36,7 @@ SYNTH_DEFAULT="$(CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth AgentPlatformRun
 if echo "$SYNTH_DEFAULT" | grep -q "LOG_LEVEL: INFO"; then
   ok "既定値 INFO が cdk.json から入っている"
 else
-  ng "既定（cdk.json の logLevel=INFO）が synth に反映されていません"
+  ng "既定（cdk.json の logLevel=INFO）が synth に反映されていません（README 9.3.2）"
 fi
 
 echo

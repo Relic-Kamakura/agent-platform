@@ -1,40 +1,48 @@
 #!/usr/bin/env bash
-# 第11章の合格判定。synth ベースで AWS 接続は不要。
+# 第11章の合格判定。型チェックと synth の結果を検査する。
 set -uo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-cd "$REPO_ROOT/09-infra-as-code"
+CHAPTER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$CHAPTER_DIR"
 FAILED=0
 
 ok() { printf '  \033[32mOK\033[0m    %s\n' "$1"; }
 ng() { printf '  \033[31mNG\033[0m    %s\n' "$1"; FAILED=1; }
 
-echo "1. AuthStack の存在と型チェック"
-if [ ! -f lib/auth-stack.ts ]; then
-  ng "lib/auth-stack.ts がありません。README の 11.3.1 に沿って書いてください"
+echo "1. 前提"
+if [ ! -d node_modules ]; then
+  ng "依存が入っていません。11-auth で npm ci を実行してください"
   exit 1
 fi
+if [ ! -f lib/auth-stack.ts ]; then
+  ng "lib/auth-stack.ts がありません。exercises/auth-stack.ts をコピーして TODO を埋めてください（11.3.1）"
+  exit 1
+fi
+if grep -q "TODO" lib/auth-stack.ts; then
+  ng "lib/auth-stack.ts に TODO が残っています。README 11.3 に沿って実装し、終わったら TODO コメントを消してください"
+  exit 1
+fi
+ok "lib/auth-stack.ts がある"
+
+echo "2. 型チェック"
 if npx tsc --noEmit >/dev/null 2>&1; then
   ok "tsc --noEmit"
 else
   ng "型エラーがあります。npx tsc --noEmit で確認してください"
 fi
 
-echo "2. AuthStack の synth"
-AUTH="$(CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth AgentPlatformAuthStack 2>/dev/null || true)"
-echo "$AUTH" | grep -q "AWS::Cognito::UserPool" && ok "UserPool が定義されている" \
-  || ng "AgentPlatformAuthStack に UserPool がありません（bin/app.ts への追加も確認。11.3.2）"
-echo "$AUTH" | grep -q "AWS::Cognito::UserPoolClient" && ok "UserPoolClient が定義されている" \
-  || ng "App Client がありません（11.3.1 要件 2）"
-echo "$AUTH" | grep -q "USER_PASSWORD_AUTH" && ok "USER_PASSWORD_AUTH が有効" \
+echo "3. synth"
+SYNTH="$(npx cdk synth AgentPlatformAuthStack 2>/dev/null || true)"
+echo "$SYNTH" | grep -q "AWS::Cognito::UserPool" && ok "UserPool が定義されている" \
+  || ng "UserPool がありません（11.3.1 TODO(1)）"
+echo "$SYNTH" | grep -q "AWS::Cognito::UserPoolClient" && ok "UserPoolClient が定義されている" \
+  || ng "App Client がありません（11.3.1 TODO(2)）"
+echo "$SYNTH" | grep -q "USER_PASSWORD_AUTH" && ok "USER_PASSWORD_AUTH が有効" \
   || ng "authFlows の userPassword を有効にしてください（11.4 の CLI ログインで使う）"
-
-echo "3. Runtime への配線"
-RUNTIME="$(CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth AgentPlatformRuntimeStack 2>/dev/null || true)"
-echo "$RUNTIME" | grep -q "CustomJWTAuthorizer" && ok "customJwtAuthorizer が配線されている" \
-  || ng "Runtime に JWT authorizer が配線されていません（11.3.2）"
-echo "$RUNTIME" | grep -q "well-known/openid-configuration" && ok "DiscoveryUrl が OIDC 形式" \
+echo "$SYNTH" | grep -q "well-known/openid-configuration" && ok "DiscoveryUrl が OIDC 形式" \
   || ng "discoveryUrl は /.well-known/openid-configuration まで含めてください（11.1.3）"
+echo "$SYNTH" | grep -q "UserPoolId" && ok "CfnOutput がある" \
+  || ng "UserPoolId などの CfnOutput を出してください（11.3.1 TODO(4)）"
 
 echo
 if [ "$FAILED" = "0" ]; then

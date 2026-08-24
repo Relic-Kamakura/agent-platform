@@ -1,0 +1,12 @@
+[project]
+name = "chapter14-prompt-injection"
+version = "0.1.0"
+description = "第14章: プロンプトインジェクション耐性（穴埋めハンズオン）"
+requires-python = ">=3.12"
+dependencies = ["strands-agents", "botocore[crt]"]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["verify"]
