@@ -1,6 +1,6 @@
 // 第12章の模範解答。app/api/invoke/route.ts として配置する。
 //
-// このファイルがアプリの認可の門番。ブラウザからの呼び出しはすべてここを通り、
+// このファイルがアプリ側の JWT 検証の入口。ブラウザからの呼び出しはすべてここを通り、
 // JWT を検証してからエージェント基盤へ転送する。AWS 認証情報はサーバ側にしか無い。
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import type { NextRequest } from 'next/server';

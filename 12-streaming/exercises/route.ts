@@ -1,4 +1,4 @@
-// ハンズオン 12.3: 認可の門番となる Route Handler の骨組み。
+// ハンズオン 12.3: JWT を検証してバックエンドへ転送する Route Handler の骨組み。
 // app/api/invoke/route.ts にコピーして TODO を埋める。
 // 実装が終わったら TODO コメントは消す。完成形は solutions/route.ts。
 import { CognitoJwtVerifier } from 'aws-jwt-verify';

@@ -34,8 +34,7 @@ AgentCore のような新しいサービスには L2 がまだありません。
 「stable な L2 Runtime がある」と書いた Web 記事を信じて設計し、実装段階で `node_modules` の型定義を開いたら存在しませんでした。
 aws-cdk-lib 2.264.0 の aws-bedrockagentcore に入っているのは L1 だけです。
 
-この失敗から持ち帰るべきは確認方法です。
-Web 記事の記述より、手元の `node_modules` にある型定義を信頼してください。
+以来、L2 の有無は Web 記事ではなく手元の `node_modules` の型定義で確認しています。
 
 ```bash
 ls 09-infra-as-code/node_modules/aws-cdk-lib/aws-bedrockagentcore/lib/
@@ -51,9 +50,8 @@ L1 は全プロパティを自分で書く手間がかかる代わり、CloudFor
 AgentCore Runtime は、作成時点で ECR にイメージが存在することを要求します。
 ECR と Runtime を同じスタックに入れると、CloudFormation は「空のリポジトリを参照する Runtime」を作ろうとして失敗します。
 
-一般化すると、CloudFormation が管理するのはリソースの存在であって、「イメージが push 済みか」という状態ではないからです。
+CloudFormation が管理するのはリソースの存在であって、「イメージが push 済みか」という状態ではありません。
 リソースが IaC の管理外の状態に依存するとき、IaC 単体では順序を保証できません。
-AgentCore に限らず繰り返し出会う問題です。
 
 このリポジトリの解き方:
 
@@ -68,7 +66,6 @@ AgentCore に限らず繰り返し出会う問題です。
 
 `bedrock-agentcore.amazonaws.com` からの AssumeRole を、`aws:SourceAccount` と `aws:SourceArn` の条件で自アカウント起源に限定しています。
 条件が無いと、他人の AWS アカウントの AgentCore があなたのロールを引き受けられる余地が生まれます（confused deputy 問題）。
-セキュリティレビューで必ず指摘される類のもので、最初から書く癖をつけてください。
 
 権限は 3 つに絞ってあります。
 
@@ -158,7 +155,7 @@ cd .. && ./09-infra-as-code/verify/verify.sh
 
 CloudFormation が保証するのはリソースの存在までで、「イメージが push 済みか」のような管理外の状態は保証できません。
 だからスタックを分け、順序は `scripts/deploy.sh` に持たせる。
-**IaC の境界を見極めて、足りない保証を手順で補う**のがこの章の核心です。
+**IaC が保証しない部分を手順で補う**のがこの章の核心です。
 
 ## 次の章
 

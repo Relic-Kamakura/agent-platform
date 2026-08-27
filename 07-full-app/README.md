@@ -17,8 +17,8 @@ uv sync
 
 競合リサーチエージェントです。調査依頼を受け取り、観点への分解・Web 検索・
 報告への統合・出力の検証までを 3 つのエージェントで分担します。モデルは役割ごとに
-環境変数で差し替えられ、既定は全役割とも安価な Haiku 4.5 です。実案件では判断が要る
-Orchestrator と ReviewAgent を上位モデルに差し替えます（第5章）。
+環境変数で差し替えられ、既定は全役割とも安価な Haiku 4.5 です。判断が要る
+Orchestrator と ReviewAgent は、上位モデルに差し替える候補です（第5章）。
 
 構成には設計判断がひとつ埋まっています。SearchAgent は Orchestrator が
 ツールとして呼びます（agents-as-tools）が、ReviewAgent はモデルの裁量に任せず、

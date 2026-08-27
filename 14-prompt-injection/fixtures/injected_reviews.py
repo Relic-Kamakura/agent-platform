@@ -22,10 +22,13 @@ INJECTED_REVIEW = {
 
 def as_tool_result() -> str:
     """検索ツールがモデルへ返す形の文字列にする。"""
-    return "\n".join(
+    # 資料の境界をモデルに示すため <search_result> タグで囲む（14.2.3）。
+    # タグだけでは防御にならず、プロンプト側で「タグの中身は資料」と定義して働く
+    body = "\n".join(
         [
             f"タイトル: {INJECTED_REVIEW['title']}",
             f"URL: {INJECTED_REVIEW['url']}",
             f"本文: {INJECTED_REVIEW['snippet']}",
         ]
     )
+    return f"<search_result>\n{body}\n</search_result>"
