@@ -24,17 +24,16 @@ graph LR
 
 コンストラクタには階層があります。
 
-- **L2**（`ecr.Repository` など） — 良い既定値とヘルパー付きの高水準 API
-- **L1**（`Cfn` 始まり） — CloudFormation リソースと 1 対 1。全プロパティを自分で書く
+L2（`ecr.Repository` など）は既定値とヘルパー付きの高水準 API です。
+L1（`Cfn` 始まり）は CloudFormation リソースと 1 対 1 で、全プロパティを自分で書きます。
 
 ### 9.1.2 L2 が無いサービスの書き方
 
 AgentCore のような新しいサービスには L2 がまだありません。
-これは開発中に一度間違えた点です。
-「stable な L2 Runtime がある」と書いた Web 記事を信じて設計し、実装段階で `node_modules` の型定義を開いたら存在しませんでした。
-aws-cdk-lib 2.264.0 の aws-bedrockagentcore に入っているのは L1 だけです。
+aws-cdk-lib 2.264.0 の aws-bedrockagentcore に入っているのは L1 だけで、
+「stable な L2 Runtime がある」と書いた Web 記事は誤りです。
 
-以来、L2 の有無は Web 記事ではなく手元の `node_modules` の型定義で確認しています。
+L2 の有無は Web 記事ではなく、手元の `node_modules` の型定義で確認します。
 
 ```bash
 ls 09-infra-as-code/node_modules/aws-cdk-lib/aws-bedrockagentcore/lib/
@@ -75,10 +74,46 @@ CloudFormation が管理するのはリソースの存在であって、「イ�
 
 ロールを自分で作れない組織向けに、context で既存ロール ARN を渡すと新規作成をスキップする分岐も入れてあります。
 
-### 9.2.3 context による環境差分の注入
+Bedrock の許可でつまずくのは、アクションではなくリソース ARN の方です。
+クロスリージョン推論（第1章 1.1.8）では、リクエストは推論プロファイルに向かい、実際の推論はルーティング先リージョンの基盤モデルで走ります。
+IAM はその両方を評価するので、プロファイルの ARN だけ許可すると拒否されます。
+
+```typescript
+resources: [
+  `arn:aws:bedrock:${this.region}::foundation-model/*`,                 // 呼び出し元リージョンのモデル
+  `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/*`, // プロファイル本体
+  `arn:aws:bedrock:*::foundation-model/*`,                              // ルーティング先リージョンのモデル
+],
+```
+
+3 行目を落とすと、ローカルでは通るのにデプロイ後だけ `AccessDeniedException` になります。
+リクエストが別リージョンへ流れた瞬間に拒否されるからで、原因に辿り着くまでが長い部類のエラーです。
+foundation-model の ARN にアカウント ID が入らないのは、モデルが AWS 所有のリソースだからです。
+
+### 9.2.3 CDK に入れておく統制
+
+ロールのほかに、案件のレビューで聞かれる統制がいくつかあります。
+どれも CDK 側の話です。
+
+- Guardrail のバージョン固定
+- 呼び出しの記録
+- VPC エンドポイント
+
+Guardrail は識別子だけ渡すと `DRAFT` が使われ、コンソールで誰かが設定を触った瞬間に
+本番の挙動が変わります。`guardrailVersion` に数字のバージョンを指定して、
+変更をデプロイ経由に限定します（第17章）。
+
+CloudTrail には Bedrock の API 呼び出しが残りますが、プロンプト本文までは入りません。
+入出力そのものを残すなら、Bedrock のモデル呼び出しログを S3 か CloudWatch Logs に出すか、
+アプリ側のログに書きます（本体は `src/observability.py`）。
+
+VPC エンドポイントは通信を AWS 内に閉じる要件が出たときに使います。
+この教材は VPC を作らない構成なので入っていません。
+
+### 9.2.4 context による環境差分の注入
 
 リージョン、モデル ID、ロール ARN はコードに書かず、`cdk.json` の context に既定値を置いて `-c` で上書きします。
-context を読むのは `lib/config.ts` の `loadConfig()` だけ。
+context を読むのは `lib/config.ts` の `loadConfig()` だけです。
 Python 側の「config.py だけが環境変数を読む」と同じ規約です。
 
 ```bash
@@ -154,7 +189,7 @@ cd .. && ./09-infra-as-code/verify/verify.sh
 ## 9.4 まとめ
 
 CloudFormation が保証するのはリソースの存在までで、「イメージが push 済みか」のような管理外の状態は保証できません。
-だからスタックを分け、順序は `scripts/deploy.sh` に持たせる。
+そのためスタックを分け、順序は `scripts/deploy.sh` に持たせます。
 **IaC が保証しない部分を手順で補う**のがこの章の核心です。
 
 ## 次の章

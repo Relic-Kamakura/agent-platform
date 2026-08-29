@@ -25,7 +25,7 @@ class PageFetchError(ToolError):
 
 
 def build_fetch_page_tool(settings: Settings):
-    """設定を束縛した fetch_page ツールを返す。"""
+    """設定を固定した fetch_page ツールを返す。"""
 
     timeout = settings.http_timeout_seconds
     max_retries = settings.http_max_retries
@@ -48,7 +48,7 @@ def build_fetch_page_tool(settings: Settings):
         含まないもの:
             - JavaScript の実行。動的レンダリングが必要なページは本文が取れないことがある。
             - 認証が必要なページ、ログインの背後にある情報。
-            - HTML の整形・要約・抽出。生のテキストをそのまま返す。要約はあなたの仕事。
+            - HTML の整形・要約・抽出。取得したテキストをそのまま返す。要約はあなたの仕事。
         """
         if not url.startswith(("http://", "https://")):
             return format_tool_error(

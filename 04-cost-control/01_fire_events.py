@@ -1,4 +1,4 @@
-"""CostLimiter にイベントを手で流し、止まる瞬間と理由を見る（編集不要）。"""
+"""CostLimiter にイベントを手で渡し、止まる位置と理由を見る（編集不要）。"""
 
 import pathlib
 import sys
@@ -16,7 +16,7 @@ limiter.register_hooks(registry)
 # リクエスト開始。積算がリセットされる
 registry.invoke_callbacks(BeforeInvocationEvent(agent=None, invocation_state={}))
 
-# 毎ターン 4,000 トークンの入力が来る想定でモデル呼び出し直前イベントを流す
+# 毎ターン 4,000 トークンの入力が来る想定でモデル呼び出し直前イベントを渡す
 for turn in range(1, 5):
     event = BeforeModelCallEvent(
         agent=None,

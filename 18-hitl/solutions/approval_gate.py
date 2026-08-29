@@ -29,7 +29,7 @@ class ApprovalGate:
     def _check(self, event: BeforeToolCallEvent) -> None:
         name = event.tool_use.get("name", "<unknown>")
         if name not in self.requires_approval:
-            # 読み取り系ツールを遅くしない。承認対象だけ人間に回す
+            # 読み取り系ツールを遅くしない。承認対象だけ人間に尋ねる
             return
 
         tool_input = dict(event.tool_use.get("input", {}))

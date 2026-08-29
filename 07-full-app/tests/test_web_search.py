@@ -20,7 +20,7 @@ from src.tools.web_search import build_web_search_tool
 
 
 def _call(tool, **kwargs) -> str:
-    """@tool でラップされた関数を素の関数として呼ぶ。"""
+    """@tool でラップされた関数を元の関数として呼ぶ。"""
     return tool.__wrapped__(**kwargs) if hasattr(tool, "__wrapped__") else tool(**kwargs)
 
 

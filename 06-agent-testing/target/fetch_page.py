@@ -34,7 +34,7 @@ def format_tool_error(exc: PageFetchError) -> str:
 
 
 def build_fetch_page_tool(timeout_seconds: float, max_retries: int):
-    """タイムアウトとリトライ回数を束縛した fetch_page ツールを返す。
+    """タイムアウトとリトライ回数を固定した fetch_page ツールを返す。
 
     値をコードに書かず外から注入するための作り。
     """
@@ -56,7 +56,7 @@ def build_fetch_page_tool(timeout_seconds: float, max_retries: int):
         含まないもの:
             - JavaScript の実行。動的レンダリングが必要なページは本文が取れないことがある。
             - 認証が必要なページ、ログインの背後にある情報。
-            - HTML の整形・要約・抽出。生のテキストをそのまま返す。要約はあなたの仕事。
+            - HTML の整形・要約・抽出。取得したテキストをそのまま返す。要約はあなたの仕事。
         """
         if not url.startswith(("http://", "https://")):
             return format_tool_error(

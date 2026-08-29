@@ -38,7 +38,7 @@ def format_tool_error(exc: PageFetchError) -> str:
 
 
 def build_fetch_page_tool(timeout_seconds: float, max_retries: int):
-    """タイムアウトとリトライ回数を束縛した fetch_page ツールを返す。
+    """タイムアウトとリトライ回数を固定した fetch_page ツールを返す。
 
     値をコードに書かず外から注入するための作り。
     """

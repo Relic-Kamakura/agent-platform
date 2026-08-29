@@ -33,29 +33,49 @@ uv run --project 07-full-app pytest 03-tool-design/verify -q
 
 | 章 | 学べること |
 | --- | --- |
-| [00-dev-environment](00-dev-environment/) | uv / Docker / AWS CLI で開発環境を整える |
-| [01-invoke-bedrock](01-invoke-bedrock/) | Bedrock で Claude を呼ぶ。クロスリージョン推論とモデル ID の解決 |
-| [02-agent-loop](02-agent-loop/) | エージェントループの仕組み。ReAct と CoT を実物のログで理解する |
-| [03-tool-design](03-tool-design/) | ツール設計。docstring 仕様書・エラー設計・リトライ |
-| [04-cost-control](04-cost-control/) | hooks による上限とトークン計測。暴走を仕組みで止める |
-| [05-multi-agent](05-multi-agent/) | 役割分割とモデルの使い分け。裁量とコードの境界 |
-| [06-agent-testing](06-agent-testing/) | LLM を呼ばないエージェントのテスト |
-| [07-full-app](07-full-app/) | 完成形の通読（演習の改造対象） |
-| [08-agentcore-deploy](08-agentcore-deploy/) | AgentCore Runtime のコンテナ契約・ARM64・デプロイ |
-| [09-infra-as-code](09-infra-as-code/) | CDK。IAM ロール設計とデプロイ順序 |
-| [10-knowledge-base](10-knowledge-base/) | RAG の仕組みを手で作る。チャンク分割とスコアリング、Bedrock Knowledge Bases |
-| [11-auth](11-auth/) | 認証・認可。Cognito / JWT / Runtime の authorizer |
-| [12-streaming](12-streaming/) | Next.js。JWT 検証つき Route Handler とストリーミング表示 |
-| [13-evaluation](13-evaluation/) | 評価。判定関数・ケース設計・改善ループ |
-| [14-prompt-injection](14-prompt-injection/) | プロンプトインジェクション耐性と多層防御 |
-| [15-mcp](15-mcp/) | MCP サーバ。ツールのプロトコル分離 |
-| [16-prompt-caching](16-prompt-caching/) | プロンプトキャッシュ。前方一致とコスト実測 |
-| [17-guardrails](17-guardrails/) | Bedrock Guardrails。マネージド層の内容フィルタ |
-| [18-hitl](18-hitl/) | HITL。取り消せない操作への承認ゲート |
-| [19-structured-output](19-structured-output/) | 構造化出力。テキストパースの撤去 |
-| [99-appendix](99-appendix/) | 発展領域の入口（RAG / Memory / OTel / Gateway） |
+| [00-dev-environment](00-dev-environment/) | uv / Docker / AWS CLI の環境構築 |
+| [01-invoke-bedrock](01-invoke-bedrock/) | Bedrock でモデルを呼ぶ |
+| [02-agent-loop](02-agent-loop/) | エージェントループと ReAct |
+| [03-tool-design](03-tool-design/) | ツール設計とエラー設計 |
+| [04-cost-control](04-cost-control/) | hooks による上限とトークン計測 |
+| [05-multi-agent](05-multi-agent/) | 役割分割とモデルの使い分け |
+| [06-agent-testing](06-agent-testing/) | LLM を呼ばないテスト |
+| [07-full-app](07-full-app/) | 完成形の通読 |
+| [08-agentcore-deploy](08-agentcore-deploy/) | コンテナ契約とデプロイ |
+| [09-infra-as-code](09-infra-as-code/) | CDK と IAM ロール設計 |
+| [10-knowledge-base](10-knowledge-base/) | RAG を手で作る |
+| [11-auth](11-auth/) | Cognito と JWT による認可 |
+| [12-streaming](12-streaming/) | Next.js とストリーミング表示 |
+| [13-evaluation](13-evaluation/) | 判定関数と改善ループ |
+| [14-prompt-injection](14-prompt-injection/) | インジェクション耐性と多層防御 |
+| [15-mcp](15-mcp/) | MCP サーバによる分離 |
+| [16-prompt-caching](16-prompt-caching/) | プロンプトキャッシュとコスト実測 |
+| [17-guardrails](17-guardrails/) | マネージド層の内容フィルタ |
+| [18-hitl](18-hitl/) | 取り消せない操作の承認ゲート |
+| [19-structured-output](19-structured-output/) | 構造化出力とパースの撤去 |
+| [99-appendix](99-appendix/) | 発展領域の入口と用語集 |
 
 Tier 分けと習得判定は [docs/learning-roadmap.md](docs/learning-roadmap.md) にあります。
+
+## 開発の工程と章の対応
+
+実案件でエージェントを組むときの工程と、章の対応です。
+番号順に進めると、この流れを一周したことになります。
+
+```mermaid
+graph LR
+    A["何を任せるか<br/>決める"] --> B["ツールに分解<br/>第3章"]
+    B --> C["エージェント構成<br/>第2・5章"]
+    C --> D["上限と権限<br/>第4・11・17章"]
+    D --> E["テストと評価<br/>第6・13・14章"]
+    E --> F["デプロイ<br/>第8・9章"]
+    F --> G["観測と改善<br/>第12章 / 付録C"]
+    G --> E
+```
+
+工程のうち手数が要るのはツール設計（第3章）と評価（第13章）です。
+エージェントの品質は、モデルを上位に差し替えるより、ツールの粒度と docstring、
+それに評価ケースの精度で決まります。
 
 ## 順序と前提
 

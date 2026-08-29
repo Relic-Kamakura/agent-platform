@@ -25,7 +25,7 @@ Orchestrator と ReviewAgent は、上位モデルに差し替える候補です
 `orchestrator.py` のコードで決定的に最後に 1 回実行します。実行するかどうかを
 モデルの判断に委ねると、検証が省略されることがあるためです。
 
-### 7.1.2 1 リクエストの一生
+### 7.1.2 1 リクエストの処理の流れ
 
 ```mermaid
 graph LR
@@ -57,7 +57,7 @@ uv run python -m src.main
 ```
 
 起動ログの 1 行目に、解決済みモデル ID の一覧が JSON で出ます。
-別のターミナルからヘルスチェックを叩きます。
+別のターミナルからヘルスチェックを呼びます。
 
 ```bash
 curl http://127.0.0.1:8080/ping
@@ -65,9 +65,8 @@ curl http://127.0.0.1:8080/ping
 
 `{"status":"Healthy",...}` が返るはずです。確認したら Ctrl+C で止めてください。
 
-`address already in use` で落ちた場合は、macOS の Docker Desktop が 8080 番を
-使用しています。ポートを変えて起動し直してください（開発中に実際に遭遇した事象です。
-troubleshooting.md 参照）。
+`address already in use` で起動しない場合は、macOS の Docker Desktop が 8080 番を
+使用しています。ポートを変えて起動し直してください（troubleshooting.md 参照）。
 
 ```bash
 SERVER_PORT=8181 uv run python -m src.main
@@ -79,15 +78,19 @@ SERVER_PORT=8181 uv run python -m src.main
 
 | ファイル | 内容 | 章 |
 | --- | --- | --- |
-| `src/config.py` | 環境変数を読む唯一の場所。モデル ID 解決 | 1 |
-| `src/agents/orchestrator.py` | 分解と統合。Review の決定的実行 | 2, 5 |
-| `src/agents/search_agent.py` / `review_agent.py` | 専門エージェント | 5 |
-| `src/tools/web_search.py` / `fetch_page.py` / `providers/` | ツールの実物と外部 API の作法。fetch_page は第3章で自作するものと同じ | 3 |
-| `src/errors.py` | retryable / hint を持つ例外 | 3 |
+| `src/config.py` | 環境変数を読む唯一の場所 | 1 |
+| `src/agents/orchestrator.py` | 分解と統合、Review の実行 | 2, 5 |
+| `src/agents/*_agent.py` | 専門エージェント | 5 |
+| `src/tools/` | ツールと外部 API の作法 | 3 |
+| `src/errors.py` | retryable を持つ例外 | 3 |
 | `src/guards.py` | 上限ガードとトークン計測 | 4 |
 | `src/observability.py` | 構造化ログと request_id | 4 |
 | `tests/`（38 件） | LLM を呼ばないテスト | 6 |
 | `src/main.py` / `Dockerfile` | エントリポイントとコンテナ | 8 |
+
+`src/tools/fetch_page.py` は第3章で自作するものと同じ実装です。
+この表はファイルから章を引く向きなので、逆向き、つまり開発工程のどこで
+どの章の話になるかは、リポジトリ直下の README にある工程図を見てください。
 
 ### 7.3.2 普段のコマンド
 

@@ -22,19 +22,15 @@ brew install uv node awscli jq
 
 ### 0.2.2 AWS に接続する
 
-必要な設定は 3 つです。
-
-| 設定 | 設定する場所 |
-| --- | --- |
-| 認証情報 | ターミナル（`aws login`） |
-| リージョン | `aws configure` または環境変数 `AWS_REGION` |
-| Model access | AWS コンソール（Bedrock → Model access） |
+RelicのSandBox環境が使用できるのでそちらを申請するのが良いかと思います。
+<br>※必ず使用時は注意点をご確認ください。
+[AWSサンドボックス利用開始ガイド](https://relic-inc.esa.io/posts/9815)
 
 ```bash
 aws login
 ```
 
-ブラウザでサインインすると CLI に認証情報が保存されます（環境によっては `aws sso login`）。
+ブラウザでサインインすると CLI に認証情報が保存されます
 
 ```bash
 aws sts get-caller-identity
@@ -68,9 +64,8 @@ uv sync
 uv run pytest -q
 ```
 
-`38 passed` と出るはずです。botocore の例外で落ちたら
-`docs/troubleshooting.md` の先頭項目を読んでください。この教材の開発中にも
-同じ現象が起きており、原因と対処が記録してあります。
+`38 passed` と出るはずです。botocore の例外で失敗したら
+`docs/troubleshooting.md` の先頭項目に原因と対処があります。
 
 ### 0.2.4 CDK の依存を入れる
 
@@ -85,7 +80,7 @@ npx tsc --noEmit
 
 何も表示されなければ型チェック成功です。
 
-### 0.2.5 環境チェックを流す
+### 0.2.5 環境チェックを実行する
 
 ```bash
 cd ..
@@ -96,8 +91,7 @@ cd ..
 
 ## 0.3 合格条件
 
-- pytest 38 件パス
-- check_env.sh の全セクションが OK
+pytest 38 件が通り、check_env.sh の全セクションが OK になれば合格です。
 
 ## 0.4 まとめ
 

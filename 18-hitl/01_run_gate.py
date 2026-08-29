@@ -1,4 +1,4 @@
-"""ApprovalGate にイベントを手で流し、承認と否認で挙動が変わるのを見る（編集不要）。"""
+"""ApprovalGate にイベントを手で渡し、承認と否認で挙動が変わるのを見る（編集不要）。"""
 
 import pathlib
 import sys

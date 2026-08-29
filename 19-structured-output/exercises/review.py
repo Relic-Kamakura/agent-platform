@@ -31,7 +31,7 @@ def parse_verdict_text(text: str) -> Verdict:
     """テキスト応答の 1 行目から判定を読み取る（提供済み・編集不要）。
 
     「1 行目は必ず VERDICT: approve か VERDICT: revise」というプロンプト上の
-    約束をあてにした、壊れやすい実装。約束が破られたときに何が起きるかを
+    形式の指示に頼った実装。形式が守られなかったときに何が起きるかを
     01_break_parser.py で観察する。
     """
     lines = [line for line in text.strip().splitlines() if line.strip()]
@@ -54,7 +54,7 @@ def structured_verdict(agent, report: str) -> Verdict:
     # TODO(1): agent を構造化出力付きで呼び出し、判定を返す。
     #   result = agent(prompt, structured_output_model=Verdict) と呼ぶと、
     #   検証済みの Verdict インスタンスが result.structured_output に入る
-    # TODO(2): 失敗を revise に倒す。
+    # TODO(2): 失敗したときは revise の Verdict を返す。
     #   呼び出しが例外を投げた場合と result.structured_output が None の場合は、
     #   logger.warning で 1 行残したうえで、revise の Verdict
     #   （reasons に判定を取得できなかった旨）を返す。

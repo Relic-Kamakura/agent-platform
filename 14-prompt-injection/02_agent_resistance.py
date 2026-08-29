@@ -1,4 +1,4 @@
-"""注入入りの検索結果と堅牢化プロンプトでエージェントを走らせる（編集不要。Bedrock を呼ぶ）。"""
+"""注入入りの検索結果と堅牢化プロンプトでエージェントを実行する（編集不要。Bedrock を呼ぶ）。"""
 
 import os
 import pathlib
@@ -32,7 +32,7 @@ def search_reviews(query: str) -> str:
 
 
 class ToolCallLimiter:
-    """ツール呼び出しの回数上限。乗っ取られても行動回数を頭打ちにする（第4章の型）。"""
+    """ツール呼び出しの回数上限。指示を奪われても行動回数を上限で止める（第4章と同じ仕組み）。"""
 
     def __init__(self, max_calls: int) -> None:
         self.max_calls = max_calls

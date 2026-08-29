@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def build_web_search_tool(provider: SearchProvider, settings: Settings):
-    """設定済みのプロバイダを束縛した web_search ツールを返す。
+    """設定済みのプロバイダを固定した web_search ツールを返す。
 
     ツール関数から Settings やプロバイダをグローバル参照させないための工夫。
     """
@@ -46,7 +46,7 @@ def build_web_search_tool(provider: SearchProvider, settings: Settings):
 
         含まないもの:
             - ページ本文の全文。スニペットのみで、本文取得は行わない。
-            - 結果の要約・評価・順位付け。生の検索結果をそのまま返す。
+            - 結果の要約・評価・順位付け。取得した検索結果をそのまま返す。
             - 認証が必要なページ、ログインの背後にある情報。
             - 検索結果の正確性の保証。内容は必ず出典 URL とともに扱うこと。
         """

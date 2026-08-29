@@ -74,7 +74,7 @@ def build_specialist_agent() -> Agent:
 
 
 def build_specialist_tool():
-    """専門エージェントを丸ごとツールにして返す。オーケストレータはこれを tools に載せる。"""
+    """専門エージェントをツールとして返す。オーケストレータはこれを tools に載せる。"""
     agent = build_specialist_agent()
 
     @tool

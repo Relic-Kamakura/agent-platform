@@ -1,4 +1,4 @@
-"""壊れた入力を parse_verdict_text に流し、テキストパースの故障モードを見る（編集不要）。"""
+"""形式の違う入力を parse_verdict_text に渡し、パースが誤判定する様子を見る（編集不要）。"""
 
 import pathlib
 import sys

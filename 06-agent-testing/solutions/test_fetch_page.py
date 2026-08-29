@@ -17,7 +17,7 @@ from fetch_page import build_fetch_page_tool
 
 
 def _tool():
-    """テスト対象。タイムアウト 1 秒・リトライ 2 回で束縛し、@tool のラップを外す。"""
+    """テスト対象。タイムアウト 1 秒・リトライ 2 回で固定し、@tool のラップを外す。"""
     tool = build_fetch_page_tool(timeout_seconds=1.0, max_retries=2)
     return getattr(tool, "__wrapped__", tool)
 

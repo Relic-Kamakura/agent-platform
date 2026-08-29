@@ -11,7 +11,7 @@ import boto3
 # Bedrock Runtime を呼び出すクライアントを生成
 client = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 
-# モデル ID。地理接頭辞の意味は README 1.1.6 参照。
+# モデル ID。地理接頭辞の意味は README 1.1.8 参照。
 # 1.3 の一覧に無い場合は、この既定値を書き換えるか環境変数 MODEL_ID で上書きする
 model_id = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 

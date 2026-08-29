@@ -1,6 +1,6 @@
 """ハンズオン 6.3: fetch_page のテスト。
 
-TODO のテストを追加し、`uv run pytest exercises/test_fetch_page.py -q` で回す。
+TODO のテストを追加し、`uv run pytest exercises/test_fetch_page.py -q` で実行する。
 実装が終わったら TODO コメントは消す。完成形は solutions/test_fetch_page.py。
 """
 
@@ -18,7 +18,7 @@ from fetch_page import build_fetch_page_tool
 
 
 def _tool():
-    """テスト対象。タイムアウト 1 秒・リトライ 2 回で束縛し、@tool のラップを外す。"""
+    """テスト対象。タイムアウト 1 秒・リトライ 2 回で固定し、@tool のラップを外す。"""
     tool = build_fetch_page_tool(timeout_seconds=1.0, max_retries=2)
     return getattr(tool, "__wrapped__", tool)
 
