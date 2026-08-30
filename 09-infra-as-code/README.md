@@ -122,7 +122,7 @@ npx cdk deploy -c region=us-east-1 -c imageTag=v1.2.0
 
 `cdk synth` はテンプレート生成だけでデプロイはしないので、デプロイ前に「この変更で何が作られるか」を確認できます。
 
-## 9.3 【ハンズオン】context 経由で Runtime の環境変数を追加する
+## 9.3 ハンズオン: context 経由の環境変数注入を実装する
 
 エージェントの `LOG_LEVEL` を CDK context から Runtime に注入できるようにします。
 この章のディレクトリは動く CDK コードの本体でもあるため、骨組みのコピーではなく `lib/config.ts` と `cdk.json` を直接編集します。

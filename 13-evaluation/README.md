@@ -89,7 +89,7 @@ def judge_contains(report: str, terms: list[str]) -> list[str]:
 
 残りの判定関数もすべてこの形で書きます。
 
-## 13.3 【ハンズオン】判定関数を書く
+## 13.3 ハンズオン: 判定関数を実装する
 
 期待条件を検査する判定関数群を作ります。
 編集するのは、章直下にコピーした `judges.py` の 1 ファイルだけです。
@@ -188,7 +188,7 @@ def judge_case(report: str, usage: dict, tool_calls: int, expect: dict) -> list[
 
 </details>
 
-## 13.4 【ハンズオン】ケースを 2 件追加する
+## 13.4 ハンズオン: 評価ケースを 2 件追加する
 
 `cases.jsonl` に自作ケースを 2 件以上追加してください。1 件は境界、1 件は悪意/想定外の分類から。
 mock プロバイダの固定データは `07-full-app/src/tools/providers/mock.py` にあるので、それを前提に期待条件を書きます。
@@ -215,7 +215,7 @@ uv run --project 07-full-app pytest 13-evaluation/verify -q
 
 </details>
 
-## 13.5 【ハンズオン】改善ループを 1 回通す
+## 13.5 ハンズオン: 改善ループを 1 回通す
 
 実際にエージェントを実行して評価し、プロンプトを直し、退行が無いことを確認します。Bedrock を呼びます。
 

@@ -127,7 +127,7 @@ Guardrail はモデル呼び出し 1 回ごとに、Converse API の `guardrailC
 第13章の evals のケースがそのまま使えます。
 誤遮断率を測らずに HIGH で始めると、後から下げるときの根拠が印象論になります。
 
-## 17.3 【ハンズオン】Guardrail を CDK で定義する
+## 17.3 ハンズオン: Guardrail の CDK スタックを実装する
 
 編集するのは `lib/guardrail-stack.ts` の 1 ファイルだけです。骨組みをコピーして作ります。
 
@@ -192,7 +192,7 @@ npx cdk synth AgentPlatformGuardrailStack | grep -E 'Bedrock::Guardrail|PROMPT_A
 
 </details>
 
-## 17.4 【ハンズオン】モデルに接続する
+## 17.4 ハンズオン: Guardrail のモデル接続を実装する
 
 編集するのは `exercises/guarded_model.py` の 1 ファイルだけです。
 
@@ -235,7 +235,7 @@ uv run pytest -q
 
 </details>
 
-## 17.5 【ハンズオン】発動を確認する
+## 17.5 ハンズオン: 発動を確認する
 
 17.3 の Guardrail をデプロイし、17.4 のモデルに接続して、プロンプト攻撃調の入力を送ります。
 

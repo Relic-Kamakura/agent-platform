@@ -113,7 +113,7 @@ Knowledge Base は取り込んだ文書を全部インデックスするので�
 Bedrock Knowledge Bases にはメタデータによる絞り込みがあるので、取り込み時に文書へ閲覧範囲を持たせ、Retrieve のフィルタに JWT から取り出した所属を渡す形になります。
 KB を作った後では取り込み直しになるので、決めるのは先です。
 
-## 11.3 【ハンズオン】AuthStack を書く
+## 11.3 ハンズオン: 認証基盤の CDK スタックを実装する
 
 編集するのは `lib/auth-stack.ts` の 1 ファイルだけです。骨組みをコピーして作ります。
 
@@ -182,7 +182,7 @@ npx cdk synth AgentPlatformAuthStack | grep -E 'Cognito::UserPool|USER_PASSWORD'
 
 </details>
 
-## 11.4 【ハンズオン】デプロイしてトークンを取得する
+## 11.4 ハンズオン: デプロイしてトークンを取得する
 
 作った AuthStack をデプロイし、テストユーザのトークンで呼び出しを確かめます。
 

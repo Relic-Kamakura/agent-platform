@@ -66,7 +66,7 @@ model = BedrockModel(
 再利用されたかどうかは `result.metrics.accumulated_usage` で確認できます。
 キャッシュに書いたトークン数が `cacheWriteInputTokens`、キャッシュから読んだトークン数が `cacheReadInputTokens` に入ります（キャッシュが動いたときだけ現れるキーです）。
 
-## 16.3 【ハンズオン】キャッシュ付きエージェントを組む
+## 16.3 ハンズオン: プロンプトキャッシュ付きエージェントを実装する
 
 長い固定の調査ガイドラインをシステムプロンプトに持つエージェントを組み、同じ質問を 2 回投げてキャッシュの動きを実測します。
 編集するのは `exercises/cached_agent.py` の 1 ファイルだけです。

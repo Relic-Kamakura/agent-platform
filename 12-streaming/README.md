@@ -67,7 +67,7 @@ Route Handler の仕事は、このストリームを変換せずそのままブ
 `await upstream.text()` のように全部読み切ってから返すと、完了までブラウザに何も届かず、ストリーミングになりません。
 `new Response(upstream.body, ...)` のように body を渡すだけにします。
 
-## 12.3 【ハンズオン】route.ts を書く
+## 12.3 ハンズオン: JWT 検証つきの Route Handler を実装する
 
 JWT を検証してバックエンドへ転送する Route Handler を作ります。
 編集するのは `app/api/invoke/route.ts` の 1 ファイルだけです。
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
 </details>
 
-## 12.4 【ハンズオン】ローカル一気通貫
+## 12.4 ハンズオン: ローカルで全経路を動かす
 
 デプロイ不要で、ブラウザ → Route Handler → ローカルエージェント → Bedrock の全経路を動かします。
 
