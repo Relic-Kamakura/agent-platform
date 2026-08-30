@@ -73,9 +73,9 @@ Slack 承認フローのような別の手段にも、ゲート本体を変え�
 `exercises/approval_gate.py` を開いてください。
 dataclass の枠と approver の型は書いてあり、TODO が 3 つ残っています。
 
-1. `register_hooks` — `BeforeToolCallEvent` に `self._check` を登録する
-2. `_check` の前半 — `requires_approval` に含まれないツールはそのまま通す（approver を呼ばない）
-3. `_check` の後半 — approver に尋ねて結果をログに残し、否認なら `event.cancel_tool` に理由の文字列を入れる
+1. `register_hooks` で `BeforeToolCallEvent` に `self._check` を登録する
+2. `_check` の前半で、`requires_approval` に含まれないツールはそのまま通す（approver を呼ばない）
+3. `_check` の後半で approver に尋ねて結果をログに残し、否認なら `event.cancel_tool` に理由の文字列を入れる
 
 先に判定テスト `verify/test_approval_gate.py` を読むと分かりやすくなります。
 イベントを手で作って hook を検証する技法は第4章・第6章と同じです。
@@ -89,7 +89,7 @@ dataclass の枠と approver の型は書いてあり、TODO が 3 つ残って�
 uv run 01_run_gate.py
 ```
 
-対象外のツール・承認・否認の 3 ケースを渡すので、こう表示されるはずです。
+対象外のツール、承認、否認の 3 ケースを渡すので、こう表示されるはずです。
 
 ```
 web_search : cancel_tool=False  approver への問い合わせ=0 回
@@ -105,7 +105,7 @@ uv run pytest -q
 ```
 
 `5 passed` で合格です。
-対象外のツールで approver を呼ばないこと・承認なら通すこと・否認の理由が文字列でツール名を含むこと・approver にツールの入力が渡ることを検査します。
+対象外のツールで approver を呼ばないこと、承認なら通すこと、否認の理由が文字列でツール名を含むこと、approver にツールの入力が渡ることを検査します。
 
 <details>
 <summary>解答例</summary>
@@ -117,7 +117,7 @@ uv run pytest -q
     def _check(self, event: BeforeToolCallEvent) -> None:
         name = event.tool_use.get("name", "<unknown>")
         if name not in self.requires_approval:
-            # 読み取り系ツールを遅くしない。承認対象だけ人間に回す
+            # 読み取り系ツールを遅くしない。承認対象だけ人間に尋ねる
             return
 
         tool_input = dict(event.tool_use.get("input", {}))

@@ -2,7 +2,7 @@
 //
 // LOCAL_AGENT_URL が設定されていればローカルの 07-full-app（:8080）へ、
 // 無ければ AgentCore Runtime（AGENT_RUNTIME_ARN）へ転送する。
-// どちらもレスポンスはストリームのまま返し、Route Handler がブラウザへ流す。
+// どちらもレスポンスはストリームのまま返し、Route Handler がブラウザへ返す。
 import {
   BedrockAgentCoreClient,
   InvokeAgentRuntimeCommand,
@@ -42,7 +42,7 @@ async function invokeRuntime(payload: InvokePayload): Promise<Response> {
   });
   const result = await client.send(command);
 
-  // response はストリーム。そのまま Web Response に包んでブラウザへ流す
+  // response はストリーム。そのまま Web Response に包んでブラウザへ返す
   const body = result.response
     ? (result.response.transformToWebStream() as ReadableStream)
     : null;

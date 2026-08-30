@@ -16,13 +16,13 @@ uv sync
 ### 17.1.1 Bedrock Guardrails とは
 
 Bedrock Guardrails は、モデルの入出力を Bedrock の API 側でフィルタするマネージド機能です。
-有害コンテンツ・不適切なトピック・PII などを遮断またはマスクします。
+有害コンテンツ、不適切なトピック、PII などを遮断またはマスクします。
 Guardrails の一機能として、論理検証によるハルシネーション検出を行う自動推論チェック（Automated Reasoning checks）もあります。
 
 ### 17.1.2 2 層のガードの役割分担
 
 第4章で作ったのはアプリ層のガード（回数・トークン量の上限）で、守るのはコストと実行回数でした。
-Guardrails が守るのは**内容**です。2 つの層は動く場所も違います。
+Guardrails が守るのは内容です。2 つの層は動く場所も違います。
 
 ```mermaid
 graph LR
@@ -54,12 +54,12 @@ graph LR
 
 ### 17.2.1 CDK 側で定義するもの
 
-Guardrail 本体はリージョナルなリソースで、ポリシーの集合です。主なもの:
+Guardrail 本体はリージョナルなリソースで、ポリシーの集合です。主なポリシーは 4 つあります。
 
-- コンテンツフィルタ — カテゴリごとに強度付きで遮断
-- 拒否トピック — 自然文で定義したトピックを遮断
-- 機微情報フィルタ — PII の遮断またはマスク
-- 単語フィルタ — NG ワード
+- コンテンツフィルタはカテゴリごとに強度付きで遮断する
+- 拒否トピックは自然文で定義したトピックを遮断する
+- 機微情報フィルタは PII を遮断またはマスクする
+- 単語フィルタは NG ワードを遮断する
 
 コンテンツフィルタのカテゴリは HATE / VIOLENCE / SEXUAL / INSULTS / MISCONDUCT /
 PROMPT_ATTACK で、強度は NONE から HIGH まであります。
@@ -95,7 +95,7 @@ ID と版を引数（実行時は環境変数）で受け取り、未設定な�
 ### 17.2.3 適用される場所
 
 Guardrail はモデル呼び出し 1 回ごとに、Converse API の `guardrailConfig`（`guardrailIdentifier` / `guardrailVersion` / `trace`）で適用されます。
-評価されるのは利用者の入力・モデルの応答・`guardContent` で囲んだシステムプロンプトで、次のものは評価されません（公式ドキュメントの評価対象表で確認）。
+評価されるのは利用者の入力、モデルの応答、`guardContent` で囲んだシステムプロンプトで、次のものは評価されません（公式ドキュメントの評価対象表で確認）。
 
 | 内容 | 評価 |
 | --- | --- |
@@ -140,7 +140,7 @@ mkdir -p lib && cp exercises/guardrail-stack.ts lib/guardrail-stack.ts
 `lib/guardrail-stack.ts` を開いてください。
 `CfnGuardrail` の枠（名前と発動時の定型文）は書いてあり、TODO が 3 つ残っています。
 
-1. `contentPolicyConfig` — `filtersConfig` に少なくとも `{ type: 'PROMPT_ATTACK', inputStrength: 'HIGH', outputStrength: 'NONE' }` を含める（PROMPT_ATTACK は入力側のみのフィルタで、outputStrength は NONE 固定）
+1. `contentPolicyConfig` の `filtersConfig` に少なくとも `{ type: 'PROMPT_ATTACK', inputStrength: 'HIGH', outputStrength: 'NONE' }` を含める（PROMPT_ATTACK は入力側のみのフィルタで、outputStrength は NONE 固定）
 2. `CfnGuardrailVersion` で版を発行する。`guardrailIdentifier` には `guardrail.attrGuardrailId` を渡す
 3. `CfnOutput` で GuardrailId と GuardrailVersionNumber を出力する。17.5 で環境変数に入れる値です
 
@@ -179,7 +179,7 @@ npx cdk synth AgentPlatformGuardrailStack | grep -E 'Bedrock::Guardrail|PROMPT_A
       },
     });
 
-    // Guardrail は版で参照するのが実務の型。DRAFT を直接使うと、編集が即本番に反映されてしまう
+    // Guardrail は版で参照する。DRAFT を直接使うと、編集が即本番に反映されてしまう
     const version = new bedrock.CfnGuardrailVersion(this, 'GuardrailVersion', {
       guardrailIdentifier: guardrail.attrGuardrailId,
     });
@@ -213,7 +213,7 @@ uv run pytest -q
 ```
 
 `4 passed` で合格です。
-指定時に id と version の両方がモデルに渡ること・未指定時には渡らないことを検査します。
+指定時に id と version の両方がモデルに渡ること、未指定時には渡らないことを検査します。
 
 <details>
 <summary>解答例</summary>
@@ -255,8 +255,8 @@ PROMPT_ATTACK フィルタが入力側で発動し、モデルの回答ではな
 
 ## 17.6 まとめ
 
-アプリ層の hooks が実行回数とコストを抑え、Guardrails が内容を止める。
-どちらか片方で足りるものではなく、第14章のプロンプト側防御も含めた**多層防御の一層ずつ**という分担です。
+アプリ層の hooks が実行回数とコストを抑え、Guardrails が内容を止めます。
+どちらか片方で足りるものではなく、第14章のプロンプト側防御も含めた多層防御の一層ずつという分担です。
 発動の確認（17.5）を終えたら、次は取り消せない操作に人間の承認を挟むゲートを作ります。
 
 ## 次の章

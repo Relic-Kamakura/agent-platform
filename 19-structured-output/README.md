@@ -69,7 +69,7 @@ JSON が閉じないまま返るので、スキーマ検証に失敗して `None
 ### 19.2.3 どの出力を構造化するか
 
 構造化出力が向くのは、後段がプログラムである出力です。
-判定・分類・抽出のように、結果をコードが分岐やデータとして使う場面がこれにあたります。
+判定、分類、抽出のように、結果をコードが分岐やデータとして使う場面がこれにあたります。
 逆に人間が読む報告文は自由なテキストのままにし、出力を受け取るのがプログラムか人かで使い分けます。
 
 ## 19.3 【ハンズオン】structured_verdict を実装する
@@ -137,7 +137,7 @@ def structured_verdict(agent, report: str) -> Verdict:
     try:
         result = agent(prompt, structured_output_model=Verdict)
     except Exception:
-        # 判定不能を「問題なし」にしたら検証機構として意味をなさない。revise に倒す
+        # 判定不能を「問題なし」にしたら検証の仕組みとして意味をなさない。revise 扱いにする
         logger.warning("structured_output_failed report_chars=%s", len(report), exc_info=True)
         return fallback
     if result.structured_output is None:
@@ -169,5 +169,4 @@ uv run 02_structured_call.py
 
 ## 次の章
 
-99-appendix（RAG / Memory / Observability / Gateway の入口）へ。
-ここまでで全カリキュラムの実装章は完了です。
+[付録 発展領域の入口](../99-appendix/)（RAG / Memory / Observability / Gateway）。実装を伴う章はこの第19章までです。

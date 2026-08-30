@@ -64,7 +64,7 @@ def test_non_http_url_is_rejected_without_network() -> None:
 
 
 def test_timeout_retries_then_reports(monkeypatch: pytest.MonkeyPatch) -> None:
-    # 落ちるとき: リトライ回数が設定と乖離する、または例外を握りつぶすバグ
+    # 落ちるとき: リトライ回数が設定と乖離する、または例外を捕まえて何も返さないバグ
     calls = {"n": 0}
 
     def _raise():

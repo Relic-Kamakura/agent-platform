@@ -42,9 +42,9 @@ AgentCore Runtime ── ⑤Runtime 側でも JWT authorizer が検証
 
 Cognito User Pool はユーザディレクトリ + トークン発行者です。ログインに成功すると 3 種のトークンが返ります。
 
-- ID トークン — ユーザ属性（メール等）を含む。画面表示用
-- アクセストークン — API 呼び出しの認可に使う。この章で使うのはこれ
-- リフレッシュトークン — 上の 2 つを再発行するための長寿命トークン
+- ID トークンはユーザ属性（メール等）を含む。画面表示用
+- アクセストークンは API 呼び出しの認可に使う。この章で使うのはこれ
+- リフレッシュトークンは上の 2 つを再発行するための長寿命トークン
 
 検証側は署名を確かめる必要があります。
 User Pool は公開鍵一覧（JWKS）を既知の URL で公開しており、その場所を検証側に知らせる URL が discovery URL です。
@@ -78,7 +78,7 @@ new agentcore.CfnRuntime(this, 'AgentRuntime', {
 ```
 
 これを設定すると、`InvokeAgentRuntime` の呼び出しに有効な JWT が必要になります。
-第9章の Runtime スタックはこの 2 値を props で受け取れるようにしてあり、この章で作る AuthStack の公開プロパティ（`discoveryUrl` / `clientId`）をそのまま渡せば配線が完成します。
+第9章の Runtime スタックはこの 2 値を props で受け取れるようにしてあり、この章で作る AuthStack の公開プロパティ（`discoveryUrl` / `clientId`）をそのまま渡せば接続が完成します。
 
 ### 11.2.2 この章で書く AuthStack
 
@@ -97,13 +97,13 @@ true にすると誰でもアカウントを作れてしまい、認可を付け
 JWT を検証すれば誰が呼んだかは分かります。
 一方でエージェント自身は、第9章で作った実行ロール 1 つで動きます。
 一般社員が呼んでも部長が呼んでも、ツールが使う権限は同じです。
-ここを詰めないと、権限の弱いユーザがエージェント越しに自分では触れないデータへ届きます。
+ここを決めないと、権限の弱いユーザがエージェント経由で、自分では閲覧できないデータを取得できます。
 9.2.2 の信頼ポリシーで防いだ confused deputy と、形は同じです。
 
 対処は 2 段構えになります。
 まず実行ロールの権限を、一番弱いユーザに許してよい範囲まで落とします。
 ロールが持っていない権限は、誰がどう頼んでも引き出せません。
-それで足りないなら、呼び出したユーザの識別子をツールまで引き回して、ツールの中で絞ります。
+それで足りないなら、呼び出したユーザの識別子をツールまで渡して、ツールの中で絞ります。
 
 RAG を足したときに、この差が問題になります（第10章）。
 Knowledge Base は取り込んだ文書を全部インデックスするので、retrieve は既定で全社の文書を横断して返します。
@@ -218,11 +218,11 @@ aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH \
 User Pool と App Client は `cognito.UserPool` と `pool.addClient()` で書け、判断が要るのは
 セルフサインアップと認証フローの設定値です（11.2.2）。Runtime 側の JWT authorizer は
 `CfnRuntime` の `authorizerConfiguration.customJwtAuthorizer` に discoveryUrl と
-allowedClients を渡す形で、AuthStack の公開プロパティをそのまま渡せば配線が完成します（11.2.1）。
+allowedClients を渡す形で、AuthStack の公開プロパティをそのまま渡せば接続が完成します（11.2.1）。
 
 トークンの発行は Cognito が担い、検証は discovery URL から公開鍵を取れる側なら誰でも行えます。
 発行と検証を分離しているのが OpenID Connect の設計で、この分離があるから、
-アプリの入口と基盤の二重の検証を同じ User Pool から配線できます。
+アプリの入口と基盤の二重の検証を同じ User Pool で行えます。
 次の第12章では、この経路の残り、③の JWT 検証を行う Route Handler を自分で書きます。
 
 ## 次の章

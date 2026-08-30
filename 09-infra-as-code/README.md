@@ -52,7 +52,7 @@ ECR と Runtime を同じスタックに入れると、CloudFormation は「空�
 CloudFormation が管理するのはリソースの存在であって、「イメージが push 済みか」という状態ではありません。
 リソースが IaC の管理外の状態に依存するとき、IaC 単体では順序を保証できません。
 
-このリポジトリの解き方:
+このリポジトリでは次の 3 つで順序を保証しています。
 
 1. スタックを EcrStack と AgentRuntimeStack に分割する
 2. `scripts/deploy.sh` が「ECR デプロイ → イメージ push → Runtime デプロイ」を強制する
@@ -87,7 +87,7 @@ resources: [
 ```
 
 3 行目を落とすと、ローカルでは通るのにデプロイ後だけ `AccessDeniedException` になります。
-リクエストが別リージョンへ流れた瞬間に拒否されるからで、原因に辿り着くまでが長い部類のエラーです。
+リクエストが別リージョンへ転送された時点で拒否されるからで、原因に辿り着くまでが長い部類のエラーです。
 foundation-model の ARN にアカウント ID が入らないのは、モデルが AWS 所有のリソースだからです。
 
 ### 9.2.3 CDK に入れておく統制
@@ -181,7 +181,7 @@ cd .. && ./09-infra-as-code/verify/verify.sh
 
 `loadConfig()` 以外の場所で `tryGetContext` を呼ばないでください。
 設定の読み取り口を 1 箇所に保つのは Python 側（config.py）と同じ規約です。
-「未指定なら入れない」三項スプレッドにより、context を消せば Runtime の環境変数からも消え、`.env` 側の既定値が生きます。
+「未指定なら入れない」三項スプレッドにより、context を消せば Runtime の環境変数からも消え、`.env` 側の既定値が使われます。
 解説付きの全文は `solutions/README.md` にあります。
 
 </details>
@@ -194,7 +194,7 @@ L2 が無いサービスは L1（`Cfn*`）で書き、プロパティを自分�
 
 スタックを分けるのは、CloudFormation が保証するのはリソースの存在までで、
 「イメージが push 済みか」のような管理外の状態は保証しないからです。
-順序は `scripts/deploy.sh` に持たせ、**IaC が保証しない部分を手順で補います**。
+順序は `scripts/deploy.sh` に持たせ、IaC が保証しない部分を手順で補います。
 
 ## 次の章
 

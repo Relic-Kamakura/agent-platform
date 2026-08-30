@@ -55,7 +55,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     return Response.json({ error: 'prompt が必要です。' }, { status: 400 });
   }
 
-  // バックエンドの応答（SSE または JSON）をそのままブラウザへ流す
+  // バックエンドの応答（SSE または JSON）をそのままブラウザへ返す
   const upstream = await invokeBackend(body);
   return new Response(upstream.body, {
     status: upstream.status,

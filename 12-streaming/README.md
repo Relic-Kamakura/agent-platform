@@ -36,7 +36,7 @@ AgentCore Runtime のタイムアウトは同期よりストリーミングの�
 
 ②は提供コード `lib/backend.ts` が担当します。
 `LOCAL_AGENT_URL` があればローカルの 07-full-app へ、無ければ Runtime へ転送するので、デプロイなしで動かせます。
-この章で書くのは①と③、つまり JWT の検証とストリームの受け渡しです。
+この章で書くのは①と③、JWT の検証とストリームの受け渡しです。
 
 ## 12.2 実装のポイント
 
@@ -57,11 +57,11 @@ API の認可に使うのはアクセストークンです（第11章 11.1.3）�
 ### 12.2.2 ストリームの受け渡し
 
 本体 07-full-app は payload に `"stream": true` を付けると SSE（text/event-stream）で応答します（第7章の `src/streaming.py`）。
-流れてくるイベントは 3 種類です。
+届くイベントは 3 種類です。
 
-- `{"event": "stage", "stage": "research" | "review" | "revise"}` — 進捗
-- `{"event": "result", ...}` — 最終レポート
-- `{"event": "error", "detail": ...}` — 失敗
+- 進捗は `{"event": "stage", "stage": "research" | "review" | "revise"}`
+- 最終レポートは `{"event": "result", ...}`
+- 失敗は `{"event": "error", "detail": ...}`
 
 Route Handler の仕事は、このストリームを変換せずそのままブラウザへ返すことです。
 `await upstream.text()` のように全部読み切ってから返すと、完了までブラウザに何も届かず、ストリーミングになりません。
@@ -86,9 +86,9 @@ Next.js の App Router はファイルの場所が URL になるため、この�
 `app/api/invoke/route.ts` を開いてください。
 Verifier の生成と prompt の必須チェックは書いてあり、TODO が 3 つ残っています。
 
-1. `AUTH_BYPASS` の分岐 — 文字列 `'true'` のときだけ認可をスキップする（12.2.1 の厳密比較）
-2. JWT 検証 — `Authorization: Bearer <token>` を取り出して `verifier.verify()` にかけ、無い・無効なら 401 を返す
-3. 転送 — `invokeBackend()` の応答をストリームのまま返す。status と Content-Type も引き継ぐ（12.2.2）
+1. `AUTH_BYPASS` の分岐。文字列 `'true'` のときだけ認可をスキップする（12.2.1 の厳密比較）
+2. JWT 検証。`Authorization: Bearer <token>` を取り出して `verifier.verify()` にかけ、無いか無効なら 401 を返す
+3. 転送。`invokeBackend()` の応答をストリームのまま返す。status と Content-Type も引き継ぐ（12.2.2）
 
 ### 12.3.3 合格判定
 
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     return Response.json({ error: 'prompt が必要です。' }, { status: 400 });
   }
 
-  // バックエンドの応答（SSE または JSON）をそのままブラウザへ流す
+  // バックエンドの応答（SSE または JSON）をそのままブラウザへ返す
   const upstream = await invokeBackend(body);
   return new Response(upstream.body, {
     status: upstream.status,
@@ -188,7 +188,7 @@ Amplify Hosting などへのデプロイは、この教材では扱いません�
 応答の下に親指の上下を置き、押された結果を `request_id` と一緒に保存する、という程度のものです。
 これが利用者の満足度（CSAT）の一次データになります。
 
-後付けが効かないのは、押された時点のプロンプトとモデルと検索結果が残っていないと、低評価の理由を追えないからです。
+後から付け足せないのは、押された時点のプロンプトとモデルと検索結果が残っていないと、低評価の理由を追えないからです。
 `request_id` で紐付く先が無ければ、集まるのは不満が 3 割という数字だけで、何を直せばいいかは分かりません。
 導線と紐付けは最初から入れます。
 

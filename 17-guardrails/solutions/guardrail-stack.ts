@@ -27,7 +27,7 @@ export class GuardrailStack extends Stack {
       },
     });
 
-    // Guardrail は版で参照するのが実務の型。DRAFT を直接使うと、編集が即本番に反映されてしまう
+    // Guardrail は版で参照する。DRAFT を直接使うと、編集が即本番に反映されてしまう
     const version = new bedrock.CfnGuardrailVersion(this, 'GuardrailVersion', {
       guardrailIdentifier: guardrail.attrGuardrailId,
     });
