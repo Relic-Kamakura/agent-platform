@@ -30,7 +30,7 @@ L1（`Cfn` 始まり）は CloudFormation リソースと 1 対 1 で、全プ�
 ### 9.1.2 L2 が無いサービスの書き方
 
 AgentCore のような新しいサービスには L2 がまだありません。
-aws-cdk-lib 2.264.0 の aws-bedrockagentcore に入っているのは L1 だけで、
+手元の aws-cdk-lib（バージョンは versions.md）の aws-bedrockagentcore に入っているのは L1 だけで、
 「stable な L2 Runtime がある」と書いた Web 記事は誤りです。
 
 L2 の有無は Web 記事ではなく、手元の `node_modules` の型定義で確認します。
@@ -188,9 +188,13 @@ cd .. && ./09-infra-as-code/verify/verify.sh
 
 ## 9.4 まとめ
 
-CloudFormation が保証するのはリソースの存在までで、「イメージが push 済みか」のような管理外の状態は保証できません。
-そのためスタックを分け、順序は `scripts/deploy.sh` に持たせます。
-**IaC が保証しない部分を手順で補う**のがこの章の核心です。
+L2 が無いサービスは L1（`Cfn*`）で書き、プロパティを自分で埋めます。L2 の有無は Web 記事ではなく
+手元の型定義で確認します（9.1.2）。実行ロールの信頼ポリシーには、AssumeRole を許す相手と、
+`aws:SourceAccount` / `aws:SourceArn` による自アカウント起源への限定を書きます（9.2.2）。
+
+スタックを分けるのは、CloudFormation が保証するのはリソースの存在までで、
+「イメージが push 済みか」のような管理外の状態は保証しないからです。
+順序は `scripts/deploy.sh` に持たせ、**IaC が保証しない部分を手順で補います**。
 
 ## 次の章
 

@@ -112,7 +112,10 @@ uv run ruff check . && uv run mypy src
 
 ## 7.4 まとめ
 
-このディレクトリは教材の題材であり、各章で自作したものの完成形が集まる本体です。
+1 リクエストは main.py → orchestrator.py → search_agent.py → review_agent.py の順に通り、
+その途中で guards.py が上限を見て observability.py がログを出します（7.1.2）。
+どのファイルがどの章に対応するかは 7.3.1 の表にあり、章を進めるたびにここへ戻れます。
+
 **HTTP 契約は main.py、環境変数は config.py、上限ガードは guards.py という、
 知る場所を 1 つに絞る構造**が、迷わず読める理由です。
 `uv run pytest` が通ることを確認したら、次は第8章でこの本体をコンテナに載せます。

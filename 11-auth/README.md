@@ -215,8 +215,14 @@ aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH \
 
 ## 11.5 まとめ
 
+User Pool と App Client は `cognito.UserPool` と `pool.addClient()` で書け、判断が要るのは
+セルフサインアップと認証フローの設定値です（11.2.2）。Runtime 側の JWT authorizer は
+`CfnRuntime` の `authorizerConfiguration.customJwtAuthorizer` に discoveryUrl と
+allowedClients を渡す形で、AuthStack の公開プロパティをそのまま渡せば配線が完成します（11.2.1）。
+
 トークンの発行は Cognito が担い、検証は discovery URL から公開鍵を取れる側なら誰でも行えます。
-発行と検証を分離しているのが OpenID Connect の設計で、この分離があるから、アプリの入口（Route Handler）と基盤（Runtime の JWT authorizer）の二重の検証を同じ User Pool から配線できます。
+発行と検証を分離しているのが OpenID Connect の設計で、この分離があるから、
+アプリの入口と基盤の二重の検証を同じ User Pool から配線できます。
 次の第12章では、この経路の残り、③の JWT 検証を行う Route Handler を自分で書きます。
 
 ## 次の章

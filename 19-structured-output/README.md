@@ -34,7 +34,7 @@ Strands では Pydantic（型注釈でデータの形を定義し、検証まで
 
 ### 19.2.1 スキーマの渡し方
 
-Strands では、呼び出し時に `structured_output_model` へ Pydantic モデルを渡すと、結果が `result.structured_output` に検証済みのインスタンスとして入ります（章の venv にある strands-agents 1.53.0 のソースで確認済み。`Agent.structured_output()` メソッドもありますが非推奨です）。
+Strands では、呼び出し時に `structured_output_model` へ Pydantic モデルを渡すと、結果が `result.structured_output` に検証済みのインスタンスとして入ります（章の venv にある strands-agents のソースで確認。バージョンは versions.md。`Agent.structured_output()` メソッドもありますが非推奨です）。
 
 ```python
 result = agent(prompt, structured_output_model=Verdict)
