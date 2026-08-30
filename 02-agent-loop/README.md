@@ -96,7 +96,7 @@ Strands ではこの制御は要りません。ツール要求が `toolUse` と�
 それが起きるのは長い調査の終盤、一番トークンを使った後です。抑え方は 2 つあります。
 
 ひとつは、直近のメッセージだけ残して古いものを捨てる方法です。
-Strands の既定がこれで、`SlidingWindowConversationManager` が直近 40 メッセージに切り詰めます。
+Strands の既定がこれで、`SlidingWindowConversationManager` が直近 40 メッセージに切り詰めます（`Agent` の `conversation_manager` 引数で差し替えられます）。
 もうひとつは古いやり取りをモデルに要約させ、要約 1 通に置き換える方法で、
 `SummarizingConversationManager` がこれにあたります。
 この章のエージェントは 2 周で終わるので、どちらも出番がありません。
@@ -123,6 +123,12 @@ result = agent("質問文")
 result.metrics.cycle_count           # ループが何周したか
 result.metrics.accumulated_usage     # 消費トークンの累計（dict。合計は totalTokens）
 ```
+
+`Agent` の引数はこの 3 つだけではありません。この教材で使うものを挙げると、
+実行の節目に割り込む `hooks`（第4章）、途中経過の表示を制御する `callback_handler`（第5章の解答例では `None` にして専門エージェントの出力を呼び出し側に混ぜない）、
+会話履歴の切り詰め方を決める `conversation_manager`（2.1.4）、応答をスキーマ付きで受け取る `structured_output_model`（第19章。呼び出し時にも渡せる）、
+会話をセッションとして保存する `session_manager`（付録B）です。
+全引数の一覧と意味は [Strands の API リファレンス（strands.agent.agent）](https://strandsagents.com/docs/api/python/strands.agent.agent/) にあります。確認したバージョンは versions.md を参照してください。
 
 もうひとつ、`tools` に渡した関数の docstring はそのままモデルに渡ります。
 モデルはその文面だけでいつ使うかを決めるので、docstring の質がツール選択の質を
