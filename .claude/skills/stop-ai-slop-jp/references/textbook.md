@@ -102,6 +102,24 @@
   箇条書きの中は、リスト全体で統一されていれば常体でよい
 - 文の途中で改行しない。第1・2章は句読点で折り返し、第4章以降は 1 文 1 行
 
+## 8. Python ファイルを直したあとの確認
+
+exercises / solutions / 章直下スクリプト / verify の `.py` を変更したら、
+リポジトリルートで Pyright を実行し、import の解決を確認する。
+ルートの `pyrightconfig.json` が、章スクリプトの `sys.path.insert` と同じ探索パス
+（`exercises/` / `target/` / `fixtures/` / `07-full-app`）をエディタ向けに宣言している。
+
+```bash
+uvx pyright --pythonpath <章>/.venv/bin/python <変更した .py ...>
+```
+
+- `reportMissingImports` が出たら直す。例外は第13章の `judges`（13.3.1 の cp で学習者が作るファイル）だけ
+- `exercises/` を新しい場所から import する構造にしたら、`pyrightconfig.json` の
+  `executionEnvironments` にその章の `extraPaths` を追加する
+- 穴埋め前の `...`（EllipsisType）に対する型エラーと、verify やスクリプトが検証用に `None` を
+  渡している箇所の型エラーは既知で、直す対象にしない
+- 変更が解答例のコードなら、対応する章の `uv run pytest -q`（verify）が変更前と同じ結果になることも確認する
+
 ## 直さないもの
 
 技術的な内容 / コード / コマンド / 章構成 / 数値 / バージョン / ファイルパス / 変数名。

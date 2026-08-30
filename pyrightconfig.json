@@ -1,0 +1,18 @@
+{
+  // エディタ（Pylance / Pyright）が、章スクリプトの sys.path.insert と同じ探索パスで import を辿れるようにする。実行時の挙動には影響しない
+  "executionEnvironments": [
+    { "root": "01-invoke-bedrock", "extraPaths": ["01-invoke-bedrock", "07-full-app"] },
+    { "root": "03-tool-design", "extraPaths": ["03-tool-design/exercises"] },
+    { "root": "04-cost-control", "extraPaths": ["04-cost-control/exercises"] },
+    { "root": "05-multi-agent", "extraPaths": ["05-multi-agent/exercises"] },
+    { "root": "06-agent-testing", "extraPaths": ["06-agent-testing/target"] },
+    { "root": "07-full-app", "extraPaths": ["07-full-app"] },
+    { "root": "10-knowledge-base", "extraPaths": ["10-knowledge-base/exercises"] },
+    { "root": "13-evaluation", "extraPaths": ["13-evaluation", "07-full-app"] },
+    { "root": "14-prompt-injection", "extraPaths": ["14-prompt-injection/exercises", "14-prompt-injection/fixtures"] },
+    { "root": "16-prompt-caching", "extraPaths": ["16-prompt-caching/exercises"] },
+    { "root": "17-guardrails", "extraPaths": ["17-guardrails/exercises"] },
+    { "root": "18-hitl", "extraPaths": ["18-hitl/exercises"] },
+    { "root": "19-structured-output", "extraPaths": ["19-structured-output/exercises"] }
+  ]
+}
