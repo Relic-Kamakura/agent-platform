@@ -24,7 +24,7 @@ RAG（Retrieval-Augmented Generation）は、文書を全部渡す代わりに�
 ### 10.1.2 Bedrock Knowledge Bases とは
 
 RAG を成立させるには、文書を分割し、ベクトル化して格納し、クエリで検索する一連のパイプラインが要ります。
-Bedrock Knowledge Bases はこれをマネージドで肩代わりする機能です（第1章 1.1.9 の位置づけ表を参照）。
+Bedrock Knowledge Bases はこれをマネージドで肩代わりする機能です（リポジトリ直下の README の位置づけ表を参照）。
 
 ```mermaid
 graph LR
