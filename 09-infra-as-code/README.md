@@ -1,7 +1,7 @@
 # 第9章 基盤をコードで定義する
 
 CDK (TypeScript) の本体であり、IaC を学ぶ章です。
-終えると、L2 コンストラクタが無い新しめのサービスを L1 で書け、IAM 実行ロールの信頼ポリシーに何を書くべきか、なぜスタックを分けるのかを説明できるようになります。
+終えると、IAM 実行ロールの信頼ポリシーに何を書くべきか、なぜスタックを分けデプロイ順序を外部化するのかを説明できるようになります。
 
 依存を先に入れてください。
 
@@ -22,25 +22,9 @@ graph LR
     TS["lib/*.ts<br/>(TypeScript)"] -->|cdk synth| CF["CloudFormation<br/>テンプレート"] -->|cdk deploy| R[AWS リソース]
 ```
 
-コンストラクタには階層があります。
-
-L2（`ecr.Repository` など）は既定値とヘルパー付きの高水準 API です。
-L1（`Cfn` 始まり）は CloudFormation リソースと 1 対 1 で、全プロパティを自分で書きます。
-
-### 9.1.2 L2 が無いサービスの書き方
-
-AgentCore のような新しいサービスには L2 がまだありません。
-手元の aws-cdk-lib（バージョンは versions.md）の aws-bedrockagentcore に入っているのは L1 だけで、
-「stable な L2 Runtime がある」と書いた Web 記事は誤りです。
-
-L2 の有無は Web 記事ではなく、手元の `node_modules` の型定義で確認します。
-
-```bash
-ls 09-infra-as-code/node_modules/aws-cdk-lib/aws-bedrockagentcore/lib/
-```
-
-`lib/agent-runtime-stack.ts` は `CfnRuntime` を直接使っています。
-L1 は全プロパティを自分で書く手間がかかる代わり、CloudFormation リファレンスがそのまま読めるようになる副産物があります。
+コンストラクタには、既定値とヘルパー付きの L2（`ecr.Repository` など）と、CloudFormation リソースと 1 対 1 の L1（`Cfn` 始まり）の 2 階層があります。
+`lib/agent-runtime-stack.ts` は Runtime を L1 の `CfnRuntime` で書いています。
+プロパティ名が CloudFormation リファレンスと同じなので、authorizerConfiguration などの設定項目をリファレンスを見ながらそのまま書けます。
 
 ## 9.2 実装のポイント
 
@@ -61,7 +45,7 @@ CloudFormation が管理するのはリソースの存在であって、「イ�
 ### 9.2.2 IAM 実行ロールの信頼ポリシー
 
 `resolveExecutionRole()` が Runtime の実行ロールを定義しています。
-読みどころは信頼ポリシーです。
+信頼ポリシーが要点です。
 
 `bedrock-agentcore.amazonaws.com` からの AssumeRole を、`aws:SourceAccount` と `aws:SourceArn` の条件で自アカウント起源に限定しています。
 条件が無いと、他人の AWS アカウントの AgentCore があなたのロールを引き受けられる余地が生まれます（confused deputy 問題）。
@@ -74,7 +58,7 @@ CloudFormation が管理するのはリソースの存在であって、「イ�
 
 ロールを自分で作れない組織向けに、context で既存ロール ARN を渡すと新規作成をスキップする分岐も入れてあります。
 
-Bedrock の許可でつまずくのは、アクションではなくリソース ARN の方です。
+Bedrock の許可では、アクションよりリソース ARN の指定でエラーになります。
 クロスリージョン推論（第1章 1.1.7）では、リクエストは推論プロファイルに向かい、実際の推論はルーティング先リージョンの基盤モデルで走ります。
 IAM はその両方を評価するので、プロファイルの ARN だけ許可すると拒否されます。
 
@@ -87,7 +71,7 @@ resources: [
 ```
 
 3 行目を落とすと、ローカルでは通るのにデプロイ後だけ `AccessDeniedException` になります。
-リクエストが別リージョンへ転送された時点で拒否されるからで、原因に辿り着くまでが長い部類のエラーです。
+リクエストが別リージョンへ転送された時点で拒否されるからです。
 foundation-model の ARN にアカウント ID が入らないのは、モデルが AWS 所有のリソースだからです。
 
 ### 9.2.3 CDK に入れておく統制
@@ -110,7 +94,7 @@ CloudTrail には Bedrock の API 呼び出しが残りますが、プロンプ�
 VPC エンドポイントは通信を AWS 内に閉じる要件が出たときに使います。
 この教材は VPC を作らない構成なので入っていません。
 
-### 9.2.4 context による環境差分の注入
+### 9.2.4 context で渡す環境差分
 
 リージョン、モデル ID、ロール ARN はコードに書かず、`cdk.json` の context に既定値を置いて `-c` で上書きします。
 context を読むのは `lib/config.ts` の `loadConfig()` だけです。
@@ -122,7 +106,7 @@ npx cdk deploy -c region=us-east-1 -c imageTag=v1.2.0
 
 `cdk synth` はテンプレート生成だけでデプロイはしないので、デプロイ前に「この変更で何が作られるか」を確認できます。
 
-## 9.3 ハンズオン: context 経由の環境変数注入を実装する
+## 9.3 ハンズオン: context から環境変数を渡す
 
 エージェントの `LOG_LEVEL` を CDK context から Runtime に注入できるようにします。
 この章のディレクトリは動く CDK コードの本体でもあるため、骨組みのコピーではなく `lib/config.ts` と `cdk.json` を直接編集します。
@@ -188,13 +172,12 @@ cd .. && ./09-infra-as-code/verify/verify.sh
 
 ## 9.4 まとめ
 
-L2 が無いサービスは L1（`Cfn*`）で書き、プロパティを自分で埋めます。L2 の有無は Web 記事ではなく
-手元の型定義で確認します（9.1.2）。実行ロールの信頼ポリシーには、AssumeRole を許す相手と、
-`aws:SourceAccount` / `aws:SourceArn` による自アカウント起源への限定を書きます（9.2.2）。
+実行ロールの信頼ポリシーには、AssumeRole を許す相手と、`aws:SourceAccount` / `aws:SourceArn` による自アカウント起源への限定を書きます（9.2.2）。
+Bedrock の許可は、呼び出し元リージョンの foundation-model、inference-profile、ルーティング先リージョンの foundation-model の 3 種の ARN を揃えます。
+クロスリージョン推論では IAM がプロファイルとルーティング先モデルの両方を評価するためです。
 
-スタックを分けるのは、CloudFormation が保証するのはリソースの存在までで、
-「イメージが push 済みか」のような管理外の状態は保証しないからです。
-順序は `scripts/deploy.sh` に持たせ、IaC が保証しない部分を手順で補います。
+スタックを分けるのは、CloudFormation が保証するのはリソースの存在までで、「イメージが push 済みか」のような管理外の状態は保証しないからです。
+順序は `scripts/deploy.sh` に持たせ、IaC が保証しない部分を手順で補います（9.2.1）。
 
 ## 次の章
 

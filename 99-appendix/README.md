@@ -38,7 +38,7 @@ OTel 形式のトレースを CloudWatch で可視化します。
 
 導入は `aws-opentelemetry-distro` を Dockerfile に足し、
 `opentelemetry-instrument` 経由で起動します（公式ドキュメントの手順）。
-イメージサイズとコールドスタート（第8章で計測した 4 秒）への影響を実測してから、
+イメージサイズとコールドスタート（第8章の実測値は versions.md）への影響を実測してから、
 本番採用を判断してください。
 
 ## D. AgentCore Gateway（既存 API の MCP 化）

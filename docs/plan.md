@@ -6,6 +6,22 @@ G4 向け AI エージェント開発基盤ひな形。競合リサーチエー�
 - ステータス: **全 20 章（00〜19）+ 付録の実装完了。実機確認は各章のハンズオン内で実施する**
 - 最終更新: 2026-08-30
 
+## 公式ベストプラクティスに沿った見直し（2026-08-30）
+
+AWS ブログ「エンタープライズにおける AI エージェント: AgentCore を活用したベストプラクティス」と
+クォータページを一次情報として、第5・6・7・8・9・13章を見直した。数値は versions.md に集約。
+
+- 第9章から L1 / L2 の議論を削除。aws-cdk-lib 2.264.0 の `aws-bedrockagentcore` には
+  L2 `Runtime` / `RuntimeEndpoint` / `RuntimeAuthorizerConfiguration.usingJWT()` が実在し
+  （`lib/runtime/runtime.d.ts` で確認）、旧記述「L1 のみ」は誤りだった。CfnRuntime のまま
+  L2 の有無を主題にしない形に改め、troubleshooting / versions からも該当記述を削除
+- 第8章に 8.1.3 デプロイ方法の選択、8.1.4 クォータを追加。microVM 分離は公式ドキュメントで確認
+- 第5章 5.2.3 に「コードで確実に求まる値をツールにしない」と日付取得の比較、
+  第13章 13.2.1 に評価指標 5 つと目標値の参照を追加
+- 第6章の要件を 7 本以上・観点 5 つに引き上げ（第3章 verify の 7 本に揃えた）。第7章に 7.4 確認を新設
+- [未確認] 「AgentCore の CDK モジュールは experimental」はパッケージ内（.d.ts / README）に注記が無く
+  確認できなかった。クォータの「エンドポイントあたりのレート」は公式ではアカウント単位の共有値のみ
+
 ## ハンズオン節の見出しラベルの変更（2026-08-30）
 
 ハンズオン節のラベルを `【ハンズオン】` から `ハンズオン: ` に変えた（大見出しのみ。N.x.y には付けない）。見出しは関数名やファイル名ではなく、その節で学ぶ対象で書き、動詞は「実装する」を基本にする。規定は writing-style.md「章の構成」に同期。過去のエントリにある `【ハンズオン】` は当時の記録として残す。
@@ -279,7 +295,6 @@ verify の節番号参照はメッセージ文字列のみ追従した。
 | AgentCore Runtime のコンテナ契約は `linux/arm64` / `0.0.0.0:8080` / `POST /invocations` / `GET /ping` | AWS AgentCore devguide (runtime service contract) |
 | `bedrock_agentcore.runtime.BedrockAgentCoreApp` がこの契約を実装する。`@app.entrypoint` を書くだけでよい | Strands 公式 deploy ガイド |
 | AgentCore Runtime は **ap-northeast-1（東京）で利用可能**。Memory / Gateway / Identity / Observability も東京対応 | AWS AgentCore devguide (supported regions) |
-| ~~CDK に stable な L2 `Runtime` がある~~ → **誤り。Phase 2 で実機確認し否定した**。2.264.0 は L1 のみ | 当初: Web の解説記事 / 訂正: `node_modules` の型定義 |
 | **CDK の既知の罠**: ECR リポジトリと Runtime を同一 deploy で作ると、ECR が空のため Runtime 作成が失敗する | 複数の実装レポート |
 | Strands の `BeforeToolCallEvent` は「ツール呼び出し回数の制限」を公式ユースケースとして挙げている（`event.cancel_tool` で中断） | Strands hooks ドキュメント |
 | トークン消費は `result.metrics.accumulated_usage["totalTokens"]`、ループ回数は `result.metrics.cycle_count` で取得できる | Strands metrics ドキュメント |
@@ -287,8 +302,6 @@ verify の節番号参照はメッセージ文字列のみ追従した。
 
 ### 未確認事項の検証結果（Phase 1–2 で確定）
 
-- [x] **CDK に L2 `Runtime` は存在しない。** aws-cdk-lib 2.264.0 の `aws-bedrockagentcore` は
-      L1 (`Cfn*`) のみ。Web 記事の「stable な L2 がある」という記述は誤り。`CfnRuntime` を使う
 - [x] **VPC を使わない指定は `networkConfiguration: { networkMode: 'PUBLIC' }`**。
       `CfnRuntime.NetworkConfigurationProperty` の型定義で確認
 - [x] **JWT authorizer は `CfnRuntime` から設定できる。**
@@ -369,7 +382,7 @@ verify の節番号参照はメッセージ文字列のみ追従した。
 
 ## Phase 0: 設計提示 ✅
 
-- [x] 一次情報の調査（コンテナ契約 / リージョン / CDK L2 / Strands hooks・metrics API）
+- [x] 一次情報の調査（コンテナ契約 / リージョン / Strands hooks・metrics API）
 - [x] `docs/plan.md` 作成
 - [x] `CLAUDE.md` 作成
 - [x] 未確定事項の外出し方針を提示
@@ -410,7 +423,7 @@ verify の節番号参照はメッセージ文字列のみ追従した。
 
 - [ ] `infra/bin/app.ts`、`infra/lib/config.ts`
 - [ ] `AuthStack` — Cognito User Pool / App Client / ドメイン
-- [ ] `AgentRuntimeStack` に inbound JWT authorizer を追加（L2 で不可なら `CfnRuntime` に降りる）
+- [ ] `AgentRuntimeStack` に inbound JWT authorizer を追加（`CfnRuntime` の `authorizerConfiguration`）
 - [ ] `FrontendStack` — Amplify Hosting
 - [ ] 出力（User Pool ID / Client ID / Runtime ARN）をフロント設定に受け渡す
 - [ ] **動作確認**: `npx cdk diff` / `npx cdk deploy --all`、Cognito ユーザ作成 → トークン取得 → Runtime 呼び出しが 200

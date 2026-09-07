@@ -44,6 +44,59 @@
 | ペイロード | 100 MB |
 | セッション ID の最小長 | 33 文字 |
 
+## AgentCore Runtime のクォータ（既定値）
+
+| 項目 | 値 | 引き上げ |
+| --- | --- | --- |
+| データプレーン API のレート | 1,000 TPS | 可 |
+| 新規セッション作成レート | 25 TPS | 可 |
+| 同時アクティブセッション | 5,000 または 2,500 | 可 |
+
+いずれもアカウント単位で、全エンドポイントが共有する（エンドポイントごとの上限ではない）。
+データプレーン API は InvokeAgentRuntime を含む呼び出し系 API の合算。セッション作成レートは
+コンテナと直接コードデプロイの両方に同じ値が適用される。同時アクティブセッションは
+us-east-1 / us-west-2 が 5,000、他リージョンが 2,500。引き上げは Service Quotas から申請する。
+出典: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html（2026-08-30 確認）
+
+## AgentCore Runtime のセッション分離
+
+セッションごとに専用の microVM が起動し、CPU・メモリ・ファイルシステムが分離され、
+セッション終了時に microVM が破棄されてメモリがサニタイズされる。公式ドキュメントで確認済み（2026-08-30）。
+
+- https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html
+- https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html
+
+## コールドスタート（このリポジトリでの実測値）
+
+| Dockerfile の CMD | コールドスタート |
+| --- | --- |
+| `--no-sync` なし | 8 秒 |
+| `--no-sync` あり | 4 秒 |
+
+確認状況: 07-full-app のイメージで実測した値。環境依存で、ベースイメージや依存の量で変わる。
+
+## 引用した実測値と目標値（AWS ブログ）
+
+出典: https://aws.amazon.com/jp/blogs/news/ai-agents-in-enterprises-best-practices-with-amazon-bedrock-agentcore/（2026-08-30 確認）
+
+現在日付を取得する手段の比較（第5章 5.2.3 から参照）。
+
+| 項目 | ツールとして公開 | 属性として渡す |
+| --- | --- | --- |
+| LLM 呼び出し回数 | 4 回 | 3 回 |
+| 合計トークン数 | 約 8,500 | 約 6,200 |
+| レイテンシー | 12 秒 | 9 秒 |
+
+評価指標の目標値の例（第13章 13.2.1 から参照）。
+
+| 指標 | 目標値 |
+| --- | --- |
+| ツール選択精度 | 95% |
+| パラメータ抽出精度 | 98% |
+| 拒否精度 | 100% |
+| レイテンシー | P50 2 秒未満、P95 5 秒未満 |
+| クエリあたりのトークン数 | 平均 5,000 未満 |
+
 ## ライブラリ
 
 | 項目 | 値 |
@@ -53,4 +106,3 @@
 | aws-cdk-lib | 2.264.0 |
 
 `strands-agents` には `max_turns` 相当の引数が無い（1.52.0 で確認）。
-`aws-cdk-lib` の `aws-bedrockagentcore` は L1 (`Cfn*`) のみを提供する。

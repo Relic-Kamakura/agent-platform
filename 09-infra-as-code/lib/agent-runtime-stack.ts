@@ -17,8 +17,8 @@ export interface AgentRuntimeStackProps extends StackProps {
 /**
  * AgentCore Runtime。
  *
- * aws-cdk-lib 2.264.0 の aws-bedrockagentcore モジュールには L1 (CfnRuntime) しか無いため
- * L1 を直接使う。L2 が入ったら移行してよい。
+ * Runtime は L1 (CfnRuntime) で書く。プロパティが CloudFormation リファレンスと 1 対 1 で、
+ * authorizerConfiguration など Runtime の設定項目をそのまま読み書きできる。
  *
  * VPC は作らない。networkMode: 'PUBLIC' で AgentCore のマネージドネットワークを使う。
  */

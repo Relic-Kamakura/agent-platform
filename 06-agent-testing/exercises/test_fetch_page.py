@@ -57,14 +57,19 @@ def test_returns_truncated_body(monkeypatch: pytest.MonkeyPatch) -> None:
     assert len(out) <= 600
 
 
-# TODO(1): 異常系のテストを書く。httpx をモックして失敗（4xx など）を再現し、
-#   返り値が "ERROR[" で始まることを assert する。
-#   例外を起こしたいときは response_factory の中で raise すればよい。
+# TODO(1): URL 検証のテストを書く。"ftp://example.com" のような URL を渡し、httpx を
+#   モックせずに（ネットワークを呼ばずに）返り値が "ERROR[" で始まることを assert する。
 
-# TODO(2): リトライ回数のテストを書く。タイムアウトを起こし続け、試行がちょうど
+# TODO(2): 4xx のテストを書く。404 を返すモックで、返り値が "ERROR[" で始まり、
+#   試行が 1 回で止まる（リトライしない）ことを回数カウンタで assert する。
+
+# TODO(3): リトライ回数のテストを書く。タイムアウトを起こし続け、試行がちょうど
 #   3 回（初回 + リトライ 2 回）で止まることを回数カウンタで assert する。
+#   例外を起こしたいときは response_factory の中で raise すればよい。
 #   monkeypatch.setattr("time.sleep", lambda _s: None) で待ち時間を消すこと。
 
-# TODO(3): 自分で観点をもう 1 つ決めてテストを書き、合計 4 本以上にする。
-#   候補: 4xx がリトライされないこと、http/https 以外の URL が拒否されること、
-#   5xx が途中で復旧したら本文が返ること。
+# TODO(4): 5xx のテストを書く。503 を 2 回返したあと 200 を返すモックで、
+#   リトライの末に本文が返ることを assert する。
+
+# TODO(5): target/fetch_page.py を読み、上記でテストされていない分岐を 2 つ見つけて
+#   テストを書く。合計 7 本以上にする。

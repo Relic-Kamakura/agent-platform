@@ -26,7 +26,7 @@ def test_no_todo_left() -> None:
     )
 
 
-def test_has_at_least_four_test_functions() -> None:
+def test_has_at_least_seven_test_functions() -> None:
     tree = ast.parse(_source())
     test_functions = [
         node.name
@@ -34,8 +34,8 @@ def test_has_at_least_four_test_functions() -> None:
         if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
         and node.name.startswith("test_")
     ]
-    assert len(test_functions) >= 4, (
-        f"テスト関数が {len(test_functions)} 個です。4 個以上書いてください: {test_functions}"
+    assert len(test_functions) >= 7, (
+        f"テスト関数が {len(test_functions)} 個です。README 6.3 の要件どおり 7 個以上書いてください: {test_functions}"
     )
 
 

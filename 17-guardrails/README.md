@@ -70,7 +70,7 @@ PROMPT_ATTACK で、強度は NONE から HIGH まであります。
 PROMPT_ATTACK フィルタは第14章と直接つながります。
 プロンプト側の防御（14 章）に加えて、既知の攻撃パターンを含む入力を Bedrock がモデルへ渡す前に遮断する層として働きます。
 
-CDK は `aws-bedrock` モジュールの L1 `CfnGuardrail` で書きます（Runtime と同じく L2 はまだ無い。確認方法は第9章のとおり）。
+CDK は `aws-bedrock` モジュールの L1 `CfnGuardrail` で書きます。
 版も発行します。Guardrail は版（`CfnGuardrailVersion`）で参照し、DRAFT を直接使うと編集がそのまま呼び出し側に反映されるからです。
 
 ### 17.2.2 アプリ側で渡すもの
@@ -127,7 +127,7 @@ Guardrail はモデル呼び出し 1 回ごとに、Converse API の `guardrailC
 第13章の evals のケースがそのまま使えます。
 誤遮断率を測らずに HIGH で始めると、後から下げるときの根拠が印象論になります。
 
-## 17.3 ハンズオン: Guardrail の CDK スタックを実装する
+## 17.3 ハンズオン: Guardrail を CDK で定義する
 
 編集するのは `lib/guardrail-stack.ts` の 1 ファイルだけです。骨組みをコピーして作ります。
 
@@ -192,7 +192,7 @@ npx cdk synth AgentPlatformGuardrailStack | grep -E 'Bedrock::Guardrail|PROMPT_A
 
 </details>
 
-## 17.4 ハンズオン: Guardrail のモデル接続を実装する
+## 17.4 ハンズオン: モデルに Guardrail をつなぐ
 
 編集するのは `exercises/guarded_model.py` の 1 ファイルだけです。
 

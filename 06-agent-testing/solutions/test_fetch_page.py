@@ -110,3 +110,33 @@ def test_server_error_is_retried(monkeypatch: pytest.MonkeyPatch) -> None:
     out = _tool()(url="https://example.com")
     assert out == "recovered"
     assert calls["n"] == 3
+
+
+def test_server_error_exhausts_retries(monkeypatch: pytest.MonkeyPatch) -> None:
+    # 落ちるとき: 5xx が続いたときに ERROR[ を返さず None や例外で終わるバグ
+    calls = {"n": 0}
+
+    def _always_503():
+        calls["n"] += 1
+        return _Response("oops", status_code=503)
+
+    monkeypatch.setattr(httpx, "Client", _client(_always_503))
+    monkeypatch.setattr("time.sleep", lambda _s: None)
+
+    out = _tool()(url="https://example.com")
+    assert out.startswith("ERROR[")
+    assert calls["n"] == 3
+
+
+def test_backoff_waits_grow(monkeypatch: pytest.MonkeyPatch) -> None:
+    # 落ちるとき: バックオフが指数でなくなる、または最後の試行のあとにも待つバグ
+    waits: list[float] = []
+
+    def _raise():
+        raise httpx.TimeoutException("timeout")
+
+    monkeypatch.setattr(httpx, "Client", _client(_raise))
+    monkeypatch.setattr("time.sleep", waits.append)
+
+    _tool()(url="https://example.com")
+    assert waits == [1, 2]

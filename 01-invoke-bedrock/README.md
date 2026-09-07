@@ -29,7 +29,7 @@ Meta Llama など)を単一の API で呼び出せる AWS のフルマネージ�
 - 入出力がモデルの学習に使われない（[Bedrock の FAQ](https://aws.amazon.com/bedrock/faqs/)）
 - CloudTrail や CloudWatch など、既存の監査と監視の仕組みで扱える
 
-### 1.1.2 Bedrock が解決すること
+### 1.1.2 Bedrock が解決する問題
 
 | 課題 | Bedrock での解決 |
 | --- | --- |
@@ -199,7 +199,7 @@ aws bedrock list-inference-profiles --region us-east-1 \
 一覧に無ければ起動前に止めます。実行時に原因の分からない例外が出る代わりに、
 起動前に原因の分かるエラーで止まります。
 
-## 1.4 ハンズオン: Converse API の呼び出しを実装する
+## 1.4 ハンズオン: Converse API を呼ぶ
 
 `exercises/01_converse.py` を開いてください。クライアントの生成とモデル ID の
 解決は書いてあり、TODO が 3 つ残っています。
@@ -245,7 +245,7 @@ print(f"tokens: in={usage['inputTokens']} out={usage['outputTokens']}")
 
 </details>
 
-## 1.5 ハンズオン: トークン計測と料金概算を実装する
+## 1.5 ハンズオン: トークンを数えて料金を出す
 
 1.4 で表示した `usage` が料金の実データです。`exercises/02_count_tokens.py` を
 開いてください。呼び出し部分は書いてあり、TODO が 2 つ残っています。
@@ -281,7 +281,7 @@ ask("エージェント開発を学ぶ手順を詳しく説明して")
 
 </details>
 
-## 1.6 ハンズオン: ストリーミング呼び出しを実装する
+## 1.6 ハンズオン: ストリーミングで呼ぶ
 
 同期との違いである、最初の文字が出るまでの時間を実測します。
 `exercises/03_streaming.py` を開いてください。時間計測の枠は書いてあり、

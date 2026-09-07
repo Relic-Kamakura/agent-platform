@@ -87,18 +87,6 @@ x86 マシンで誤って amd64 イメージを作らないよう、あえて固
 
 ## CDK / インフラ
 
-### 症状: `aws-cdk-lib/aws-bedrockagentcore` の L2 `Runtime` が見つからない
-
-**原因**
-aws-cdk-lib 2.264.0 の `aws-bedrockagentcore` が提供するのは L1 (`Cfn*`) のみで、
-L2 の `Runtime` / `RuntimeEndpoint` は含まれていない。
-（Web 上の解説記事には L2 があるかのような記述があるが、このバージョンには存在しない）
-
-**対処**
-`09-infra-as-code/lib/agent-runtime-stack.ts` は `CfnRuntime` を直接使っている。
-L2 が入ったバージョンに上げたら移行してよい。確認方法:
-`ls node_modules/aws-cdk-lib/aws-bedrockagentcore/lib/`
-
 ### 症状: `cdk synth` が `does not match pattern '^[	...ÿ]*$'` の検証警告を出す
 
 **原因**

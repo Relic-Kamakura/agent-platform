@@ -108,9 +108,16 @@ curl http://127.0.0.1:8080/ping
 SERVER_PORT=8181 uv run python -m src.main
 ```
 
-## 7.4 まとめ
+## 7.4 確認
 
-1 リクエストは main.py → orchestrator.py → search_agent.py → review_agent.py の順に通り、その途中で guards.py が上限を判定し、observability.py がログを出します（7.1.2）。
+コードを見ながら、次の 3 つを自分の言葉で答えてください（記述・任意）。
+
+1. POST /invocations から応答が返るまで、どのファイルを順に通るか
+2. ツール呼び出しの上限を変えたいとき、どのファイルを開くか
+3. ReviewAgent がツールではなくコードから呼ばれているのはなぜか
+
+## 7.5 まとめ
+
 HTTP 契約は main.py、環境変数は config.py、上限ガードは guards.py と、知る場所を 1 つに絞ってあります。
 どのファイルがどの章に対応するかは 7.2.1 の表にあり、章を進めるたびにここへ戻れます。
 

@@ -210,7 +210,7 @@ if __name__ == "__main__":
 [ops]         {"message": "token_usage", "total_tokens": 8412, "cycle_count": 4}
 ```
 
-## 2.5 ハンズオン: ツールを実装する
+## 2.5 ハンズオン: ツールを追加する
 
 今度はツールを自分で設計します。`exercises/02_add_tool.py` を開いてください。
 now ツールは書いてあり、TODO が 3 つ残っています。
@@ -270,7 +270,7 @@ if __name__ == "__main__":
 
 </details>
 
-## 2.6 ハンズオン: メトリクス計測を実装する
+## 2.6 ハンズオン: メトリクスを観察する
 
 `exercises/03_metrics.py` を開いてください。2.5 のエージェントを import して
 2 つの質問を投げる枠は書いてあり、TODO は 1 つ、cycle 数とトークン合計の表示です。
