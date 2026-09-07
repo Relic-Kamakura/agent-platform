@@ -1,6 +1,6 @@
 # 技術教材モード
 
-対象は `NN-*/README.md` と、学習者が読む Python ファイル（`exercises/` の TODO コメント、
+対象は `1-basic/`・`2-advanced/`・`3-production/` 配下の `NN-*/README.md` と、学習者が読む Python ファイル（`exercises/` の TODO コメント、
 章直下スクリプトの docstring、`solutions/` の説明コメント）。
 
 読者は AWS 経験ありのエンジニアで、エージェント開発は未経験。進行役なしの非同期自習で読むため、
@@ -107,13 +107,13 @@
 exercises / solutions / 章直下スクリプト / verify の `.py` を変更したら、
 リポジトリルートで Pyright を実行し、import の解決を確認する。
 ルートの `pyrightconfig.json` が、章スクリプトの `sys.path.insert` と同じ探索パス
-（`exercises/` / `target/` / `fixtures/` / `07-full-app`）をエディタ向けに宣言している。
+（`exercises/` / `target/` / `fixtures/` / `1-basic/07-full-app`）をエディタ向けに宣言している。
 
 ```bash
 uvx pyright --pythonpath <章>/.venv/bin/python <変更した .py ...>
 ```
 
-- `reportMissingImports` が出たら直す。例外は第13章の `judges`（13.3.1 の cp で学習者が作るファイル）だけ
+- `reportMissingImports` が出たら直す。例外は第9章の `judges`（9.3.1 の cp で学習者が作るファイル）だけ
 - `exercises/` を新しい場所から import する構造にしたら、`pyrightconfig.json` の
   `executionEnvironments` にその章の `extraPaths` を追加する
 - 穴埋め前の `...`（EllipsisType）に対する型エラーと、verify やスクリプトが検証用に `None` を

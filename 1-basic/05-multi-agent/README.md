@@ -6,7 +6,7 @@
 この章も独立した uv プロジェクトです。最初に依存を入れてください。
 
 ```bash
-cd 05-multi-agent
+cd 1-basic/05-multi-agent
 uv sync
 ```
 

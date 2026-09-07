@@ -77,8 +77,8 @@ fi
 # .env の設定値が実際に呼べる ID かを確認する。
 # ここで落としておかないと、原因不明の ValidationException として実行時に現れる。
 section "5. Bedrock モデル ID"
-ENV_FILE="$REPO_ROOT/07-full-app/.env"
-[ -f "$ENV_FILE" ] || ENV_FILE="$REPO_ROOT/07-full-app/.env.example"
+ENV_FILE="$REPO_ROOT/1-basic/07-full-app/.env"
+[ -f "$ENV_FILE" ] || ENV_FILE="$REPO_ROOT/1-basic/07-full-app/.env.example"
 get_env() { grep -E "^$1=" "$ENV_FILE" 2>/dev/null | tail -1 | cut -d= -f2-; }
 
 PREFIX="$(get_env BEDROCK_MODEL_ID_PREFIX)"

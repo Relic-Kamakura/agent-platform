@@ -68,7 +68,7 @@ crt = [
 ]
 
 [[package]]
-name = "chapter10-knowledge-base"
+name = "chapter08-knowledge-base"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

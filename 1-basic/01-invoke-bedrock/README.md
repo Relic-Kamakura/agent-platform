@@ -7,7 +7,7 @@
 この章は独立した uv プロジェクトです。最初に依存を入れてください。
 
 ```bash
-cd 01-invoke-bedrock
+cd 1-basic/01-invoke-bedrock
 uv sync
 ```
 

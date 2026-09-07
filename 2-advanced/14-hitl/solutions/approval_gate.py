@@ -1,4 +1,4 @@
-"""ハンズオン 18.3 の模範解答。exercises/approval_gate.py の完成形。"""
+"""ハンズオン 14.3 の模範解答。exercises/approval_gate.py の完成形。"""
 
 from __future__ import annotations
 

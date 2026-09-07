@@ -1,9 +1,10 @@
 # agent-platform
 
-AI エージェント開発を、動くコードを改造しながら習得するリポジトリです。
-番号付きディレクトリが章で、00 から順に進めると競合リサーチエージェントを題材に
-モデル呼び出し → エージェント → ツール → コスト制御 → マルチエージェント → テスト →
-コンテナデプロイ → IaC を実装します。
+AI エージェント開発を、動くコードを改造しながら習得するリポジトリです。3 部制です。
+
+第1部 基礎編（`1-basic/`）は第0〜7章です。競合リサーチエージェントを題材に、環境構築 → モデル呼び出し → エージェントループ → ツール設計 → コスト制御 → マルチエージェント → テストと進み、完成形を通読します（[1-basic/README.md](1-basic/README.md)）。
+第2部 応用編（`2-advanced/`）は第8〜15章で、RAG、評価、インジェクション耐性、MCP などエージェントの中身を仕上げるテーマ別の章です（[2-advanced/README.md](2-advanced/README.md)）。
+第3部 本番運用基盤（`3-production/`）はエージェントを外へ届ける側で、デプロイ、IaC、認証、フロントエンドを扱います（[3-production/README.md](3-production/README.md)）。
 
 第7章（完成形の通読）を除き、すべての章が同じ流れで進みます。
 
@@ -15,18 +16,18 @@ AI エージェント開発を、動くコードを改造しながら習得す�
 「書く」は穴埋め方式です。各章の `exercises/` にある TODO 付きの骨組みを実装し、
 章直下のスクリプトや verify で動かして確かめます。完成形は `solutions/` にあります。
 ハンズオンは章のディレクトリ内で完結し、本体 `07-full-app/` は完成形として
-読む・動かす対象です（第7章は通読、第9章は CDK コードを直接編集する形です）。
+読む・動かす対象です（第7章は通読、第17章は CDK コードを直接編集する形です）。
 
 ## 始め方
 
 1. fork するか個人ブランチを切る。ハンズオンでは各章の `exercises/` など
    リポジトリ内のファイルを直接編集するので、共有の main を変更しない作業場所を先に作る
-2. `00-dev-environment/README.md` を開き、指示どおりに環境を作る
+2. `1-basic/00-dev-environment/README.md` を開き、指示どおりに環境を作る
 3. 以降は番号順。詰まったら各章の `solutions/` を見てよい
 
 ```bash
 # 合格判定の例（章によっては verify.sh）
-uv run --project 07-full-app pytest 03-tool-design/verify -q
+uv run --project 1-basic/07-full-app pytest 1-basic/03-tool-design/verify -q
 ```
 
 ## Bedrock の機能の位置づけ
@@ -54,12 +55,12 @@ graph TB
 
 | 機能 | 何をするものか | 扱う章 |
 | --- | --- | --- |
-| AgentCore | エージェントの実行基盤 | 第8章 |
+| AgentCore | エージェントの実行基盤 | 第16章 |
 | エージェント | ツールを呼んで進む仕組み | 第2〜7章 |
-| ナレッジベース | 検索拡張生成(RAG) | 第10章 |
-| プロンプトマネジメント | 版管理と退行検知 | 第13章 |
-| ガードレール | 入出力の内容フィルタ | 第17章 |
-| 自動推論チェック | ハルシネーション検出 | 第17章 |
+| ナレッジベース | 検索拡張生成(RAG) | 第8章 |
+| プロンプトマネジメント | 版管理と退行検知 | 第9章 |
+| ガードレール | 入出力の内容フィルタ | 第13章 |
+| 自動推論チェック | ハルシネーション検出 | 第13章 |
 | フロー | 処理をノードで繋ぐ | 対象外 |
 | データオートメーション | 非構造化文書の情報抽出 | 対象外 |
 
@@ -68,29 +69,43 @@ graph TB
 
 ## 章の一覧
 
+第1部 基礎編（エージェントのコア。詳細は [1-basic/README.md](1-basic/README.md)）。
+
 | 章 | 学べること |
 | --- | --- |
-| [00-dev-environment](00-dev-environment/) | uv / Docker / AWS CLI の環境構築 |
-| [01-invoke-bedrock](01-invoke-bedrock/) | Bedrock でモデルを呼ぶ |
-| [02-agent-loop](02-agent-loop/) | エージェントループと ReAct |
-| [03-tool-design](03-tool-design/) | ツール設計とエラー設計 |
-| [04-cost-control](04-cost-control/) | hooks による上限とトークン計測 |
-| [05-multi-agent](05-multi-agent/) | 役割分割とモデルの使い分け |
-| [06-agent-testing](06-agent-testing/) | LLM を呼ばないテスト |
-| [07-full-app](07-full-app/) | 完成形の通読 |
-| [08-agentcore-deploy](08-agentcore-deploy/) | コンテナ契約とデプロイ |
-| [09-infra-as-code](09-infra-as-code/) | CDK と IAM ロール設計 |
-| [10-knowledge-base](10-knowledge-base/) | RAG を手で作る |
-| [11-auth](11-auth/) | Cognito と JWT による認可 |
-| [12-streaming](12-streaming/) | Next.js とストリーミング表示 |
-| [13-evaluation](13-evaluation/) | 判定関数と改善ループ |
-| [14-prompt-injection](14-prompt-injection/) | インジェクション耐性と多層防御 |
-| [15-mcp](15-mcp/) | MCP サーバによる分離 |
-| [16-prompt-caching](16-prompt-caching/) | プロンプトキャッシュとコスト実測 |
-| [17-guardrails](17-guardrails/) | マネージド層の内容フィルタ |
-| [18-hitl](18-hitl/) | 取り消せない操作の承認ゲート |
-| [19-structured-output](19-structured-output/) | 構造化出力とパースの撤去 |
-| [99-appendix](99-appendix/) | 発展領域の入口と用語集 |
+| [00-dev-environment](1-basic/00-dev-environment/) | uv / Docker / AWS CLI の環境構築 |
+| [01-invoke-bedrock](1-basic/01-invoke-bedrock/) | Bedrock でモデルを呼ぶ |
+| [02-agent-loop](1-basic/02-agent-loop/) | エージェントループと ReAct |
+| [03-tool-design](1-basic/03-tool-design/) | ツール設計とエラー設計 |
+| [04-cost-control](1-basic/04-cost-control/) | hooks による上限とトークン計測 |
+| [05-multi-agent](1-basic/05-multi-agent/) | 役割分割とモデルの使い分け |
+| [06-agent-testing](1-basic/06-agent-testing/) | LLM を呼ばないテスト |
+| [07-full-app](1-basic/07-full-app/) | 完成形の通読 |
+
+第2部 応用編（エージェントの中身を仕上げるテーマ別の章。詳細は [2-advanced/README.md](2-advanced/README.md)）。
+
+| 章 | 学べること |
+| --- | --- |
+| [08-knowledge-base](2-advanced/08-knowledge-base/) | RAG を手で作る |
+| [09-evaluation](2-advanced/09-evaluation/) | 判定関数と改善ループ |
+| [10-prompt-injection](2-advanced/10-prompt-injection/) | インジェクション耐性と多層防御 |
+| [11-mcp](2-advanced/11-mcp/) | MCP サーバによる分離 |
+| [12-prompt-caching](2-advanced/12-prompt-caching/) | プロンプトキャッシュとコスト実測 |
+| [13-guardrails](2-advanced/13-guardrails/) | マネージド層の内容フィルタ |
+| [14-hitl](2-advanced/14-hitl/) | 取り消せない操作の承認ゲート |
+| [15-structured-output](2-advanced/15-structured-output/) | 構造化出力とパースの撤去 |
+| [99-appendix](2-advanced/99-appendix/) | 発展領域の入口と用語集 |
+
+このほか応用編には、ニュース検索基盤を作る 20-ingest-pipeline と 21-gateway-tools を準備中です（2-advanced/README.md 参照）。
+
+第3部 本番運用基盤（エージェントを外へ届ける側。詳細は [3-production/README.md](3-production/README.md)）。
+
+| 章 | 学べること |
+| --- | --- |
+| [16-agentcore-deploy](3-production/16-agentcore-deploy/) | コンテナ契約とデプロイ |
+| [17-infra-as-code](3-production/17-infra-as-code/) | CDK と IAM ロール設計 |
+| [18-auth](3-production/18-auth/) | Cognito と JWT による認可 |
+| [19-streaming](3-production/19-streaming/) | Next.js とストリーミング表示 |
 
 Tier 分けと習得判定は [docs/learning-roadmap.md](docs/learning-roadmap.md) に、
 モデル ID や単価などバージョンで変わる値は [docs/versions.md](docs/versions.md) にあります。
@@ -104,22 +119,21 @@ Tier 分けと習得判定は [docs/learning-roadmap.md](docs/learning-roadmap.m
 graph LR
     A["何を任せるか<br/>決める"] --> B["ツールに分解<br/>第3章"]
     B --> C["エージェント構成<br/>第2・5章"]
-    C --> D["上限と権限<br/>第4・11・17章"]
-    D --> E["テストと評価<br/>第6・13・14章"]
-    E --> F["デプロイ<br/>第8・9章"]
-    F --> G["観測と改善<br/>第12章 / 付録C"]
+    C --> D["上限と権限<br/>第4・18・13章"]
+    D --> E["テストと評価<br/>第6・9・10章"]
+    E --> F["デプロイ<br/>第16・17章"]
+    F --> G["観測と改善<br/>第19章 / 付録C"]
     G --> E
 ```
 
-工程のうち作業量が多いのはツール設計（第3章）と評価（第13章）です。
+工程のうち作業量が多いのはツール設計（第3章）と評価（第9章）です。
 
 ## 順序と前提
 
-- 00 → 06 は番号順に進める（06 は第3章で作ったものと同じツールにテストを書く）
-- 08・09 は 03 まで終えていれば、04〜06 と並行して進められる。
-  10 は 01 まで終えていれば他の章と独立に進められる
-- 11 は独立に進められる（デプロイして試す工程だけ 09 が前提）。12 は 11 の後に進める
-- 13〜19 はどの順で進めてもよい
+- 第1部（00〜07）は番号順に進める（06 は第3章で作ったものと同じツールにテストを書く）
+- 第2部のうち 08 は 01 まで終えていれば独立に進められる。09〜15 はどの順で進めてもよい
+- 第3部の 16・17 は 03 まで終えていれば、第1部の残りや第2部と並行して進められる。
+  18 は独立に進められ（デプロイして試す工程だけ 17 が前提）、19 は 18 の後に進める
 
 ## 困ったら
 

@@ -1,4 +1,4 @@
-// 第17章の模範解答。17-guardrails/lib/guardrail-stack.ts として配置する。
+// 第13章の模範解答。13-guardrails/lib/guardrail-stack.ts として配置する。
 import { CfnOutput, Stack, type StackProps } from 'aws-cdk-lib';
 import * as bedrock from 'aws-cdk-lib/aws-bedrock';
 import type { Construct } from 'constructs';
@@ -18,7 +18,7 @@ export class GuardrailStack extends Stack {
       blockedOutputsMessaging: '応答の一部が利用ポリシーによりブロックされました。',
       contentPolicyConfig: {
         filtersConfig: [
-          // 既知のプロンプト攻撃パターンをモデルの手前で遮断（第14章の多層防御の一層）。
+          // 既知のプロンプト攻撃パターンをモデルの手前で遮断（第10章の多層防御の一層）。
           // PROMPT_ATTACK は入力側のみのフィルタなので outputStrength は NONE 固定
           { type: 'PROMPT_ATTACK', inputStrength: 'HIGH', outputStrength: 'NONE' },
           { type: 'HATE', inputStrength: 'HIGH', outputStrength: 'HIGH' },

@@ -1,4 +1,4 @@
-"""第13章の合格判定。judges の挙動と、自作ケースの追加を検査する。"""
+"""第9章の合格判定。judges の挙動と、自作ケースの追加を検査する。"""
 
 from __future__ import annotations
 
@@ -15,8 +15,8 @@ try:
     from judges import judge_case
 except ModuleNotFoundError:
     pytest.fail(
-        "13-evaluation/judges.py がまだありません。exercises/judges.py を章直下にコピーし、"
-        "README の 13.3 に沿って TODO を埋めてください。",
+        "2-advanced/09-evaluation/judges.py がまだありません。exercises/judges.py を章直下にコピーし、"
+        "README の 9.3 に沿って TODO を埋めてください。",
         pytrace=False,
     )
 
@@ -28,7 +28,7 @@ def test_no_todo_left() -> None:
 
     source = pathlib.Path(mod.__file__).read_text(encoding="utf-8")
     assert "TODO" not in source, (
-        "judges.py に TODO が残っています。README の 13.3 に沿って実装し、"
+        "judges.py に TODO が残っています。README の 9.3 に沿って実装し、"
         "終わったら TODO コメントを消してください。"
     )
 
@@ -61,7 +61,7 @@ def test_limits() -> None:
 def test_failures_are_messages_not_bools() -> None:
     failures = judge_case("r", {}, 0, {"contains": ["x"]})
     assert all(isinstance(f, str) and len(f) > 5 for f in failures), (
-        "判定は bool ではなく、理由が読める文字列で返してください（13.3 の設計方針）。"
+        "判定は bool ではなく、理由が読める文字列で返してください（9.3 の設計方針）。"
     )
 
 
@@ -75,7 +75,7 @@ def test_learner_added_cases() -> None:
     assert len(ids) == len(set(ids)), "ケース ID が重複しています。"
     added = [case for case in cases if case["id"] not in BASE_IDS]
     assert len(added) >= 2, (
-        f"自作ケースを 2 件以上追加してください（13.4）。現在の追加数: {len(added)}"
+        f"自作ケースを 2 件以上追加してください（9.4）。現在の追加数: {len(added)}"
     )
     for case in added:
         assert case.get("prompt"), f"{case['id']}: prompt が空です。"

@@ -1,4 +1,4 @@
-"""第17章の模範解答。exercises/guarded_model.py の完成形。"""
+"""第13章の模範解答。exercises/guarded_model.py の完成形。"""
 
 from __future__ import annotations
 

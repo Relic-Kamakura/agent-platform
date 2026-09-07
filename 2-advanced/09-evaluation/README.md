@@ -1,14 +1,18 @@
-# 第13章 評価と改善ループ
+# 第9章 評価と改善ループ
 
 この章を終えると、判定関数と評価ケースを自分で書き、「プロンプトを変えたら eval を実行して退行を確認する」という改善ループを自分で進められるようになります。
 
 第6章のテストが守るのは決定的な部分でした。
 この章が扱うのは残りの半分、モデルが良い報告を書けるかという確率的な品質です。
-実行には本体 07-full-app の環境をそのまま使うので、この章専用のセットアップはありません。コマンドはすべてリポジトリルートから実行します。
+実行には本体 07-full-app の環境を使います。最初に本体の依存を入れてください。コマンドはすべてリポジトリルートから実行します。
 
-## 13.1 概要
+```bash
+uv sync --project 1-basic/07-full-app
+```
 
-### 13.1.1 evals が解決する問題
+## 9.1 概要
+
+### 9.1.1 evals が解決する問題
 
 エージェントの出力の精度を上げたいとき、何を測って何を直すかを決めるのが評価（evals）です。
 evals が無いと、プロンプトを変えた影響は目視で確認した数例の範囲しか分かりません。確認しなかったケースが失敗していても、その場では気づけません。
@@ -19,7 +23,7 @@ evals はこれを、ケース集合に対する機械判定に置き換えま�
 - `judges.py` は期待条件を検査する判定関数（この章で自分で書く）
 - `run_eval.py` は全ケースを実行して判定と集計を行うハーネス（提供済み）
 
-### 13.1.2 プロンプトマネジメントとの関係
+### 9.1.2 プロンプトマネジメントとの関係
 
 プロンプトマネジメントとは、プロンプトの版管理と、変更時の退行検知のことです。
 やることは Git で版管理し、evals で退行を検知する、の 2 つで、この章の改善ループがそれに当たります。
@@ -40,9 +44,9 @@ Git と Bedrock 側のどちらにプロンプトを置くかは、誰が編集�
 企画や CS の担当者が文面を直す運用なら、画面で編集して版を切れる置き場が要ります。
 その場合も、変更のたびに evals を実行する導線は別に用意しないと、退行は誰も見ません。
 
-## 13.2 実装のポイント
+## 9.2 実装のポイント
 
-### 13.2.1 ケース設計
+### 9.2.1 ケース設計
 
 ケースは 3 分類で考えます。既に 3 件のベースケースが `cases.jsonl` にあります。
 
@@ -66,7 +70,7 @@ mock プロバイダの固定データ（49 ドル・99 ドル）が報告に出
 自作ケースを追加するときは、5 指標のどれを測るかを先に決めてから期待条件を書きます。
 出典: https://aws.amazon.com/jp/blogs/news/ai-agents-in-enterprises-best-practices-with-amazon-bedrock-agentcore/
 
-### 13.2.2 ルール判定と LLM-as-judge
+### 9.2.2 ルール判定と LLM-as-judge
 
 この章の判定はすべてルールベースです。文字列の包含と数値の上限は決定的で、速く、費用も掛かりません。
 一方「要約が原文に忠実か」のような基準はルールに翻訳できず、LLM に判定させる LLM-as-judge が要ります。
@@ -81,7 +85,7 @@ Bedrock にはマネージドの評価機能（モデル評価ジョブ）もあ
 Haiku を Sonnet に上げる価値があるかをこの章の evals だけで示そうとすると、エージェント全体を毎回実行することになり、時間もコストも掛かります。
 モデル単体の性能差を先に出しておくと、上げる上げないの説明が短くなります。
 
-### 13.2.3 判定関数が何を返すか
+### 9.2.3 判定関数が何を返すか
 
 判定は bool ではなく、失敗メッセージのリストを返します（空 = 合格）。
 FAIL の理由がそのまま run_eval.py のレポートに出るようにするためです。
@@ -95,22 +99,22 @@ def judge_contains(report: str, terms: list[str]) -> list[str]:
 
 残りの判定関数もすべてこの形で書きます。
 
-## 13.3 ハンズオン: 判定関数を実装する
+## 9.3 ハンズオン: 判定関数を実装する
 
 期待条件を検査する判定関数群を作ります。
 編集するのは、章直下にコピーした `judges.py` の 1 ファイルだけです。
 
-### 13.3.1 骨組みをコピーする
+### 9.3.1 骨組みをコピーする
 
 ```bash
-cp 13-evaluation/exercises/judges.py 13-evaluation/judges.py
+cp 2-advanced/09-evaluation/exercises/judges.py 2-advanced/09-evaluation/judges.py
 ```
 
 `run_eval.py` が import するのは章直下の `judges.py` です。exercises の中に置いたままでは使われません。
 
-### 13.3.2 TODO を 5 つ埋める
+### 9.3.2 TODO を 5 つ埋める
 
-`13-evaluation/judges.py` を開いてください。
+`09-evaluation/judges.py` を開いてください。
 見本の `judge_contains` は完成しており、TODO が 5 つ残っています。
 
 1. `judge_not_contains` は含んではいけない語を検査する。でっち上げや禁止表現の検出
@@ -121,13 +125,13 @@ cp 13-evaluation/exercises/judges.py 13-evaluation/judges.py
 
 先に判定テスト `verify/test_judges.py` を読むと分かりやすくなります。要求仕様そのものになっています。
 
-### 13.3.3 見本の報告で判定を確認する
+### 9.3.3 見本の報告で判定を確認する
 
 実装できたら TODO コメントを消し、判定の前に動かします。
 良い報告と悪い報告を 1 件ずつ judge_case に渡すスクリプトを用意してあります（編集不要）。モデルは呼びません。
 
 ```bash
-uv run --project 07-full-app python 13-evaluation/01_judge_dry_run.py
+uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/01_judge_dry_run.py
 ```
 
 悪い報告の側に、4 種類の失敗メッセージが並ぶはずです。
@@ -194,15 +198,15 @@ def judge_case(report: str, usage: dict, tool_calls: int, expect: dict) -> list[
 
 </details>
 
-## 13.4 ハンズオン: 評価ケースを 2 件追加する
+## 9.4 ハンズオン: 評価ケースを 2 件追加する
 
 `cases.jsonl` に自作ケースを 2 件以上追加してください。1 件は境界、1 件は悪意/想定外の分類から。
-mock プロバイダの固定データは `07-full-app/src/tools/providers/mock.py` にあるので、それを前提に期待条件を書きます。
+mock プロバイダの固定データは `1-basic/07-full-app/src/tools/providers/mock.py` にあるので、それを前提に期待条件を書きます。
 
 書けたら判定します。判定関数の挙動と、ケースの構造・追加数を検査します。
 
 ```bash
-uv run --project 07-full-app pytest 13-evaluation/verify -q
+uv run --project 1-basic/07-full-app pytest 2-advanced/09-evaluation/verify -q
 ```
 
 `6 passed` で合格です。
@@ -221,40 +225,40 @@ uv run --project 07-full-app pytest 13-evaluation/verify -q
 
 </details>
 
-## 13.5 ハンズオン: 改善ループを 1 回通す
+## 9.5 ハンズオン: 改善ループを 1 回通す
 
 実際にエージェントを実行して評価し、プロンプトを直し、退行が無いことを確認します。Bedrock を呼びます。
 
 ```bash
-uv run --project 07-full-app python 13-evaluation/run_eval.py
+uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py
 ```
 
 各ケースの PASS/FAIL、失敗理由、トークン数が表で出ます。ここから改善ループを実行します。
 
 1. FAIL したケースの失敗理由を読み、原因を分類する（プロンプトの問題か / ツールの問題か / 期待条件が厳しすぎるのか）
-2. `07-full-app/src/agents/` のシステムプロンプトを 1 箇所直す
+2. `1-basic/07-full-app/src/agents/` のシステムプロンプトを 1 箇所直す
 3. もう一度 run_eval.py を実行し、直したケースが PASS になり、他が FAIL に変わっていないことを確認する
 
-13.1.2 の図はこの 3 手を表しています。
+9.1.2 の図はこの 3 手を表しています。
 プロンプトは Git で版管理し、変更のたびに eval で退行を検知します。
 
 コスト概算を出す場合は単価を環境変数で渡します（モデルと契約で変わるためリポジトリにはハードコードしていません）。
 
 ```bash
-PRICE_IN_PER_MTOK=3.0 PRICE_OUT_PER_MTOK=15.0 \
-  uv run --project 07-full-app python 13-evaluation/run_eval.py
+PRICE_IN_PER_MTOK=3.0 PRICE_OUT_PER_MTOK=11.0 \
+  uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py
 ```
 
-## 13.6 まとめ
+## 9.6 まとめ
 
 evals の核心は、「良い報告」という曖昧な基準を検証可能な条件に翻訳することです。
 翻訳できた条件は機械判定になり、プロンプト変更のたびに退行の有無が数分で分かります。
 ただし、判定が全部緑でも使う人が満足しているとは限りません。
-案件で最後に見られるのは第12章で触れた利用者の評価（CSAT）で、
+案件で最後に見られるのは第19章で触れた利用者の評価（CSAT）で、
 evals の合格率はその手前を支える指標です。
 
-verify が通ったら第14章へ進んでください。
+verify が通ったら第10章へ進んでください。
 
 ## 次の章
 
-[第14章 プロンプトインジェクション](../14-prompt-injection/)
+[第10章 プロンプトインジェクション](../10-prompt-injection/)

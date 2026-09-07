@@ -1,7 +1,7 @@
 [project]
-name = "chapter14-prompt-injection"
+name = "chapter10-prompt-injection"
 version = "0.1.0"
-description = "第14章: プロンプトインジェクション耐性（穴埋めハンズオン）"
+description = "第10章: プロンプトインジェクション耐性（穴埋めハンズオン）"
 requires-python = ">=3.12"
 dependencies = ["strands-agents", "botocore[crt]"]
 

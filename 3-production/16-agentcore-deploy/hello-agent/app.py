@@ -1,6 +1,6 @@
 """コンテナ契約を確かめるための最小エージェント。LLM は呼ばず、payload をそのまま返す。
 
-これをコンテナ化するのが第8章のハンズオン。Dockerfile は自分で書く。
+これをコンテナ化するのが第16章のハンズオン。Dockerfile は自分で書く。
 """
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
@@ -10,7 +10,7 @@ app = BedrockAgentCoreApp()
 
 @app.entrypoint
 def invoke(payload: dict) -> dict:
-    return {"echo": payload.get("prompt", ""), "chapter": 8}
+    return {"echo": payload.get("prompt", ""), "chapter": 16}
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-// ハンズオン 17.3: Bedrock Guardrail の定義。
+// ハンズオン 13.3: Bedrock Guardrail の定義。
 // lib/guardrail-stack.ts にコピーして TODO を埋め、`npx cdk synth` で確認する。
 // 実装が終わったら TODO コメントは消す。完成形は solutions/guardrail-stack.ts。
 import { CfnOutput, Stack, type StackProps } from 'aws-cdk-lib';
@@ -27,7 +27,7 @@ export class GuardrailStack extends Stack {
     // TODO(2): bedrock.CfnGuardrailVersion で版を発行する。
     //   guardrailIdentifier に guardrail.attrGuardrailId を渡す
 
-    // TODO(3): CfnOutput を 2 つ出す。17.5 で環境変数に入れる値になる。
+    // TODO(3): CfnOutput を 2 つ出す。13.5 で環境変数に入れる値になる。
     //   - GuardrailId: guardrail.attrGuardrailId
     //   - GuardrailVersionNumber: version.attrVersion
   }

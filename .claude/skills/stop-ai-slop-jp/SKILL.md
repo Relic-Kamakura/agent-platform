@@ -122,7 +122,7 @@ AI臭の正体は、書き手の不在だ。自分が何を見て、何に引っ
 
 ## 技術教材を直すとき
 
-`NN-*/README.md` と、学習者が読む Python ファイル（exercises の TODO コメント、
+`1-basic/`・`2-advanced/`・`3-production/` 配下の `NN-*/README.md` と、学習者が読む Python ファイル（exercises の TODO コメント、
 章直下スクリプトの docstring）を直すときは、上のコアルールに加えて
 `references/textbook.md` を読む。比喩の置換表、見出しの立て方、
 初出用語の補い方、読者の行動に繋がらない記述の削除基準がある。

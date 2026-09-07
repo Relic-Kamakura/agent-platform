@@ -7,7 +7,7 @@
 依存を先に入れてください。
 
 ```bash
-cd 07-full-app
+cd 1-basic/07-full-app
 uv sync
 ```
 
@@ -88,7 +88,7 @@ uv run ruff check . && uv run mypy src
 7.1.2 の入口である `src/main.py` を起動し、コンテナ契約のヘルスチェックが応答することを確認します。
 
 ```bash
-cd 07-full-app
+cd 1-basic/07-full-app
 uv run python -m src.main
 ```
 
@@ -121,8 +121,8 @@ SERVER_PORT=8181 uv run python -m src.main
 HTTP 契約は main.py、環境変数は config.py、上限ガードは guards.py と、知る場所を 1 つに絞ってあります。
 どのファイルがどの章に対応するかは 7.2.1 の表にあり、章を進めるたびにここへ戻れます。
 
-`uv run pytest` が通ることを確認したら、次は第8章でこの本体をコンテナで動かします。
+`uv run pytest` が通ることを確認したら、次は第16章でこの本体をコンテナで動かします。
 
 ## 次の章
 
-[第8章 AgentCore Runtime にデプロイする](../08-agentcore-deploy/)
+[第8章 ナレッジベース](../../2-advanced/08-knowledge-base/)

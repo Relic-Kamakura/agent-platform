@@ -17,7 +17,7 @@
 入っていないと例外になる。ネットワークアクセスは発生していない。
 
 **対処**
-テストは `07-full-app/tests/conftest.py` でダミーの AWS 認証情報を注入し、環境から独立させている。
+テストは `1-basic/07-full-app/tests/conftest.py` でダミーの AWS 認証情報を注入し、環境から独立させている。
 アプリを実際に動かす場合は有効な認証情報を用意する。
 
 章のスクリプトで実際に Bedrock を呼ぶ場合は、同じ例外が実行時に出る。
@@ -130,7 +130,7 @@ AgentCore Runtime は作成時点で `containerUri` のイメージが存在し�
 **対処**
 `npm config get before` で固定日時を確認し、`npm view <pkg> time --json` で
 その日付以前の最新バージョンを特定して package.json に固定する。
-12-streaming の package.json はこの方針で固定してある。
+19-streaming の package.json はこの方針で固定してある。
 
 ---
 
@@ -151,7 +151,7 @@ Sonnet 4.6 のような短縮 ID（`us.anthropic.claude-haiku-4-5`）は存在�
 
 **対処**
 `aws bedrock list-inference-profiles --region <region>` で実在する ID の一覧を確認し、
-第1章のスクリプトは環境変数 `MODEL_ID`、本体は `07-full-app/.env` の `MODEL_ID_*` を
+第1章のスクリプトは環境変数 `MODEL_ID`、本体は `1-basic/07-full-app/.env` の `MODEL_ID_*` を
 一覧にある ID に合わせる。`./scripts/check_env.sh` のセクション 5 がこの確認を自動化している。
 
 ### 症状: Converse 呼び出しが `ResourceNotFoundException: ... marked by provider as Legacy` で失敗する

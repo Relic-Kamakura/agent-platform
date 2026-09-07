@@ -1,4 +1,4 @@
-"""ハンズオン 16.3 の完成形: プロンプトキャッシュ付きエージェント。"""
+"""ハンズオン 12.3 の完成形: プロンプトキャッシュ付きエージェント。"""
 
 from __future__ import annotations
 
@@ -149,5 +149,5 @@ def build_cached_agent(model_id: str, region_name: str) -> Agent:
         cache_config=CacheConfig(strategy="auto"),
     )
     # RESEARCH_GUIDE をそのまま渡す。現在時刻などを足すと毎回先頭が変わり、
-    # すべてキャッシュミスになる（16.1.2）
+    # すべてキャッシュミスになる（12.1.2）
     return Agent(model=model, system_prompt=RESEARCH_GUIDE)

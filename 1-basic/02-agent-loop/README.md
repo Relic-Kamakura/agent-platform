@@ -6,7 +6,7 @@ ReAct のどのステップかを言い当てられるようになります。
 この章も独立した uv プロジェクトです。最初に依存を入れてください。
 
 ```bash
-cd 02-agent-loop
+cd 1-basic/02-agent-loop
 uv sync
 ```
 
@@ -126,7 +126,7 @@ result.metrics.accumulated_usage     # 消費トークンの累計（dict。合�
 
 `Agent` の引数はこの 3 つだけではありません。この教材で使うものを挙げると、
 実行の節目に割り込む `hooks`（第4章）、途中経過の表示を制御する `callback_handler`（第5章の解答例では `None` にして専門エージェントの出力を呼び出し側に混ぜない）、
-会話履歴の切り詰め方を決める `conversation_manager`（2.1.4）、応答をスキーマ付きで受け取る `structured_output_model`（第19章。呼び出し時にも渡せる）、
+会話履歴の切り詰め方を決める `conversation_manager`（2.1.4）、応答をスキーマ付きで受け取る `structured_output_model`（第15章。呼び出し時にも渡せる）、
 会話をセッションとして保存する `session_manager`（付録B）です。
 全引数の一覧と意味は [Strands の API リファレンス（strands.agent.agent）](https://strandsagents.com/docs/api/python/strands.agent.agent/) にあります。確認したバージョンは versions.md を参照してください。
 

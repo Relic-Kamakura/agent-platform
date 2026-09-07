@@ -10,8 +10,8 @@ import pathlib
 import sys
 
 CHAPTER_DIR = pathlib.Path(__file__).resolve().parents[1]
-REPO_ROOT = CHAPTER_DIR.parent
-APP_DIR = pathlib.Path(os.environ.get("AGENT_APP_DIR", REPO_ROOT / "07-full-app"))
+PART_DIR = CHAPTER_DIR.parent
+APP_DIR = pathlib.Path(os.environ.get("AGENT_APP_DIR", PART_DIR / "07-full-app"))
 
 sys.path.insert(0, str(APP_DIR))
 sys.path.insert(0, str(CHAPTER_DIR))

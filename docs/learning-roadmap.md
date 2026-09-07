@@ -1,7 +1,7 @@
 # 学習ロードマップ
 
 この教材で「何を・どの順で」身につけるかの計画。育成の進捗管理にもこの表を使う。
-**実体はルート直下の章ディレクトリ**（README.md の章一覧参照）。本表の項目と章の対応:
+**実体は `1-basic/`（00〜07章）、`2-advanced/`（08〜15章）、`3-production/`（16〜19章と付録）配下の章ディレクトリ**（README.md の章一覧参照）。本表の項目と章の対応:
 
 | Tier 項目 | 章 |
 | --- | --- |
@@ -11,12 +11,12 @@
 | 1-4 セーフガード | 04-cost-control |
 | 1-5 エラー設計 | 03-tool-design |
 | 1-6 テスト | 06-agent-testing |
-| 1-7 認証・認可 / 基盤 | 01-invoke-bedrock, 08-agentcore-deploy, 09-infra-as-code, 11-auth |
-| 1-8 評価 | 13-evaluation |
-| 1-9 インジェクション耐性 | 14-prompt-injection |
-| 1-10 ストリーミング | 12-streaming |
-| Tier 2 各項目 | 15-mcp / 16-prompt-caching / 17-guardrails / 18-hitl / 19-structured-output |
-| Tier 3-1 の基礎（RAG / Knowledge Bases） | 10-knowledge-base |
+| 1-7 認証・認可 / 基盤 | 01-invoke-bedrock, 16-agentcore-deploy, 17-infra-as-code, 18-auth |
+| 1-8 評価 | 09-evaluation |
+| 1-9 インジェクション耐性 | 10-prompt-injection |
+| 1-10 ストリーミング | 19-streaming |
+| Tier 2 各項目 | 11-mcp / 12-prompt-caching / 13-guardrails / 14-hitl / 15-structured-output |
+| Tier 3-1 の基礎（RAG / Knowledge Bases） | 08-knowledge-base |
 | Tier 3 各項目 | 99-appendix（入口ドキュメント） |
 
 - 対象: エージェント開発案件への参画を目指す部内メンバー（G4）
@@ -33,7 +33,7 @@
 | CoT (Chain of Thought) | 問題を思考ステップに分解させるプロンプト技法 | Orchestrator の「観点に分解してから調べる」システムプロンプトが該当 |
 | セーフガード（アプリ層） | ツール呼び出し回数とターン数の上限をコードで掛ける制御 | `src/guards.py` に実装済み |
 | ガードレール（マネージド層） | Bedrock Guardrails。入出力のフィルタリング | 未実装（Tier 2） |
-| RAG / Knowledge Bases | 外部知識の検索拡張生成。KB は AWS のマネージド RAG | 第10章で基礎（仕組みと retrieve ツール）を扱う。本格構成は Tier 3 |
+| RAG / Knowledge Bases | 外部知識の検索拡張生成。KB は AWS のマネージド RAG | 第8章で基礎（仕組みと retrieve ツール）を扱う。本格構成は Tier 3 |
 | プロンプトマネジメント | プロンプトの版管理と、変更時の退行検知 | 実体は「Git で版管理 + evals で退行検知」。ツール（Bedrock Prompt Management）はその後 |
 | HITL (Human-in-the-Loop) | エージェントの判断に人間の承認を挟む設計 | 未実装だが、実装基盤（`BeforeToolCallEvent` hook）は済み（Tier 2 演習） |
 
@@ -68,7 +68,7 @@
 
 | # | 項目 | 備考 |
 | --- | --- | --- |
-| 3-1 | RAG + Bedrock Knowledge Bases | 頻出。仕組みの基礎と最小の retrieve は第10章で扱う。KB + S3 + ベクトル検索の本格構成は引き続き**別モジュール**として作る（本教材の題材と混ぜない） |
+| 3-1 | RAG + Bedrock Knowledge Bases | 頻出。仕組みの基礎と最小の retrieve は第8章で扱う。KB + S3 + ベクトル検索の本格構成は引き続き**別モジュール**として作る（本教材の題材と混ぜない） |
 | 3-2 | マルチターン会話 / AgentCore Memory | 現状のワンショット構成を会話型に拡張する題材 |
 | 3-3 | オブザーバビリティ（OTel / AgentCore Observability） | 分散トレース。運用フェーズの案件に入る前に |
 | 3-4 | AgentCore Gateway | 既存 API の MCP ツール化 |

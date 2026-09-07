@@ -4,12 +4,12 @@
 
 ## 0.1 概要
 
-本教材は Python 製のエージェント本体（第1〜7章）と TypeScript 製の CDK（第9章）の
+本教材は Python 製のエージェント本体（第1〜7章）と TypeScript 製の CDK（第17章）の
 両方を扱うため、2 つのツールチェーンを先に揃えます。
 
 - uv は Python の実行環境と依存パッケージを管理します。venv の activate は不要です
 - AWS CLI はモデル一覧の確認とデプロイに使います
-- Node.js と npm は CDK（第9章）で使います
+- Node.js と npm は CDK（第17章）で使います
 
 ## 0.2 ハンズオン: 開発環境を構築する
 
@@ -43,19 +43,19 @@ aws configure get region
 
 何も出なければ `aws configure set region us-east-1` のように自分のリージョンを
 設定します。リージョンによってモデル ID の地理接頭辞（`us.` / `apac.` / `eu.`）が
-変わるため、第1章 1.3 の手順で呼べる ID を確認し、`07-full-app/.env` を合わせてください。
+変わるため、第1章 1.3 の手順で呼べる ID を確認し、`1-basic/07-full-app/.env` を合わせてください。
 
 最後に AWS コンソールの Bedrock → Model access で Claude 系モデルを有効化します。
 リージョンごとの設定です。未申請だと第1章で `AccessDeniedException` になります。
 
 費用は、第1〜7章はモデル呼び出しの従量課金のみで固定費はありません。第1章は
 1 回 0.1 円未満、第2章以降も 1 リクエスト数円〜数十円です。デプロイを伴う
-第8章以降で AgentCore Runtime と ECR の課金が加わります。
+第16章以降で AgentCore Runtime と ECR の課金が加わります。
 
 ### 0.2.3 エージェント本体のテストを通す
 
 ```bash
-cd 07-full-app
+cd 1-basic/07-full-app
 uv sync
 ```
 
@@ -69,7 +69,7 @@ uv run pytest -q
 ### 0.2.4 CDK の依存を入れる
 
 ```bash
-cd ../09-infra-as-code
+cd ../17-infra-as-code
 npm ci
 ```
 
@@ -82,7 +82,7 @@ npx tsc --noEmit
 ### 0.2.5 環境チェックを実行する
 
 ```bash
-cd ..
+cd ../..
 ./scripts/check_env.sh
 ```
 

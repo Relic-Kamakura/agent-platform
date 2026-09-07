@@ -4,7 +4,20 @@ G4 向け AI エージェント開発基盤ひな形。競合リサーチエー�
 本ファイルは進捗管理の唯一の正とする。各 Phase 完了時にチェックを更新する。
 
 - ステータス: **全 20 章（00〜19）+ 付録の実装完了。実機確認は各章のハンズオン内で実施する**
-- 最終更新: 2026-08-30
+- 最終更新: 2026-09-07
+
+## 章番号の通番化と部の再配分（2026-09-07）
+
+3 部制の確定形。第1部 基礎編 `1-basic/` = 00〜07章（コア一式 + 完成形の通読）、第2部 応用編 `2-advanced/` = 08〜15章（テーマ別）、第3部 本番運用基盤 `3-production/` = 16〜19章 + 99-appendix。章番号は部をまたぐ通番に振り直した。対応: 10-knowledge-base→08 / 13-evaluation→09 / 14-prompt-injection→10 / 15-mcp→11 / 16-prompt-caching→12 / 17-guardrails→13 / 18-hitl→14 / 19-structured-output→15 / 08-agentcore-deploy→16 / 09-infra-as-code→17 / 11-auth→18 / 12-streaming→19。ディレクトリ名・章見出し・節番号（N.x）・verify の案内文・章間参照・pyproject の章名を機械置換し、package.json / package-lock.json のバージョン値と 03 章スクリプトの timeout 値に出た誤置換は元に戻した。hello-agent の応答は `"chapter": 16` に更新。本エントリより古いエントリの章番号・ディレクトリ名は当時のまま残している。あわせて第1部に入口 README を追加し、環境構築が章内で完結しない 2 章を直した（09 章に本体の `uv sync --project` を明記、16 章に Docker の確認だけで始められる旨を明記）。
+
+## 2 部制 → 3 部制への再編（2026-09-07）
+
+教材を第1部 基礎編（`1-basic/` = 00〜03章。エージェントのコア）、第2部 応用編（`2-advanced/` = エージェントの中身の発展章 04〜07・10・13〜19 と付録）、第3部 本番運用基盤（`3-production/` = 08・09・11・12章。エージェントを外へ届ける側）の 3 部制にした。外部レビューの「本番運用基盤をエージェント開発の主題から切り離す」指摘への対応で、章番号は振り直さず部内の非連続を許容した。応用編には AWS アップデート情報の収集と検索を題材にした 20-ingest-pipeline（RSS 差分取得 → S3 → SQS → StartIngestionJob → KB）と 21-gateway-tools（AgentCore Gateway + Cognito JWT + Retrieve のメタデータフィルタ）を追加予定（実体は設計確定後に追加。空の章ディレクトリは作らない。入口は 2-advanced/README.md）。
+
+- 追随修正: root README / CLAUDE.md / docs / pyrightconfig.json / scripts（check_env.sh と deploy.sh のパス）/ 各章 README のルートから実行するコマンド（`cd NN-*` を `cd 1-basic/NN-*` 等にする）
+- 部の中では章間の相対参照（`../07-full-app` など）が同階層のまま成立する。部をまたぐ参照は、第3章の次の章リンク、第1章 verify の 07-full-app import（conftest.py の APP_DIR）、07→08・09→10・10→11・12→13 の次の章リンク、第8章 verify.sh の本体イメージビルドパスを修正した
+- 各章の `.venv` は絶対パスを内包するため移動で無効になる。`uv run` 時に uv が作り直すが、失敗する場合は `rm -rf .venv && uv sync`（troubleshooting.md の既存項目）
+- 応用編の設計で先に裏取りが要る点: S3 Vectors を KB のベクトルストアにする手順と対応リージョン、AgentCore Gateway の Lambda ターゲットと Cognito JWT 認可の IaC 対応、StartIngestionJob の同時実行制約
 
 ## 公式ベストプラクティスに沿った見直し（2026-08-30）
 

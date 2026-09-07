@@ -1,4 +1,4 @@
-"""ハンズオン 16.3: プロンプトキャッシュ付きエージェント。
+"""ハンズオン 12.3: プロンプトキャッシュ付きエージェント。
 
 TODO を実装し、`uv run pytest -q` で判定する。
 実装が終わったら TODO コメントは消す。完成形は solutions/cached_agent.py。
@@ -149,5 +149,5 @@ def build_cached_agent(model_id: str, region_name: str) -> Agent:
     #   region_name と model_id は引数の値を、max_tokens は 1024 を渡す
     # TODO(2): その model と system_prompt=RESEARCH_GUIDE で Agent を作って返す。
     #   RESEARCH_GUIDE はそのまま渡すこと。現在時刻などを先頭に足すと、
-    #   毎回先頭が変わってすべてキャッシュミスになる（16.1.2）
+    #   毎回先頭が変わってすべてキャッシュミスになる（12.1.2）
     ...

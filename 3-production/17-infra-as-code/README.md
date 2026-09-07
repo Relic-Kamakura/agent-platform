@@ -1,4 +1,4 @@
-# 第9章 基盤をコードで定義する
+# 第17章 基盤をコードで定義する
 
 CDK (TypeScript) の本体であり、IaC を学ぶ章です。
 終えると、IAM 実行ロールの信頼ポリシーに何を書くべきか、なぜスタックを分けデプロイ順序を外部化するのかを説明できるようになります。
@@ -6,13 +6,13 @@ CDK (TypeScript) の本体であり、IaC を学ぶ章です。
 依存を先に入れてください。
 
 ```bash
-cd 09-infra-as-code
+cd 3-production/17-infra-as-code
 npm ci
 ```
 
-## 9.1 概要
+## 17.1 概要
 
-### 9.1.1 CDK とは
+### 17.1.1 CDK とは
 
 インフラを TypeScript のコードとして定義し、CloudFormation テンプレートに変換してデプロイする IaC ツールです。
 コンソールの手作業と違い、何を作るかがコードレビューと差分確認（`npx cdk diff`）の対象になり、同じ構成を何度でも再現できます。
@@ -26,9 +26,9 @@ graph LR
 `lib/agent-runtime-stack.ts` は Runtime を L1 の `CfnRuntime` で書いています。
 プロパティ名が CloudFormation リファレンスと同じなので、authorizerConfiguration などの設定項目をリファレンスを見ながらそのまま書けます。
 
-## 9.2 実装のポイント
+## 17.2 実装のポイント
 
-### 9.2.1 スタックを 2 つに分けた理由
+### 17.2.1 スタックを 2 つに分けた理由
 
 AgentCore Runtime は、作成時点で ECR にイメージが存在することを要求します。
 ECR と Runtime を同じスタックに入れると、CloudFormation は「空のリポジトリを参照する Runtime」を作ろうとして失敗します。
@@ -42,7 +42,7 @@ CloudFormation が管理するのはリソースの存在であって、「イ�
 2. `scripts/deploy.sh` が「ECR デプロイ → イメージ push → Runtime デプロイ」を強制する
 3. `cdk deploy --all` の直接実行は禁止（CLAUDE.md の禁止事項）
 
-### 9.2.2 IAM 実行ロールの信頼ポリシー
+### 17.2.2 IAM 実行ロールの信頼ポリシー
 
 `resolveExecutionRole()` が Runtime の実行ロールを定義しています。
 信頼ポリシーが要点です。
@@ -74,7 +74,7 @@ resources: [
 リクエストが別リージョンへ転送された時点で拒否されるからです。
 foundation-model の ARN にアカウント ID が入らないのは、モデルが AWS 所有のリソースだからです。
 
-### 9.2.3 CDK に入れておく統制
+### 17.2.3 CDK に入れておく統制
 
 ロールのほかに、案件のレビューで聞かれる統制がいくつかあります。
 どれも CDK 側の話です。
@@ -85,7 +85,7 @@ foundation-model の ARN にアカウント ID が入らないのは、モデル
 
 Guardrail は識別子だけ渡すと `DRAFT` が使われ、コンソールで誰かが設定を触った瞬間に
 本番の挙動が変わります。`guardrailVersion` に数字のバージョンを指定して、
-変更をデプロイ経由に限定します（第17章）。
+変更をデプロイ経由に限定します（第13章）。
 
 CloudTrail には Bedrock の API 呼び出しが残りますが、プロンプト本文までは入りません。
 入出力そのものを残すなら、Bedrock のモデル呼び出しログを S3 か CloudWatch Logs に出すか、
@@ -94,7 +94,7 @@ CloudTrail には Bedrock の API 呼び出しが残りますが、プロンプ�
 VPC エンドポイントは通信を AWS 内に閉じる要件が出たときに使います。
 この教材は VPC を作らない構成なので入っていません。
 
-### 9.2.4 context で渡す環境差分
+### 17.2.4 context で渡す環境差分
 
 リージョン、モデル ID、ロール ARN はコードに書かず、`cdk.json` の context に既定値を置いて `-c` で上書きします。
 context を読むのは `lib/config.ts` の `loadConfig()` だけです。
@@ -106,25 +106,25 @@ npx cdk deploy -c region=us-east-1 -c imageTag=v1.2.0
 
 `cdk synth` はテンプレート生成だけでデプロイはしないので、デプロイ前に「この変更で何が作られるか」を確認できます。
 
-## 9.3 ハンズオン: context から環境変数を渡す
+## 17.3 ハンズオン: context から環境変数を渡す
 
 エージェントの `LOG_LEVEL` を CDK context から Runtime に注入できるようにします。
 この章のディレクトリは動く CDK コードの本体でもあるため、骨組みのコピーではなく `lib/config.ts` と `cdk.json` を直接編集します。
 
-### 9.3.1 config.ts に logLevel の読み取りを追加する
+### 17.3.1 config.ts に logLevel の読み取りを追加する
 
 `lib/config.ts` の `loadConfig()` を開いてください。
 `agentEnvironment` の組み立てに、context `logLevel` を読んで `LOG_LEVEL` に入れる処理を追加します。
 `searchProvider` と同じ三項スプレッドのパターンで、未指定なら入れません。
 
-### 9.3.2 cdk.json に既定値を置く
+### 17.3.2 cdk.json に既定値を置く
 
 `cdk.json` の context に `"logLevel": "INFO"` を追加します。
 
-### 9.3.3 型チェックと synth で確認する
+### 17.3.3 型チェックと synth で確認する
 
 ```bash
-cd 09-infra-as-code && npx tsc --noEmit
+cd 3-production/17-infra-as-code && npx tsc --noEmit
 ```
 
 何も出力されなければ型は通っています。
@@ -137,10 +137,10 @@ CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth AgentPlatformRuntimeStack \
 
 `LOG_LEVEL: DEBUG` が出るはずです。
 
-### 9.3.4 合格判定
+### 17.3.4 合格判定
 
 ```bash
-cd .. && ./09-infra-as-code/verify/verify.sh
+cd ../.. && ./3-production/17-infra-as-code/verify/verify.sh
 ```
 
 考えてみてください（記述・任意）。
@@ -170,15 +170,15 @@ cd .. && ./09-infra-as-code/verify/verify.sh
 
 </details>
 
-## 9.4 まとめ
+## 17.4 まとめ
 
-実行ロールの信頼ポリシーには、AssumeRole を許す相手と、`aws:SourceAccount` / `aws:SourceArn` による自アカウント起源への限定を書きます（9.2.2）。
+実行ロールの信頼ポリシーには、AssumeRole を許す相手と、`aws:SourceAccount` / `aws:SourceArn` による自アカウント起源への限定を書きます（17.2.2）。
 Bedrock の許可は、呼び出し元リージョンの foundation-model、inference-profile、ルーティング先リージョンの foundation-model の 3 種の ARN を揃えます。
 クロスリージョン推論では IAM がプロファイルとルーティング先モデルの両方を評価するためです。
 
 スタックを分けるのは、CloudFormation が保証するのはリソースの存在までで、「イメージが push 済みか」のような管理外の状態は保証しないからです。
-順序は `scripts/deploy.sh` に持たせ、IaC が保証しない部分を手順で補います（9.2.1）。
+順序は `scripts/deploy.sh` に持たせ、IaC が保証しない部分を手順で補います（17.2.1）。
 
 ## 次の章
 
-[第10章 ナレッジベース](../10-knowledge-base/)
+[第18章 認証と認可](../18-auth/)

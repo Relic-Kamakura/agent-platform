@@ -25,7 +25,7 @@ def test_no_todo_left(approval_gate_cls) -> None:
 
     source = pathlib.Path(mod.__file__).read_text(encoding="utf-8")
     assert "TODO" not in source, (
-        "exercises/approval_gate.py に TODO が残っています。README 18.3 に沿って実装し、"
+        "exercises/approval_gate.py に TODO が残っています。README 14.3 に沿って実装し、"
         "終わったら TODO コメントを消してください。"
     )
 
@@ -39,7 +39,7 @@ def test_unlisted_tool_passes_without_asking(approval_gate_cls) -> None:
     event = _fire(gate, "web_search", {"query": "x"})
     assert event.cancel_tool is False
     assert asked == [], (
-        "承認対象外のツールで approver を呼ばないでください（README 18.2）。"
+        "承認対象外のツールで approver を呼ばないでください（README 14.2）。"
         "読み取り系ツールまで人間の応答待ちになります。"
     )
 

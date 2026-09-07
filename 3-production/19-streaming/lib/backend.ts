@@ -1,4 +1,4 @@
-// エージェント基盤への転送ヘルパー（提供コード。第12章のハンズオン対象は route.ts 側）。
+// エージェント基盤への転送ヘルパー（提供コード。第19章のハンズオン対象は route.ts 側）。
 //
 // LOCAL_AGENT_URL が設定されていればローカルの 07-full-app（:8080）へ、
 // 無ければ AgentCore Runtime（AGENT_RUNTIME_ARN）へ転送する。
@@ -36,7 +36,7 @@ async function invokeRuntime(payload: InvokePayload): Promise<Response> {
   const client = new BedrockAgentCoreClient({ region: process.env.AWS_REGION });
   const command = new InvokeAgentRuntimeCommand({
     agentRuntimeArn: arn,
-    // セッション ID は 33 文字以上が必要（第8章）。UUID + 時刻で満たす
+    // セッション ID は 33 文字以上が必要（第16章）。UUID + 時刻で満たす
     runtimeSessionId: `${crypto.randomUUID().replaceAll('-', '')}${Date.now()}`,
     payload: new TextEncoder().encode(JSON.stringify(payload)),
   });

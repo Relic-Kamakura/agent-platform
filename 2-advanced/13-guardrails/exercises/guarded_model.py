@@ -1,4 +1,4 @@
-"""ハンズオン 17.4: Guardrail 付きモデルの組み立て。
+"""ハンズオン 13.4: Guardrail 付きモデルの組み立て。
 
 TODO を実装し、`uv run pytest -q` で判定する。
 実装が終わったら TODO コメントは消す。完成形は solutions/guarded_model.py。

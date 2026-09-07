@@ -1,4 +1,4 @@
-"""ハンズオン 15.3: 検索ツールを提供する MCP サーバ。stdio で起動される。
+"""ハンズオン 11.3: 検索ツールを提供する MCP サーバ。stdio で起動される。
 
 TODO を実装し、`uv run 01_list_tools.py` で動かす。
 実装が終わったら TODO コメントは消す。完成形は solutions/server.py。

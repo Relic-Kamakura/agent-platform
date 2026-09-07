@@ -1,7 +1,7 @@
 [project]
-name = "chapter10-knowledge-base"
+name = "chapter08-knowledge-base"
 version = "0.1.0"
-description = "第10章: ナレッジベース（穴埋めハンズオン）"
+description = "第8章: ナレッジベース（穴埋めハンズオン）"
 requires-python = ">=3.12"
 dependencies = ["boto3", "botocore[crt]"]
 

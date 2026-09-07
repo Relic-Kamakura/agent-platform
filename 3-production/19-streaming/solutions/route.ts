@@ -1,4 +1,4 @@
-// 第12章の模範解答。app/api/invoke/route.ts として配置する。
+// 第19章の模範解答。app/api/invoke/route.ts として配置する。
 //
 // このファイルがアプリ側の JWT 検証の入口。ブラウザからの呼び出しはすべてここを通り、
 // JWT を検証してからエージェント基盤へ転送する。AWS 認証情報はサーバ側にしか無い。
@@ -14,7 +14,7 @@ const verifier =
     ? CognitoJwtVerifier.create({
         userPoolId: process.env.COGNITO_USER_POOL_ID,
         clientId: process.env.COGNITO_CLIENT_ID,
-        tokenUse: 'access', // API の認可に使うのはアクセストークン（第11章 11.1.3）
+        tokenUse: 'access', // API の認可に使うのはアクセストークン（第18章 18.1.3）
       })
     : null;
 

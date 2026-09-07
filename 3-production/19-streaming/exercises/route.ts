@@ -1,4 +1,4 @@
-// ハンズオン 12.3: JWT を検証してバックエンドへ転送する Route Handler の骨組み。
+// ハンズオン 19.3: JWT を検証してバックエンドへ転送する Route Handler の骨組み。
 // app/api/invoke/route.ts にコピーして TODO を埋める。
 // 実装が終わったら TODO コメントは消す。完成形は solutions/route.ts。
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
@@ -13,13 +13,13 @@ const verifier =
     ? CognitoJwtVerifier.create({
         userPoolId: process.env.COGNITO_USER_POOL_ID,
         clientId: process.env.COGNITO_CLIENT_ID,
-        tokenUse: 'access', // API の認可に使うのはアクセストークン（第11章 11.1.3）
+        tokenUse: 'access', // API の認可に使うのはアクセストークン（第18章 18.1.3）
       })
     : null;
 
 async function authorize(request: NextRequest): Promise<Response | null> {
   // TODO(1): 開発用バイパス。process.env.AUTH_BYPASS が文字列 'true' のときだけ
-  //   検証せずに null を返す（'true' との厳密比較にする理由は 12.2.1）
+  //   検証せずに null を返す（'true' との厳密比較にする理由は 19.2.1）
 
   if (!verifier) {
     return Response.json(
@@ -48,6 +48,6 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   // TODO(3): await invokeBackend(body) で転送し、応答をストリームのまま返す。
   //   upstream.body を new Response にそのまま渡し、status と Content-Type を引き継ぐ。
-  //   await upstream.text() で読み切ると進捗がブラウザに届かなくなる（12.2.2）
+  //   await upstream.text() で読み切ると進捗がブラウザに届かなくなる（19.2.2）
   return Response.json({ error: 'TODO(3) が未実装です。' }, { status: 501 });
 }

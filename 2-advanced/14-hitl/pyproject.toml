@@ -1,7 +1,7 @@
 [project]
-name = "chapter18-hitl"
+name = "chapter14-hitl"
 version = "0.1.0"
-description = "第18章: HITL・承認ゲート（穴埋めハンズオン）"
+description = "第14章: HITL・承認ゲート（穴埋めハンズオン）"
 requires-python = ">=3.12"
 dependencies = ["strands-agents", "botocore[crt]"]
 

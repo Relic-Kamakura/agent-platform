@@ -2,7 +2,7 @@
 # 演習 08 の合格判定: ARM64 ビルドと AgentCore コンテナ契約の検証。
 set -uo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 IMAGE="agent-platform/agent:verify08"
@@ -22,10 +22,10 @@ cleanup() {
 trap cleanup EXIT
 
 echo "1. ARM64 イメージのビルド"
-if docker buildx build --platform linux/arm64 -t "$IMAGE" --load 07-full-app >/dev/null 2>&1; then
+if docker buildx build --platform linux/arm64 -t "$IMAGE" --load 1-basic/07-full-app >/dev/null 2>&1; then
   ok "ビルド成功"
 else
-  ng "ビルド失敗。docker buildx build --platform linux/arm64 07-full-app を手で実行して原因を見る"
+  ng "ビルド失敗。docker buildx build --platform linux/arm64 1-basic/07-full-app を手で実行して原因を見る"
   exit 1
 fi
 
@@ -66,11 +66,11 @@ else
 fi
 
 echo "4. 自作 Dockerfile (hello-agent)"
-HELLO_DIR="$REPO_ROOT/08-agentcore-deploy/hello-agent"
+HELLO_DIR="$REPO_ROOT/3-production/16-agentcore-deploy/hello-agent"
 if [ ! -f "$HELLO_DIR/Dockerfile" ]; then
-  ng "hello-agent/Dockerfile がありません。exercises/Dockerfile をコピーして 8.4.1 の TODO を埋めてください"
+  ng "hello-agent/Dockerfile がありません。exercises/Dockerfile をコピーして 16.4.1 の TODO を埋めてください"
 elif grep -q "TODO" "$HELLO_DIR/Dockerfile"; then
-  ng "hello-agent/Dockerfile に TODO が残っています。README の 8.4.1 に沿って埋め、TODO コメントを消してください"
+  ng "hello-agent/Dockerfile に TODO が残っています。README の 16.4.1 に沿って埋め、TODO コメントを消してください"
 else
   if docker buildx build --platform linux/arm64 -t hello-agent:verify08 --load "$HELLO_DIR" >/dev/null 2>&1; then
     ok "自作 Dockerfile でビルド成功"
@@ -89,7 +89,7 @@ else
       echo "$BODY" | grep -q '"echo": *"test"' && ok "POST /invocations -> echo 応答" \
         || ng "/invocations の応答が想定と違います: $BODY"
     else
-      ng "自作コンテナの /ping が 200 になりません（0.0.0.0 bind か CMD を確認。8.1.2 の罠参照）"
+      ng "自作コンテナの /ping が 200 になりません（0.0.0.0 bind か CMD を確認。16.1.2 の罠参照）"
     fi
     docker rm -f hello-verify08 >/dev/null 2>&1 || true
   else
@@ -99,7 +99,7 @@ fi
 
 echo
 if [ "$FAILED" = "0" ]; then
-  printf '\033[32m第8章 合格。\033[0m\n'
+  printf '\033[32m第16章 合格。\033[0m\n'
 else
   printf '\033[31m未達の項目があります。\033[0m\n'
 fi

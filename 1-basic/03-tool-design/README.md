@@ -6,7 +6,7 @@
 この章も独立した uv プロジェクトです。最初に依存を入れてください。
 
 ```bash
-cd 03-tool-design
+cd 1-basic/03-tool-design
 uv sync
 ```
 

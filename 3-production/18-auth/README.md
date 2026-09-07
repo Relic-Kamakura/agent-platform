@@ -1,4 +1,4 @@
-# 第11章 認証と認可
+# 第18章 認証と認可
 
 この章を終えると、Cognito User Pool を CDK で自分で書き、AgentCore Runtime に inbound JWT authorizer を設定する形を説明できるようになります。
 「誰がエージェントを呼べるか」をコードで定義する章です。
@@ -6,13 +6,13 @@
 この章は独立した CDK プロジェクトです。最初に依存を入れてください。
 
 ```bash
-cd 11-auth
+cd 3-production/18-auth
 npm ci
 ```
 
-## 11.1 概要
+## 18.1 概要
 
-### 11.1.1 認証と認可
+### 18.1.1 認証と認可
 
 認証（authentication）は「相手が誰か」を確かめることで、認可（authorization）は「その相手に何を許すか」を決めることです。
 この章で作るのは、認証の仕組み（Cognito がユーザを確認してトークンを発行する）と、それに基づく認可の判定（有効なトークンを持つ呼び出しだけを Runtime に通す）の両方です。
@@ -20,7 +20,7 @@ npm ci
 エージェントは呼び出されるたびに Bedrock のトークン費用が発生します。
 認可の無い API として公開すれば、誰でもそのコストを積み上げられてしまいます。
 
-### 11.1.2 認証経路の全体像
+### 18.1.2 認証経路の全体像
 
 このリポジトリの完成形の経路です。設計の原則は、AWS の認証情報をブラウザに置かないことです。
 
@@ -38,7 +38,7 @@ AgentCore Runtime ── ⑤Runtime 側でも JWT authorizer が検証
 ③はアプリの入口での検証、⑤は Route Handler を経由せずに Runtime を直接呼び出す経路を塞ぐ、基盤側の検証です。
 この章が扱うのは①の Cognito と⑤の JWT authorizer です。
 
-### 11.1.3 Cognito と JWT の仕組み
+### 18.1.3 Cognito と JWT の仕組み
 
 Cognito User Pool はユーザディレクトリ + トークン発行者です。ログインに成功すると 3 種のトークンが返ります。
 
@@ -56,19 +56,19 @@ https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/openid-confi
 検証側はこの URL から JWKS の場所を知り、公開鍵で署名を検証し、`iss`（発行者）と `aud` / `client_id`（宛先）が想定どおりかを確かめます。
 これは OpenID Connect の標準的な仕組みで、Cognito 固有ではありません。
 
-## 11.2 実装のポイント
+## 18.2 実装のポイント
 
-### 11.2.1 Runtime 側の JWT authorizer
+### 18.2.1 Runtime 側の JWT authorizer
 
 AgentCore Runtime には JWT authorizer を設定できます（`CfnRuntime` の `authorizerConfiguration.customJwtAuthorizer`。型定義で確認済み）。
 設定の形はこうなります。
 
 ```ts
 new agentcore.CfnRuntime(this, 'AgentRuntime', {
-  // ...（第9章で書いた Runtime の定義）
+  // ...（第17章で書いた Runtime の定義）
   authorizerConfiguration: {
     customJwtAuthorizer: {
-      // 11.1.3 の URL。ここから鍵を取って検証する
+      // 18.1.3 の URL。ここから鍵を取って検証する
       discoveryUrl: authStack.discoveryUrl,
       // 許可する App Client ID の一覧。他の Client のトークンは弾く
       allowedClients: [authStack.clientId],
@@ -78,9 +78,9 @@ new agentcore.CfnRuntime(this, 'AgentRuntime', {
 ```
 
 これを設定すると、`InvokeAgentRuntime` の呼び出しに有効な JWT が必要になります。
-第9章の Runtime スタックはこの 2 値を props で受け取れるようにしてあり、この章で作る AuthStack の公開プロパティ（`discoveryUrl` / `clientId`）をそのまま渡せば接続が完成します。
+第17章の Runtime スタックはこの 2 値を props で受け取れるようにしてあり、この章で作る AuthStack の公開プロパティ（`discoveryUrl` / `clientId`）をそのまま渡せば接続が完成します。
 
-### 11.2.2 この章で書く AuthStack
+### 18.2.2 この章で書く AuthStack
 
 Cognito 側は L2 が揃っているので、`cognito.UserPool` と `pool.addClient()` で書けます。
 判断が要るのは設定値のほうです。
@@ -88,24 +88,24 @@ Cognito 側は L2 が揃っているので、`cognito.UserPool` と `pool.addCli
 `selfSignUpEnabled: false` にして、ユーザは管理者が作る形にします。
 true にすると誰でもアカウントを作れてしまい、認可を付けた意味が消えます。
 
-`authFlows: { userPassword: true }` は 11.4 で CLI からログインするためのもので、
+`authFlows: { userPassword: true }` は 18.4 で CLI からログインするためのもので、
 本番の Web アプリでは SRP や Hosted UI を検討します。
 `removalPolicy: DESTROY` はひな形なので消しやすさ優先です。本番では RETAIN にします。
 
-### 11.2.3 エージェントの権限と、呼び出したユーザの権限
+### 18.2.3 エージェントの権限と、呼び出したユーザの権限
 
 JWT を検証すれば誰が呼んだかは分かります。
-一方でエージェント自身は、第9章で作った実行ロール 1 つで動きます。
+一方でエージェント自身は、第17章で作った実行ロール 1 つで動きます。
 一般社員が呼んでも部長が呼んでも、ツールが使う権限は同じです。
 ここを決めないと、権限の弱いユーザがエージェント経由で、自分では閲覧できないデータを取得できます。
-9.2.2 の信頼ポリシーで防いだ confused deputy と、形は同じです。
+17.2.2 の信頼ポリシーで防いだ confused deputy と、形は同じです。
 
 対処は 2 段構えになります。
 まず実行ロールの権限を、一番弱いユーザに許してよい範囲まで落とします。
 ロールが持っていない権限は、誰がどう頼んでも引き出せません。
 それで足りないなら、呼び出したユーザの識別子をツールまで渡して、ツールの中で絞ります。
 
-RAG を足したときに、この差が問題になります（第10章）。
+RAG を足したときに、この差が問題になります（第8章）。
 Knowledge Base は取り込んだ文書を全部インデックスするので、retrieve は既定で全社の文書を横断して返します。
 人事評価のメモも、聞かれれば断片が出ます。
 検索結果を閲覧権限でフィルタしない限り、入口に認証を掛けても中身は制限されません。
@@ -113,7 +113,7 @@ Knowledge Base は取り込んだ文書を全部インデックスするので�
 Bedrock Knowledge Bases にはメタデータによる絞り込みがあるので、取り込み時に文書へ閲覧範囲を持たせ、Retrieve のフィルタに JWT から取り出した所属を渡す形になります。
 KB を作った後では取り込み直しになるので、決めるのは先です。
 
-## 11.3 ハンズオン: Cognito のスタックを実装する
+## 18.3 ハンズオン: Cognito のスタックを実装する
 
 編集するのは `lib/auth-stack.ts` の 1 ファイルだけです。骨組みをコピーして作ります。
 
@@ -121,18 +121,18 @@ KB を作った後では取り込み直しになるので、決めるのは先�
 mkdir -p lib && cp exercises/auth-stack.ts lib/auth-stack.ts
 ```
 
-### 11.3.1 TODO を 4 つ埋める
+### 18.3.1 TODO を 4 つ埋める
 
 `lib/auth-stack.ts` を開いてください。クラスの枠と公開プロパティは書いてあり、TODO が 4 つ残っています。
 
-1. `cognito.UserPool` を作る（設定値は 11.2.2 のとおり）
+1. `cognito.UserPool` を作る（設定値は 18.2.2 のとおり）
 2. `pool.addClient()` で App Client を作る
 3. `discoveryUrl` と `clientId` を組み立てる。discoveryUrl は `pool.userPoolProviderUrl` に `/.well-known/openid-configuration` を連結する
-4. `CfnOutput` で UserPoolId / ClientId / DiscoveryUrl を出力する。11.4 のコマンドで使う値です
+4. `CfnOutput` で UserPoolId / ClientId / DiscoveryUrl を出力する。18.4 のコマンドで使う値です
 
 エントリポイント `bin/app.ts` は用意してあり（編集不要）、このファイルを `AgentPlatformAuthStack` として読み込みます。
 
-### 11.3.2 synth で確認する
+### 18.3.2 synth で確認する
 
 実装できたら TODO コメントを消し、CloudFormation テンプレートに変換してみます。
 
@@ -142,7 +142,7 @@ npx cdk synth AgentPlatformAuthStack | grep -E 'Cognito::UserPool|USER_PASSWORD'
 
 `AWS::Cognito::UserPool` と `AWS::Cognito::UserPoolClient`、認証フローの `USER_PASSWORD_AUTH` が出るはずです。
 
-### 11.3.3 合格判定
+### 18.3.3 合格判定
 
 ```bash
 ./verify/verify.sh
@@ -182,7 +182,7 @@ npx cdk synth AgentPlatformAuthStack | grep -E 'Cognito::UserPool|USER_PASSWORD'
 
 </details>
 
-## 11.4 ハンズオン: デプロイしてトークンを取得する
+## 18.4 ハンズオン: デプロイしてトークンを取得する
 
 作った AuthStack をデプロイし、テストユーザのトークンで呼び出しを確かめます。
 
@@ -211,20 +211,20 @@ aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH \
 ```
 
 `eyJ` で始まる長い文字列（JWT）が出るはずです。
-第9章の Runtime に 11.2.1 の authorizer を設定してデプロイ済みなら、このトークンを Bearer として `InvokeAgentRuntime` を呼べること、トークン無しだと拒否されることまで確認できます。
+第17章の Runtime に 18.2.1 の authorizer を設定してデプロイ済みなら、このトークンを Bearer として `InvokeAgentRuntime` を呼べること、トークン無しだと拒否されることまで確認できます。
 
-## 11.5 まとめ
+## 18.5 まとめ
 
 User Pool と App Client は `cognito.UserPool` と `pool.addClient()` で書け、判断が要るのは
-セルフサインアップと認証フローの設定値です（11.2.2）。Runtime 側の JWT authorizer は
+セルフサインアップと認証フローの設定値です（18.2.2）。Runtime 側の JWT authorizer は
 `CfnRuntime` の `authorizerConfiguration.customJwtAuthorizer` に discoveryUrl と
-allowedClients を渡す形で、AuthStack の公開プロパティをそのまま渡せば接続が完成します（11.2.1）。
+allowedClients を渡す形で、AuthStack の公開プロパティをそのまま渡せば接続が完成します（18.2.1）。
 
 トークンの発行は Cognito が担い、検証は discovery URL から公開鍵を取れる側なら誰でも行えます。
 発行と検証を分離しているのが OpenID Connect の設計で、この分離があるから、
 アプリの入口と基盤の二重の検証を同じ User Pool で行えます。
-次の第12章では、この経路の残り、③の JWT 検証を行う Route Handler を自分で書きます。
+次の第19章では、この経路の残り、③の JWT 検証を行う Route Handler を自分で書きます。
 
 ## 次の章
 
-[第12章 フロントエンドとストリーミング](../12-streaming/)
+[第19章 フロントエンドとストリーミング](../19-streaming/)

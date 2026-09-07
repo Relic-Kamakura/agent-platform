@@ -1,10 +1,18 @@
-# 第8章 AgentCore Runtime にデプロイする
+# 第16章 AgentCore Runtime にデプロイする
 
 この章を終えると、AgentCore Runtime が受け付けるコンテナの条件を説明でき、その条件を満たす Dockerfile を自分で書いて、デプロイ前にローカルで契約検証できるようになります。
 
-## 8.1 概要
+この章で入れる依存はありません。Docker Desktop が起動していることだけ確認してください。
 
-### 8.1.1 AgentCore Runtime とは
+```bash
+docker buildx version
+```
+
+バージョンが表示されるはずです。
+
+## 16.1 概要
+
+### 16.1.1 AgentCore Runtime とは
 
 第7章までのエージェントはローカルの Python プロセスでした。
 AgentCore Runtime はそれをコンテナとしてホストする、エージェント専用のサーバレス実行基盤です。
@@ -19,7 +27,7 @@ VPC を用意する必要もないため、このリポジトリではネット�
 ここで選んでいるのはエージェントのコードを実行する場所であって、モデル推論のキャパシティをどう買うか（第4章 4.1.5）とは別の軸です。
 Runtime に載せてもモデル呼び出しは Bedrock のオンデマンドのままで、課金も Runtime の CPU・メモリと Bedrock のトークンに分かれて出ます。
 
-### 8.1.2 コンテナ契約
+### 16.1.2 コンテナ契約
 
 Runtime がコンテナに要求するのは 3 点です。
 
@@ -42,7 +50,7 @@ graph LR
 この場合ローカルでは動きますが、コンテナに入れると外から到達できません。
 そのため main.py で `host="0.0.0.0"` を明示しています（troubleshooting.md 参照）。
 
-### 8.1.3 デプロイ方法の選択
+### 16.1.3 デプロイ方法の選択
 
 Runtime へ載せる方法は 3 つあります。
 AgentCore CLI は `agentcore create` → `dev` → `deploy` の流れで、コードを zip（既定）かコンテナにまとめ、内部で CDK を使って Runtime と IAM ロールを作ります（ARM64 対応も CLI が処理します）。
@@ -52,9 +60,9 @@ AgentCore CLI は `agentcore create` → `dev` → `deploy` の流れで、コ�
 
 実務では CLI で試作を素早く検証し、本番へ移す段階でコンテナと IaC に切り替える順序が典型です。
 どの方法でも `BedrockAgentCoreApp` と `@app.entrypoint` を使うエントリポイントのコードは同じで、変わるのはパッケージの形式と作成手順だけです。
-この教材が CDK を選ぶのは、実行ロールの信頼ポリシーと権限、スタック分割と順序を自分の手で書き、第9章で読める形にするためです。
+この教材が CDK を選ぶのは、実行ロールの信頼ポリシーと権限、スタック分割と順序を自分の手で書き、第17章で読める形にするためです。
 
-### 8.1.4 クォータ
+### 16.1.4 クォータ
 
 デプロイできた次に確かめるのがクォータです。
 データプレーン API（InvokeAgentRuntime など）のリクエストレートと、新規セッションの作成レートには、アカウント単位で全エンドポイントが共有する上限があります（値は versions.md）。
@@ -62,7 +70,7 @@ AgentCore CLI は `agentcore create` → `dev` → `deploy` の流れで、コ�
 実行時間の上限（同期 / ストリーミング / 非同期）とペイロード上限も versions.md にあります。レート系の上限は Service Quotas から引き上げを申請できます。
 本番運用の前に、想定トラフィック（秒間の呼び出し数と新規セッション数）を見積もり、上限との差を確認してください。
 
-## 8.2 実装のポイント
+## 16.2 実装のポイント
 
 この契約をイメージの側で満たすのが `07-full-app/Dockerfile` です。
 30 行ですが、各行に理由があります。
@@ -78,17 +86,17 @@ x86 マシンで誤って amd64 を作ると、デプロイ後の起動時まで
 このリポジトリで付けない場合と付けた場合を実測した値は versions.md にあり、環境によって変わります。
 コールドスタートは新しいセッションの初回応答にそのまま乗るため、この差は利用者の待ち時間の差です。
 
-## 8.3 ハンズオン: 本体イメージをビルドして契約を検証する
+## 16.3 ハンズオン: 本体イメージをビルドして契約を検証する
 
 第7章の本体をイメージにして、契約の 3 点をローカルで検査します。
 
-### 8.3.1 ARM64 イメージをビルドする
+### 16.3.1 ARM64 イメージをビルドする
 
 ```bash
-docker buildx build --platform linux/arm64 -t agent-platform/agent:local --load 07-full-app
+docker buildx build --platform linux/arm64 -t agent-platform/agent:local --load 1-basic/07-full-app
 ```
 
-### 8.3.2 アーキテクチャを確認する
+### 16.3.2 アーキテクチャを確認する
 
 ```bash
 docker image inspect agent-platform/agent:local --format '{{.Os}}/{{.Architecture}}'
@@ -96,7 +104,7 @@ docker image inspect agent-platform/agent:local --format '{{.Os}}/{{.Architectur
 
 `linux/arm64` と出るはずです。
 
-### 8.3.3 契約の 2 エンドポイントを呼ぶ
+### 16.3.3 契約の 2 エンドポイントを呼ぶ
 
 ```bash
 docker run -d --name agent-local -p 8181:8080 \
@@ -124,15 +132,15 @@ curl -XPOST http://127.0.0.1:8181/invocations \
 docker rm -f agent-local
 ```
 
-## 8.4 ハンズオン: Dockerfile を自分で書く
+## 16.4 ハンズオン: Dockerfile を自分で書く
 
-8.3 は完成品のビルドでした。今度は契約を自分の手で満たします。
+16.3 は完成品のビルドでした。今度は契約を自分の手で満たします。
 `hello-agent/` に LLM を呼ばないミニエージェント（app.py と pyproject.toml）を用意してあり、無いのは Dockerfile だけです。
 
-### 8.4.1 骨組みをコピーして TODO を埋める
+### 16.4.1 骨組みをコピーして TODO を埋める
 
 ```bash
-cp 08-agentcore-deploy/exercises/Dockerfile 08-agentcore-deploy/hello-agent/Dockerfile
+cp 3-production/16-agentcore-deploy/exercises/Dockerfile 3-production/16-agentcore-deploy/hello-agent/Dockerfile
 ```
 
 `hello-agent/Dockerfile` を開いてください。
@@ -143,13 +151,13 @@ WORKDIR と ENV は書いてあり、TODO が 4 つ残っています。
 3. EXPOSE で契約のポート 8080 を宣言する
 4. CMD で uv run から app.py を起動する。コールドスタート対策も入れる
 
-埋める材料はすべて 8.2 にあります。
+埋める材料はすべて 16.2 にあります。
 埋めたら TODO コメントは消してください。
 
-### 8.4.2 ビルドして契約を検証する
+### 16.4.2 ビルドして契約を検証する
 
 ```bash
-docker buildx build --platform linux/arm64 -t hello-agent:local --load 08-agentcore-deploy/hello-agent
+docker buildx build --platform linux/arm64 -t hello-agent:local --load 3-production/16-agentcore-deploy/hello-agent
 ```
 
 ```bash
@@ -166,19 +174,19 @@ curl http://127.0.0.1:18081/ping
 curl -XPOST http://127.0.0.1:18081/invocations -H 'Content-Type: application/json' -d '{"prompt":"test"}'
 ```
 
-`{"echo": "test", "chapter": 8}` が返るはずです。
+`{"echo": "test", "chapter": 16}` が返るはずです。
 片付けます。
 
 ```bash
 docker rm -f hello-local
 ```
 
-### 8.4.3 合格判定
+### 16.4.3 合格判定
 
-verify.sh が本体（8.3）と自作 Dockerfile（8.4）の両方を自動判定します。
+verify.sh が本体（16.3）と自作 Dockerfile（16.4）の両方を自動判定します。
 
 ```bash
-./08-agentcore-deploy/verify/verify.sh
+./3-production/16-agentcore-deploy/verify/verify.sh
 ```
 
 <details>
@@ -205,23 +213,23 @@ CMD ["uv", "run", "--no-sync", "python", "app.py"]
 
 </details>
 
-## 8.5 ハンズオン: デプロイして 1 回呼び出す
+## 16.5 ハンズオン: デプロイして 1 回呼び出す
 
 ```bash
 ./scripts/deploy.sh
 ```
 
-ECR 作成 → ARM64 イメージ push → Runtime 作成の順で進みます（順序の理由は第9章）。
+ECR 作成 → ARM64 イメージ push → Runtime 作成の順で進みます（順序の理由は第17章）。
 完了メッセージに `InvokeAgentRuntime` の呼び出し例が出力されます。
 セッション ID には最小長の制約があり（versions.md）、例はそれを満たす形になっています。
 呼び出し後、CloudWatch Logs で `token_usage` ログを確認してください。
 
-## 8.6 まとめ
+## 16.6 まとめ
 
 AgentCore Runtime が決めているのは arm64 / 2 エンドポイント / 0.0.0.0:8080 の 3 点だけで、中身のフレームワークには関与しません。
 契約が短いからこそデプロイ前にローカルで契約検証を済ませることができ、契約を満たさないイメージを push してから気づく状況を避けられます。
-verify.sh を通したら第9章へ進んでください。
+verify.sh を通したら第17章へ進んでください。
 
 ## 次の章
 
-[第9章 基盤をコードで定義する](../09-infra-as-code/)
+[第17章 基盤をコードで定義する](../17-infra-as-code/)
