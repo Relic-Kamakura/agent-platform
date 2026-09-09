@@ -1,4 +1,4 @@
-"""ハンズオン 6.3: fetch_page のテスト。
+"""ハンズオン 6.3: fetch_page と verdict のテスト。
 
 TODO のテストを追加し、`uv run pytest exercises/test_fetch_page.py -q` で実行する。
 実装が終わったら TODO コメントは消す。完成形は solutions/test_fetch_page.py。
@@ -13,8 +13,11 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "target"))
 
 import httpx
 import pytest
+from strands.agent.agent_result import AgentResult
+from strands.telemetry.metrics import EventLoopMetrics
 
 from fetch_page import build_fetch_page_tool
+from verdict import parse_verdict
 
 
 def _tool():
@@ -49,6 +52,16 @@ def _client(response_factory):
     return _Client
 
 
+def _agent_result(text: str) -> AgentResult:
+    """モデルを呼ばずに AgentResult を組む。Agent と後続処理の境界を試すための材料。"""
+    return AgentResult(
+        stop_reason="end_turn",
+        message={"role": "assistant", "content": [{"text": text}]},
+        metrics=EventLoopMetrics(),
+        state={},
+    )
+
+
 def test_returns_truncated_body(monkeypatch: pytest.MonkeyPatch) -> None:
     # 落ちるとき: 切り詰めを忘れて巨大ページがコンテキストに流れ込むバグ
     monkeypatch.setattr(httpx, "Client", _client(lambda: _Response("x" * 100_000)))
@@ -71,5 +84,9 @@ def test_returns_truncated_body(monkeypatch: pytest.MonkeyPatch) -> None:
 # TODO(4): 5xx のテストを書く。503 を 2 回返したあと 200 を返すモックで、
 #   リトライの末に本文が返ることを assert する。
 
-# TODO(5): target/fetch_page.py を読み、上記でテストされていない分岐を 2 つ見つけて
-#   テストを書く。合計 7 本以上にする。
+# TODO(5): Agent の応答を受け取る境界のテストを書く。_agent_result("VERDICT: ok\n指摘なし")
+#   で AgentResult を手で組み、parse_verdict がその本文から "ok" を読めることを assert する。
+#   あわせて str(result.message) が dict の文字列表現であること（本文ではないこと）も assert する。
+
+# TODO(6): target/fetch_page.py を読み、上記でテストされていない分岐を 2 つ見つけて
+#   テストを書く。合計 8 本以上にする。

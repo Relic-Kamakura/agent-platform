@@ -12,8 +12,11 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "target"))
 
 import httpx
 import pytest
+from strands.agent.agent_result import AgentResult
+from strands.telemetry.metrics import EventLoopMetrics
 
 from fetch_page import build_fetch_page_tool
+from verdict import parse_verdict
 
 
 def _tool():
@@ -48,12 +51,23 @@ def _client(response_factory):
     return _Client
 
 
+def _agent_result(text: str) -> AgentResult:
+    """モデルを呼ばずに AgentResult を組む。Agent と後続処理の境界を試すための材料。"""
+    return AgentResult(
+        stop_reason="end_turn",
+        message={"role": "assistant", "content": [{"text": text}]},
+        metrics=EventLoopMetrics(),
+        state={},
+    )
+
+
 def test_returns_truncated_body(monkeypatch: pytest.MonkeyPatch) -> None:
     # 落ちるとき: 切り詰めを忘れて巨大ページがコンテキストに流れ込むバグ
     monkeypatch.setattr(httpx, "Client", _client(lambda: _Response("x" * 100_000)))
     out = _tool()(url="https://example.com", max_chars=500)
     assert not out.startswith("ERROR[")
     assert len(out) <= 600
+
 
 
 def test_non_http_url_is_rejected_without_network() -> None:
@@ -112,20 +126,24 @@ def test_server_error_is_retried(monkeypatch: pytest.MonkeyPatch) -> None:
     assert calls["n"] == 3
 
 
-def test_server_error_exhausts_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    # 落ちるとき: 5xx が続いたときに ERROR[ を返さず None や例外で終わるバグ
-    calls = {"n": 0}
+def test_verdict_is_read_from_body_not_message_repr() -> None:
+    # 落ちるとき: str(result.message)（dict の文字列表現）から判定を読もうとするバグ
+    result = _agent_result("VERDICT: ok\n指摘なし")
+    assert parse_verdict(result) == "ok"
+    assert str(result.message).startswith("{'role'")
 
-    def _always_503():
-        calls["n"] += 1
-        return _Response("oops", status_code=503)
 
-    monkeypatch.setattr(httpx, "Client", _client(_always_503))
+def test_connect_error_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
+    # 落ちるとき: タイムアウト以外の httpx 例外がツールの外へ出るバグ
+    def _raise():
+        raise httpx.ConnectError("connection refused")
+
+    monkeypatch.setattr(httpx, "Client", _client(_raise))
     monkeypatch.setattr("time.sleep", lambda _s: None)
 
     out = _tool()(url="https://example.com")
     assert out.startswith("ERROR[")
-    assert calls["n"] == 3
+    assert "retryable: yes" in out
 
 
 def test_backoff_waits_grow(monkeypatch: pytest.MonkeyPatch) -> None:

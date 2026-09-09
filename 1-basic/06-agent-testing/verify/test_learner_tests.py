@@ -21,12 +21,12 @@ def _source() -> str:
 
 def test_no_todo_left() -> None:
     assert "TODO" not in _source(), (
-        "exercises/test_fetch_page.py に TODO が残っています。README 6.3 に沿ってテストを追加し、"
+        "exercises/test_fetch_page.py に TODO が残っています。README 6.3.1 に沿ってテストを追加し、"
         "終わったら TODO コメントを消してください。"
     )
 
 
-def test_has_at_least_seven_test_functions() -> None:
+def test_has_at_least_eight_test_functions() -> None:
     tree = ast.parse(_source())
     test_functions = [
         node.name
@@ -34,8 +34,8 @@ def test_has_at_least_seven_test_functions() -> None:
         if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
         and node.name.startswith("test_")
     ]
-    assert len(test_functions) >= 7, (
-        f"テスト関数が {len(test_functions)} 個です。README 6.3 の要件どおり 7 個以上書いてください: {test_functions}"
+    assert len(test_functions) >= 8, (
+        f"テスト関数が {len(test_functions)} 個です。README 6.3 の要件どおり 8 個以上書いてください: {test_functions}"
     )
 
 
@@ -50,6 +50,20 @@ def test_mocks_httpx_instead_of_real_network() -> None:
 def test_covers_error_format() -> None:
     assert "ERROR[" in _source(), (
         "異常系テストがありません。失敗時に ERROR[ 形式で返ることを assert してください。"
+    )
+
+
+def test_covers_agent_result_boundary() -> None:
+    tree = ast.parse(_source())
+    called = any(
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "parse_verdict"
+        for node in ast.walk(tree)
+    )
+    assert called, (
+        "Agent の応答を受け取る境界のテストがありません。AgentResult を手で組んで "
+        "parse_verdict に渡すテストを書いてください（README 6.2.2）。"
     )
 
 
