@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 演習 09 の合格判定: context -> Runtime 環境変数の注入。AWS 接続は不要。
+# 第18章の合格判定: context -> Runtime 環境変数の注入と実行ロールの権限。AWS 接続は不要。
 set -uo pipefail
 
 INFRA_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -20,7 +20,7 @@ echo "2. cdk.json の既定値"
 if jq -e '.context.logLevel' cdk.json >/dev/null 2>&1; then
   ok 'context に logLevel の既定値がある'
 else
-  ng 'cdk.json の context に "logLevel" を追加してください（README 18.3.2）'
+  ng 'cdk.json の context に "logLevel" を追加してください（README 18.3.1）'
 fi
 
 echo "3. synth への反映 (-c logLevel=DEBUG)"
@@ -36,12 +36,19 @@ SYNTH_DEFAULT="$(CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth AgentPlatformRun
 if echo "$SYNTH_DEFAULT" | grep -q "LOG_LEVEL: INFO"; then
   ok "既定値 INFO が cdk.json から入っている"
 else
-  ng "既定（cdk.json の logLevel=INFO）が synth に反映されていません（README 18.3.2）"
+  ng "既定（cdk.json の logLevel=INFO）が synth に反映されていません（README 18.3.1）"
+fi
+
+echo "5. 実行ロールの X-Ray 権限"
+if echo "$SYNTH_DEFAULT" | grep -q "xray:PutTraceSegments"; then
+  ok "実行ロールに xray:PutTraceSegments がある"
+else
+  ng "実行ロールに X-Ray のステートメントがありません。lib/agent-runtime-stack.ts に追加してください（README 18.3.2）"
 fi
 
 echo
 if [ "$FAILED" = "0" ]; then
-  printf '\033[32m演習 09 合格。\033[0m\n'
+  printf '\033[32m第18章 合格。\033[0m\n'
 else
   printf '\033[31m未達の項目があります。\033[0m\n'
 fi

@@ -17,8 +17,8 @@ export interface AgentRuntimeStackProps extends StackProps {
 /**
  * AgentCore Runtime。
  *
- * Runtime は L1 (CfnRuntime) で書く。プロパティが CloudFormation リファレンスと 1 対 1 で、
- * authorizerConfiguration など Runtime の設定項目をそのまま読み書きできる。
+ * aws-cdk-lib には L2 の Runtime もあるが、ここでは L1 (CfnRuntime) で書く。
+ * プロパティが CloudFormation リファレンスと 1 対 1 で読めるほうが教材として追いやすいため。
  *
  * VPC は作らない。networkMode: 'PUBLIC' で AgentCore のマネージドネットワークを使う。
  */
@@ -113,24 +113,69 @@ export class AgentRuntimeStack extends Stack {
     );
 
     // Bedrock のモデルを呼ぶ。
-    // モデル ID を実行時に差し替えられるようにするため、リソースは foundation-model と
-    // inference-profile のワイルドカードにしている。本番では必要な ID に絞ること。
+    // 推論プロファイルを指定した呼び出しでは、IAM がプロファイルとルーティング先リージョンの
+    // 基盤モデルの両方を評価する。片方だけの許可では AccessDeniedException になる。
+    // モデル ID を実行時に差し替えられるようワイルドカードにしている。本番では
+    // aws bedrock get-inference-profile の models[].modelArn に出る ARN へ絞ること。
     role.addToPolicy(
       new iam.PolicyStatement({
         actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
         resources: [
-          `arn:aws:bedrock:${this.region}::foundation-model/*`,
           `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/*`,
           `arn:aws:bedrock:*::foundation-model/*`,
         ],
       }),
     );
 
-    // CloudWatch Logs への出力
+    // CloudWatch Logs。ロググループの作成と一覧参照、ログイベントの書き込み。
+    // 対象は Runtime のロググループに限定する。
     role.addToPolicy(
       new iam.PolicyStatement({
-        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-        resources: [`arn:aws:logs:${this.region}:${this.account}:log-group:/aws/bedrock-agentcore/*`],
+        actions: ['logs:CreateLogGroup', 'logs:DescribeLogStreams'],
+        resources: [
+          `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/bedrock-agentcore/runtimes/*`,
+        ],
+      }),
+    );
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
+        resources: [
+          `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/bedrock-agentcore/runtimes/*:log-stream:*`,
+        ],
+      }),
+    );
+    // DescribeLogGroups はロググループ単位に絞れない（一覧を引く API のため）。
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ['logs:DescribeLogGroups'],
+        resources: [`arn:aws:logs:${this.region}:${this.account}:log-group:*`],
+      }),
+    );
+
+    // X-Ray へのトレース送信を許可するステートメントは 18.3 で自分で追加する。
+
+    // CloudWatch メトリクス。namespace の条件で bedrock-agentcore 以外への書き込みを塞ぐ。
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ['cloudwatch:PutMetricData'],
+        resources: ['*'],
+        conditions: { StringEquals: { 'cloudwatch:namespace': 'bedrock-agentcore' } },
+      }),
+    );
+
+    // ワークロードアクセストークンの取得。AgentCore Identity 経由で外部 API を呼ぶときに使う。
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          'bedrock-agentcore:GetWorkloadAccessToken',
+          'bedrock-agentcore:GetWorkloadAccessTokenForJWT',
+          'bedrock-agentcore:GetWorkloadAccessTokenForUserId',
+        ],
+        resources: [
+          `arn:aws:bedrock-agentcore:${this.region}:${this.account}:workload-identity-directory/default`,
+          `arn:aws:bedrock-agentcore:${this.region}:${this.account}:workload-identity-directory/default/workload-identity/${config.runtimeName}-*`,
+        ],
       }),
     );
 
