@@ -1,4 +1,4 @@
-"""演習 16 の合格判定。モデルは呼ばず、組み立ての配線だけを検査する。"""
+"""第12章の合格判定。モデルは呼ばず、組み立ての配線だけを検査する。"""
 
 from __future__ import annotations
 
@@ -50,5 +50,5 @@ def test_guide_passed_unchanged(agent_module) -> None:
     agent = _build(agent_module)
     assert agent.system_prompt == agent_module.RESEARCH_GUIDE, (
         "RESEARCH_GUIDE をそのまま system_prompt に渡してください。"
-        "現在時刻などを足すと毎回先頭が変わり、すべてキャッシュミスになります（12.1.2）。"
+        "現在時刻などを足すと毎回 system が変わり、キャッシュが再利用されません（12.1.2）。"
     )

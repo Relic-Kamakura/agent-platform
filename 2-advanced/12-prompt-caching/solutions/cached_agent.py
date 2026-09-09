@@ -6,9 +6,9 @@ from strands import Agent
 from strands.models import BedrockModel, CacheConfig
 
 # 長い固定のシステムプロンプト（提供。書き換えない）。
-# キャッシュにはモデルごとの最小プロンプト長があり、それ未満の前半は黙って
-# キャッシュされない。このガイドは既定モデル（Haiku 4.5、最小 4096 トークン）を
-# 超える長さにしてある。
+# キャッシュにはモデルごとの最小キャッシュ長があり、それに満たない部分は
+# エラーにならずキャッシュもされない。このガイドは既定モデルの最小長
+# （docs/versions.md）を超える長さにしてある。
 RESEARCH_GUIDE = """あなたは BI / アナリティクス領域の競合リサーチ担当です。
 このガイドラインに従い、質問に日本語で答えてください。
 
@@ -148,6 +148,6 @@ def build_cached_agent(model_id: str, region_name: str) -> Agent:
         # strategy="auto": キャッシュポイントの配置を Strands に任せる
         cache_config=CacheConfig(strategy="auto"),
     )
-    # RESEARCH_GUIDE をそのまま渡す。現在時刻などを足すと毎回先頭が変わり、
-    # すべてキャッシュミスになる（12.1.2）
+    # RESEARCH_GUIDE をそのまま渡す。現在時刻などを足すと毎回 system が変わり、
+    # system 以降のキャッシュが再利用されない（12.1.2）
     return Agent(model=model, system_prompt=RESEARCH_GUIDE)
