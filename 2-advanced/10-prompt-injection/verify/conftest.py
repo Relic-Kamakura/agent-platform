@@ -16,3 +16,10 @@ def prompt_module():
     import hardened_prompt
 
     return hardened_prompt
+
+
+@pytest.fixture()
+def wrap_module():
+    import wrap_result
+
+    return wrap_result

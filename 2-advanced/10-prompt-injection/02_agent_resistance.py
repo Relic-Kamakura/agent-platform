@@ -13,9 +13,10 @@ from strands.hooks import BeforeToolCallEvent, HookRegistry
 from strands.models import BedrockModel
 
 from hardened_prompt import HARDENED_PROMPT
-from injected_reviews import as_tool_result
+from injected_reviews import as_text
+from wrap_result import wrap_as_search_result
 
-# モデル ID。第1章 1.3 の手順で確認した、自分のリージョンで呼べる ID に合わせる
+# モデル ID。`aws bedrock list-inference-profiles --region <region>` に出る ID に合わせる
 MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
 
@@ -28,11 +29,11 @@ def search_reviews(query: str) -> str:
     含まないもの: 内容の真偽の検証。返すのは第三者が書いたままの文章。
     """
     # どんなクエリにも注入入りの fixture を返す。攻撃が確実に届く状況を作るため
-    return as_tool_result()
+    return wrap_as_search_result(as_text())
 
 
 class ToolCallLimiter:
-    """ツール呼び出しの回数上限。指示を奪われても行動回数を上限で止める（第4章と同じ仕組み）。"""
+    """ツール呼び出しの回数上限。指示を奪われても、行動の回数は上限で止まる。"""
 
     def __init__(self, max_calls: int) -> None:
         self.max_calls = max_calls

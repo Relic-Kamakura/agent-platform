@@ -199,7 +199,7 @@ wheels = [
 ]
 
 [[package]]
-name = "chapter14-prompt-injection"
+name = "chapter10-prompt-injection"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
