@@ -11,7 +11,7 @@ from strands.models import BedrockModel
 
 from review import structured_verdict
 
-# モデル ID。第1章 1.3 の手順で確認した、自分のリージョンで呼べる ID に合わせる
+# モデル ID。aws bedrock list-inference-profiles --region <リージョン> に載っている ID に合わせる
 MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
 # 形式（判定の型と選択肢）はスキーマが強制するので、プロンプトは検証観点だけを教える
@@ -31,7 +31,7 @@ A 社は 2025 年に国内シェア 1 位になった。
 """
 
 # ツールを持たず、モデル呼び出しは 1 回だけの構成。
-# ループが伸びる余地が無いため、第4章のような回数上限ガードは付けていない
+# エージェントループが繰り返される余地が無いため、呼び出し回数の上限ガードは付けていない
 agent = Agent(
     model=BedrockModel(
         region_name=os.environ.get("AWS_REGION", "us-east-1"),

@@ -1,4 +1,4 @@
-"""演習 19 の合格判定。パース版の故障モードと、構造化出力版の挙動を検査する（完全オフライン）。"""
+"""第15章の合格判定。パース版の故障モードと、構造化出力版の挙動を検査する（モデルは呼びません）。"""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ class _RaisingAgent:
 def test_no_todo_left(review_module) -> None:
     source = pathlib.Path(review_module.__file__).read_text(encoding="utf-8")
     assert "TODO" not in source, (
-        "exercises/review.py に TODO が残っています。README 15.3 に沿って実装し、"
+        "exercises/review.py に TODO が残っています。README 15.4 に沿って実装し、"
         "終わったら TODO コメントを消してください。"
     )
 
@@ -65,7 +65,7 @@ def test_structured_verdict_returns_validated_instance(review_module) -> None:
     agent = _StubAgent(structured_output=expected)
     got = review_module.structured_verdict(agent, "検証対象の報告本文")
     assert got is expected, (
-        "result.structured_output の Verdict をそのまま返してください（README 15.3）。"
+        "result.structured_output の Verdict をそのまま返してください（README 15.4）。"
     )
     assert agent.received_model is review_module.Verdict, (
         "呼び出しに structured_output_model=Verdict を渡してください。"

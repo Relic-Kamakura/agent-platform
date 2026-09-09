@@ -1,4 +1,4 @@
-"""ハンズオン 15.3 の模範解答。exercises/review.py の完成形。"""
+"""ハンズオン 15.4 の模範解答。exercises/review.py の完成形。"""
 
 from __future__ import annotations
 
