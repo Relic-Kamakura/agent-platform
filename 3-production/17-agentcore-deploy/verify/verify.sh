@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# 演習 08 の合格判定: ARM64 ビルドと AgentCore コンテナ契約の検証。
+# 第17章の合格判定: ARM64 ビルドと AgentCore コンテナ契約の検証。
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 cd "$REPO_ROOT"
 
-IMAGE="agent-platform/agent:verify08"
-CONTAINER="agent-verify08"
+IMAGE="agent-platform/agent:verify17"
+CONTAINER="agent-verify17"
 PORT=18080
 FAILED=0
 
@@ -16,7 +16,7 @@ ng() { printf '  \033[31mNG\033[0m    %s\n' "$1"; FAILED=1; }
 INVOKE_BODY="$(mktemp)"
 cleanup() {
   docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
-  docker rm -f hello-verify08 >/dev/null 2>&1 || true
+  docker rm -f hello-verify17 >/dev/null 2>&1 || true
   rm -f "$INVOKE_BODY"
 }
 trap cleanup EXIT
@@ -53,7 +53,7 @@ done
 if [ "$PING_OK" = "1" ]; then
   ok "GET /ping -> 200"
 else
-  ng "GET /ping が 200 になりません。docker logs $CONTAINER を確認（127.0.0.1 bind の罠は troubleshooting.md）"
+  ng "GET /ping が 200 になりません。docker logs $CONTAINER を確認（bind 先の既定は 17.1.2）"
 fi
 
 INVOKE_CODE="$(curl -s -m 10 -o "$INVOKE_BODY" -w '%{http_code}' \
@@ -72,12 +72,12 @@ if [ ! -f "$HELLO_DIR/Dockerfile" ]; then
 elif grep -q "TODO" "$HELLO_DIR/Dockerfile"; then
   ng "hello-agent/Dockerfile に TODO が残っています。README の 17.4.1 に沿って埋め、TODO コメントを消してください"
 else
-  if docker buildx build --platform linux/arm64 -t hello-agent:verify08 --load "$HELLO_DIR" >/dev/null 2>&1; then
+  if docker buildx build --platform linux/arm64 -t hello-agent:verify17 --load "$HELLO_DIR" >/dev/null 2>&1; then
     ok "自作 Dockerfile でビルド成功"
-    HARCH="$(docker image inspect hello-agent:verify08 --format '{{.Os}}/{{.Architecture}}')"
+    HARCH="$(docker image inspect hello-agent:verify17 --format '{{.Os}}/{{.Architecture}}')"
     [ "$HARCH" = "linux/arm64" ] && ok "linux/arm64" || ng "アーキテクチャが $HARCH です"
-    docker rm -f hello-verify08 >/dev/null 2>&1 || true
-    docker run -d --name hello-verify08 -p 18082:8080 hello-agent:verify08 >/dev/null
+    docker rm -f hello-verify17 >/dev/null 2>&1 || true
+    docker run -d --name hello-verify17 -p 18082:8080 hello-agent:verify17 >/dev/null
     HOK=0
     for _ in $(seq 1 20); do
       sleep 1
@@ -89,9 +89,9 @@ else
       echo "$BODY" | grep -q '"echo": *"test"' && ok "POST /invocations -> echo 応答" \
         || ng "/invocations の応答が想定と違います: $BODY"
     else
-      ng "自作コンテナの /ping が 200 になりません（0.0.0.0 bind か CMD を確認。17.1.2 の罠参照）"
+      ng "自作コンテナの /ping が 200 になりません（0.0.0.0 への bind と CMD を確認してください。17.1.2）"
     fi
-    docker rm -f hello-verify08 >/dev/null 2>&1 || true
+    docker rm -f hello-verify17 >/dev/null 2>&1 || true
   else
     ng "自作 Dockerfile のビルドが失敗しました。手でビルドしてエラーを確認してください"
   fi

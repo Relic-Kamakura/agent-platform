@@ -1,4 +1,4 @@
-# 第8章ハンズオンの模範解答。hello-agent/Dockerfile として配置する。
+# 第17章ハンズオンの模範解答。hello-agent/Dockerfile として配置する。
 #
 # AgentCore Runtime のコンテナ契約: linux/arm64 / 0.0.0.0:8080 / POST /invocations + GET /ping
 FROM --platform=linux/arm64 ghcr.io/astral-sh/uv:python3.12-bookworm-slim
