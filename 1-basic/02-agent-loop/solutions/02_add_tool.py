@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from strands import Agent, tool
 from strands.models import BedrockModel
 
-# モデル ID。第1章 1.3 の手順で確認した、自分のリージョンで呼べる ID に合わせる
+# モデル ID。aws bedrock list-inference-profiles で確認した、自分のリージョンで呼べる ID に合わせる
 MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
 
@@ -38,16 +38,23 @@ def char_count(text: str) -> str:
     return f"{len(text)} 文字"
 
 
-agent = Agent(
-    model=BedrockModel(
-        region_name=os.environ.get("AWS_REGION", "us-east-1"),
-        model_id=MODEL_ID,
-        max_tokens=512,
-    ),
-    system_prompt="質問に日本語で簡潔に答えてください。日時は now、文字数は char_count を使ってください。",
-    tools=[now, char_count],
-)
+def build_agent() -> Agent:
+    """エージェントを 1 つ組み立てて返す。
+
+    メトリクスと会話履歴は Agent インスタンスの生涯で累積するので、
+    1 回の呼び出しぶんを見たいときは毎回この関数で作り直す（2.5）。
+    """
+    return Agent(
+        model=BedrockModel(
+            region_name=os.environ.get("AWS_REGION", "us-east-1"),
+            model_id=MODEL_ID,
+            max_tokens=512,
+        ),
+        system_prompt="質問に日本語で簡潔に答えてください。日時は now、文字数は char_count を使ってください。",
+        tools=[now, char_count],
+    )
+
 
 if __name__ == "__main__":
-    result = agent("『こんにちは世界』は何文字？")
+    result = build_agent()("『こんにちは世界』は何文字？")
     print(f"\ncycles: {result.metrics.cycle_count}")

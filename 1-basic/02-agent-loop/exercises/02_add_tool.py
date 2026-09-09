@@ -1,4 +1,4 @@
-"""ハンズオン 2.5: ツールを自分で追加する。
+"""ハンズオン 2.4: ツールを自分で追加する。
 
 TODO を実装し、`uv run exercises/02_add_tool.py` で実行する。
 実装が終わったら TODO コメントは消す。完成形は solutions/02_add_tool.py。
@@ -33,9 +33,16 @@ def now() -> str:
 #   - 返り値は文字数を含む短い文字列（例: "7 文字"）
 
 
-# TODO(2): Agent を組み立てる。tools に now と char_count の両方を渡し、
-#   system_prompt でそれぞれの使いどころを 1 文ずつ伝える
-agent = ...
+def build_agent() -> Agent:
+    """エージェントを 1 つ組み立てて返す。
+
+    メトリクスと会話履歴は Agent インスタンスの生涯で累積するので、
+    1 回の呼び出しぶんを見たいときは毎回この関数で作り直す（2.5）。
+    """
+    # TODO(2): Agent を組み立てて返す。tools に now と char_count の両方を渡し、
+    #   system_prompt でそれぞれの使いどころを 1 文ずつ伝える
+    ...
+
 
 if __name__ == "__main__":
     # TODO(3): 「『こんにちは世界』は何文字？」と質問し、cycle_count を表示する

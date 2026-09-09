@@ -52,33 +52,35 @@ def test_01_agent_docstring_sections() -> None:
 
 
 def test_02_has_both_tools() -> None:
-    mod = _import("02_add_tool", "2.5")
-    agent = getattr(mod, "agent", None)
-    assert hasattr(agent, "tool_names"), "02_add_tool.py の agent = ... を Agent(...) に実装してください（2.5）。"
-    names = set(agent.tool_names)
+    mod = _import("02_add_tool", "2.4")
+    build_agent = getattr(mod, "build_agent", None)
+    assert callable(build_agent), "02_add_tool.py の build_agent() で Agent を返してください（2.4）。"
+    agent = build_agent()
+    assert hasattr(agent, "tool_names"), "build_agent() が Agent を返していません（2.4）。"
+    names = set(agent.tool_names)  # type: ignore[attr-defined]
     assert {"now", "char_count"} <= names, (
-        f"agent の tools に now と char_count の両方を渡してください（2.5）。現在: {names}"
+        f"agent の tools に now と char_count の両方を渡してください（2.4）。現在: {names}"
     )
 
 
 def test_02_char_count_contract() -> None:
-    mod = _import("02_add_tool", "2.5")
+    mod = _import("02_add_tool", "2.4")
     fn = getattr(mod.char_count, "__wrapped__", mod.char_count)
     doc = fn.__doc__ or ""
     for section in ("受け取るもの", "返すもの", "含まないもの"):
-        assert section in doc, f"char_count の docstring に「{section}」がありません（2.5 要件 2）。"
+        assert section in doc, f"char_count の docstring に「{section}」がありません（2.4 要件 1）。"
     assert "7" in str(fn(text="こんにちは世界")), "char_count('こんにちは世界') は 7 を含む文字列を返すはずです。"
 
 
 def test_02_model_id_not_hardcoded() -> None:
-    source = _completed_source("02_add_tool", "2.5")
+    source = _completed_source("02_add_tool", "2.4")
     assert "environ" in source, (
         "モデル ID は環境変数から取ってください（既定値つきで可）。直書きはこのリポジトリの規約違反です。"
     )
 
 
 def test_03_metrics_script() -> None:
-    source = _completed_source("03_metrics", "2.6")
+    source = _completed_source("03_metrics", "2.5")
     assert "cycle_count" in source and "accumulated_usage" in source, (
-        "03_metrics.py で cycle_count と accumulated_usage の両方を表示してください（2.6）。"
+        "03_metrics.py で cycle_count と accumulated_usage の両方を表示してください（2.5）。"
     )
