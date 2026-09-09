@@ -245,7 +245,7 @@ uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py
 コスト概算を出す場合は単価を環境変数で渡します（モデルと契約で変わるためリポジトリにはハードコードしていません）。
 
 ```bash
-PRICE_IN_PER_MTOK=3.0 PRICE_OUT_PER_MTOK=11.0 \
+PRICE_IN_PER_MTOK=3.0 PRICE_OUT_PER_MTOK=15.0 \
   uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py
 ```
 
@@ -254,7 +254,7 @@ PRICE_IN_PER_MTOK=3.0 PRICE_OUT_PER_MTOK=11.0 \
 evals の核心は、「良い報告」という曖昧な基準を検証可能な条件に翻訳することです。
 翻訳できた条件は機械判定になり、プロンプト変更のたびに退行の有無が数分で分かります。
 ただし、判定が全部緑でも使う人が満足しているとは限りません。
-案件で最後に見られるのは第19章で触れた利用者の評価（CSAT）で、
+案件で最後に見られるのは第20章で触れた利用者の評価（CSAT）で、
 evals の合格率はその手前を支える指標です。
 
 verify が通ったら第10章へ進んでください。

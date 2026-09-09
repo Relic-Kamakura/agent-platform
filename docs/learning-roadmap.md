@@ -11,10 +11,10 @@
 | 1-4 セーフガード | 04-cost-control |
 | 1-5 エラー設計 | 03-tool-design |
 | 1-6 テスト | 06-agent-testing |
-| 1-7 認証・認可 / 基盤 | 01-invoke-bedrock, 16-agentcore-deploy, 17-infra-as-code, 18-auth |
+| 1-7 認証・認可 / 基盤 | 01-invoke-bedrock, 17-agentcore-deploy, 18-infra-as-code, 19-auth |
 | 1-8 評価 | 09-evaluation |
 | 1-9 インジェクション耐性 | 10-prompt-injection |
-| 1-10 ストリーミング | 19-streaming |
+| 1-10 ストリーミング | 20-streaming |
 | Tier 2 各項目 | 11-mcp / 12-prompt-caching / 13-guardrails / 14-hitl / 15-structured-output |
 | Tier 3-1 の基礎（RAG / Knowledge Bases） | 08-knowledge-base |
 | Tier 3 各項目 | 99-appendix（入口ドキュメント） |

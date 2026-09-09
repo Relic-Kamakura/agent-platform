@@ -130,7 +130,7 @@ AgentCore Runtime は作成時点で `containerUri` のイメージが存在し�
 **対処**
 `npm config get before` で固定日時を確認し、`npm view <pkg> time --json` で
 その日付以前の最新バージョンを特定して package.json に固定する。
-19-streaming の package.json はこの方針で固定してある。
+20-streaming の package.json はこの方針で固定してある。
 
 ---
 

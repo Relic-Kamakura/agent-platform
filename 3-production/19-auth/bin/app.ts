@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 第18章のエントリポイント（編集不要）。
+// 第19章のエントリポイント（編集不要）。
 // AuthStack はリージョン非依存のリソースだけなので env の指定は要らない。
 import { App } from 'aws-cdk-lib';
 import { AuthStack } from '../lib/auth-stack';

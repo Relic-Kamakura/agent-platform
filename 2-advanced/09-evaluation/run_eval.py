@@ -5,7 +5,7 @@
     uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py --only pricing-comparison
 
 コスト概算を出す場合は 100 万トークンあたりの単価を環境変数で渡す:
-    PRICE_IN_PER_MTOK=3.0 PRICE_OUT_PER_MTOK=11.0 uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py
+    PRICE_IN_PER_MTOK=3.0 PRICE_OUT_PER_MTOK=15.0 uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py
 （単価はモデルと契約で変わるため、このリポジトリにはハードコードしない）
 """
 

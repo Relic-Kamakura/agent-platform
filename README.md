@@ -3,7 +3,7 @@
 AI エージェント開発を、動くコードを改造しながら習得するリポジトリです。3 部制です。
 
 第1部 基礎編（`1-basic/`）は第0〜7章です。競合リサーチエージェントを題材に、環境構築 → モデル呼び出し → エージェントループ → ツール設計 → コスト制御 → マルチエージェント → テストと進み、完成形を通読します（[1-basic/README.md](1-basic/README.md)）。
-第2部 応用編（`2-advanced/`）は第8〜15章で、RAG、評価、インジェクション耐性、MCP などエージェントの中身を仕上げるテーマ別の章です（[2-advanced/README.md](2-advanced/README.md)）。
+第2部 応用編（`2-advanced/`）は第8〜16章で、RAG、評価、インジェクション耐性、MCP などエージェントの中身を仕上げるテーマ別の章です（[2-advanced/README.md](2-advanced/README.md)）。
 第3部 本番運用基盤（`3-production/`）はエージェントを外へ届ける側で、デプロイ、IaC、認証、フロントエンドを扱います（[3-production/README.md](3-production/README.md)）。
 
 第7章（完成形の通読）を除き、すべての章が同じ流れで進みます。
@@ -16,7 +16,7 @@ AI エージェント開発を、動くコードを改造しながら習得す�
 「書く」は穴埋め方式です。各章の `exercises/` にある TODO 付きの骨組みを実装し、
 章直下のスクリプトや verify で動かして確かめます。完成形は `solutions/` にあります。
 ハンズオンは章のディレクトリ内で完結し、本体 `07-full-app/` は完成形として
-読む・動かす対象です（第7章は通読、第17章は CDK コードを直接編集する形です）。
+読む・動かす対象です（第7章は通読、第18章は CDK コードを直接編集する形です）。
 
 ## 始め方
 
@@ -55,7 +55,7 @@ graph TB
 
 | 機能 | 何をするものか | 扱う章 |
 | --- | --- | --- |
-| AgentCore | エージェントの実行基盤 | 第16章 |
+| AgentCore | エージェントの実行基盤 | 第17章 |
 | エージェント | ツールを呼んで進む仕組み | 第2〜7章 |
 | ナレッジベース | 検索拡張生成(RAG) | 第8章 |
 | プロンプトマネジメント | 版管理と退行検知 | 第9章 |
@@ -94,18 +94,17 @@ graph TB
 | [13-guardrails](2-advanced/13-guardrails/) | マネージド層の内容フィルタ |
 | [14-hitl](2-advanced/14-hitl/) | 取り消せない操作の承認ゲート |
 | [15-structured-output](2-advanced/15-structured-output/) | 構造化出力とパースの撤去 |
+| [16-news-kb-mcp](2-advanced/16-news-kb-mcp/) | KB 取り込みと Gateway 検索基盤 |
 | [99-appendix](2-advanced/99-appendix/) | 発展領域の入口と用語集 |
-
-このほか応用編には、ニュース検索基盤を作る 20-ingest-pipeline と 21-gateway-tools を準備中です（2-advanced/README.md 参照）。
 
 第3部 本番運用基盤（エージェントを外へ届ける側。詳細は [3-production/README.md](3-production/README.md)）。
 
 | 章 | 学べること |
 | --- | --- |
-| [16-agentcore-deploy](3-production/16-agentcore-deploy/) | コンテナ契約とデプロイ |
-| [17-infra-as-code](3-production/17-infra-as-code/) | CDK と IAM ロール設計 |
-| [18-auth](3-production/18-auth/) | Cognito と JWT による認可 |
-| [19-streaming](3-production/19-streaming/) | Next.js とストリーミング表示 |
+| [17-agentcore-deploy](3-production/17-agentcore-deploy/) | コンテナ契約とデプロイ |
+| [18-infra-as-code](3-production/18-infra-as-code/) | CDK と IAM ロール設計 |
+| [19-auth](3-production/19-auth/) | Cognito と JWT による認可 |
+| [20-streaming](3-production/20-streaming/) | Next.js とストリーミング表示 |
 
 Tier 分けと習得判定は [docs/learning-roadmap.md](docs/learning-roadmap.md) に、
 モデル ID や単価などバージョンで変わる値は [docs/versions.md](docs/versions.md) にあります。
@@ -119,10 +118,10 @@ Tier 分けと習得判定は [docs/learning-roadmap.md](docs/learning-roadmap.m
 graph LR
     A["何を任せるか<br/>決める"] --> B["ツールに分解<br/>第3章"]
     B --> C["エージェント構成<br/>第2・5章"]
-    C --> D["上限と権限<br/>第4・18・13章"]
+    C --> D["上限と権限<br/>第4・19・13章"]
     D --> E["テストと評価<br/>第6・9・10章"]
-    E --> F["デプロイ<br/>第16・17章"]
-    F --> G["観測と改善<br/>第19章 / 付録C"]
+    E --> F["デプロイ<br/>第17・18章"]
+    F --> G["観測と改善<br/>第20章 / 付録C"]
     G --> E
 ```
 
@@ -131,9 +130,10 @@ graph LR
 ## 順序と前提
 
 - 第1部（00〜07）は番号順に進める（06 は第3章で作ったものと同じツールにテストを書く）
-- 第2部のうち 08 は 01 まで終えていれば独立に進められる。09〜15 はどの順で進めてもよい
-- 第3部の 16・17 は 03 まで終えていれば、第1部の残りや第2部と並行して進められる。
-  18 は独立に進められ（デプロイして試す工程だけ 17 が前提）、19 は 18 の後に進める
+- 第2部のうち 08 は 01 まで終えていれば独立に進められる。09〜15 はどの順で進めてもよい。
+  16 は 08・11・18・19 を終えてから進める
+- 第3部の 17・18 は 03 まで終えていれば、第1部の残りや第2部と並行して進められる。
+  19 は独立に進められ（デプロイして試す工程だけ 18 が前提）、20 は 19 の後に進める
 
 ## 困ったら
 

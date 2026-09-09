@@ -7,14 +7,14 @@
 
 | 章 | 学べること |
 | --- | --- |
-| [16-agentcore-deploy](16-agentcore-deploy/) | コンテナ契約とデプロイ |
-| [17-infra-as-code](17-infra-as-code/) | CDK と IAM ロール設計 |
-| [18-auth](18-auth/) | Cognito と JWT による認可 |
-| [19-streaming](19-streaming/) | Next.js とストリーミング表示 |
+| [17-agentcore-deploy](17-agentcore-deploy/) | コンテナ契約とデプロイ |
+| [18-infra-as-code](18-infra-as-code/) | CDK と IAM ロール設計 |
+| [19-auth](19-auth/) | Cognito と JWT による認可 |
+| [20-streaming](20-streaming/) | Next.js とストリーミング表示 |
 | [99-appendix](99-appendix/) | 発展領域の入口と用語集 |
 
 ## 前提
 
-第16・17章は基礎編の第3章まで終えていれば始められ、第2部と並行して進められます。
-第18章は独立に進められます（デプロイして試す工程だけ第17章が前提）。第19章は第18章の後に進めてください。
+第17・18章は基礎編の第3章まで終えていれば始められ、第2部と並行して進められます。
+第19章は独立に進められます（デプロイして試す工程だけ第18章が前提）。第20章は第19章の後に進めてください。
 デプロイ対象は第1部の本体 `1-basic/07-full-app` で、`./scripts/deploy.sh` が ECR → イメージ push → Runtime の順序を保証します。

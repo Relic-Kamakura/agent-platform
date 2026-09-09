@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 第19章の合格判定。AWS 接続は不要（型チェックと実装の構造検査）。
+# 第20章の合格判定。AWS 接続は不要（型チェックと実装の構造検査）。
 set -uo pipefail
 
 CHAPTER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -16,24 +16,24 @@ ok "npm ci 済み"
 echo "2. Route Handler の存在と内容"
 ROUTE="app/api/invoke/route.ts"
 if [ ! -f "$ROUTE" ]; then
-  ng "$ROUTE がありません。exercises/route.ts をコピーして README の 19.3 に沿って埋めてください"
+  ng "$ROUTE がありません。exercises/route.ts をコピーして README の 20.3 に沿って埋めてください"
   exit 1
 fi
 if grep -q "TODO" "$ROUTE"; then
-  ng "TODO が残っています。README の 19.3 に沿って実装し、終わったら TODO コメントを消してください"
+  ng "TODO が残っています。README の 20.3 に沿って実装し、終わったら TODO コメントを消してください"
 else
   ok "TODO が残っていない"
 fi
 grep -q "CognitoJwtVerifier" "$ROUTE" && ok "aws-jwt-verify で検証している" \
-  || ng "JWT の検証に aws-jwt-verify の CognitoJwtVerifier を使ってください（19.2.1）"
+  || ng "JWT の検証に aws-jwt-verify の CognitoJwtVerifier を使ってください（20.2.1）"
 grep -q "AUTH_BYPASS" "$ROUTE" && ok "AUTH_BYPASS の分岐がある" \
-  || ng "開発用の AUTH_BYPASS 分岐を実装してください（19.2.1）"
+  || ng "開発用の AUTH_BYPASS 分岐を実装してください（20.2.1）"
 grep -q "401" "$ROUTE" && ok "未認証を 401 で返す" \
   || ng "トークン無し・無効時は 401 を返してください"
 grep -q "invokeBackend" "$ROUTE" && ok "lib/backend.ts 経由で転送している" \
   || ng "基盤への転送は lib/backend.ts の invokeBackend を使ってください"
 grep -qE "upstream.body|\.body," "$ROUTE" && ok "レスポンスをストリームのまま返している" \
-  || ng "バックエンドの body を await text() せず、ストリームのまま Response に渡してください（19.2.2）"
+  || ng "バックエンドの body を await text() せず、ストリームのまま Response に渡してください（20.2.2）"
 
 echo "3. 型チェック"
 if npx tsc --noEmit >/dev/null 2>&1; then
@@ -44,7 +44,7 @@ fi
 
 echo
 if [ "$FAILED" = "0" ]; then
-  printf '\033[32m第19章 合格。\033[0m\n'
+  printf '\033[32m第20章 合格。\033[0m\n'
 else
   printf '\033[31m未達の項目があります。\033[0m\n'
 fi

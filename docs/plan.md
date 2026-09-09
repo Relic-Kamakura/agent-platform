@@ -4,7 +4,32 @@ G4 向け AI エージェント開発基盤ひな形。競合リサーチエー�
 本ファイルは進捗管理の唯一の正とする。各 Phase 完了時にチェックを更新する。
 
 - ステータス: **全 20 章（00〜19）+ 付録の実装完了。実機確認は各章のハンズオン内で実施する**
-- 最終更新: 2026-09-07
+- 最終更新: 2026-09-08
+
+## 第20章を第16章に繰り上げ（通番の再割り当て。2026-09-08）
+
+news-kb-mcp を第2部の末尾 16 章とし、第3部を 1 つずつ繰り下げて通番を回復した。対応: 20-news-kb-mcp→16 / 16-agentcore-deploy→17 / 17-infra-as-code→18 / 18-auth→19 / 19-streaming→20。章見出し・節番号・章間参照・ディレクトリ名・package/pyproject の章名を機械置換し、誤置換 2 件（第3章スクリプトと本体 config.py の timeout 20.0）を検出して復旧、hello-agent の応答は `"chapter": 17` に更新。次の章チェーンは 15→16（同じ部）→17（部またぎ）に張り替えた。第0章の CDK 依存手順の cd が部またぎ（1-basic/07 → 3-production/18）で壊れていたのも修正。
+
+## 第20章 news-kb-mcp を追加（2026-09-08）
+
+準備中だった応用編のニュース検索基盤を、ユーザー指定の確定設計に合わせて 1 章に統合して実装した（旧 20-ingest-pipeline / 21-gateway-tools の 2 章案は廃止）。AWS What's New 等の RSS を 6 時間ごとに差分取得して S3 + Knowledge Base（S3 Vectors + Titan Embeddings V2）へ取り込み、AgentCore Gateway（Cognito JWT インバウンド認可）の Lambda ターゲット 2 ツール（search_aws_updates / get_article）を mcp-remote 経由の MCP クライアントから呼ぶ。読み取り側に AgentCore Runtime や回答生成 LLM は置かない。書き込み側と読み取り側は S3 と KB だけを接点にする。
+
+- 章構成: exercises 4 ファイル（fetch_articles.py / tools_handler.py / knowledge-base-stack.ts / gateway-stack.ts）+ 完成品（ingestion-stack.ts、lambda_src の 3 Lambda、初回同期スクリプト、mcp.json サンプル）。合格判定は pytest 14 件 + verify.sh（synth 検査）
+- ラウンドトリップ実測済み: pytest は素 = 14 failed（全件 TODO 案内）/ solutions 適用 = 14 passed。verify.sh は素 = 案内付き NG / solutions 適用 = 全 OK
+- 裏取り: KB の S3_VECTORS は CloudFormation リファレンスの Allowed values、Gateway の Lambda 入力（event = 引数、ツール名は context.client_context.custom の bedrockAgentCoreToolName、ターゲット名___ 接頭辞）と ToolDefinition の形式は AgentCore devguide（gateway-add-target-lambda）、Retrieve のフィルタ演算子（andAll / equals / greaterThanOrEquals 等）は botocore の bedrock-agent-runtime サービス定義、CfnGateway / CfnGatewayTarget / CfnVectorBucket / CfnIndex は aws-cdk-lib 2.264.0 の型定義（いずれも 2026-09-08 確認）
+- S3 通知は同一スタック制約があり、追加キュー（SQS + DLQ）は記事バケットと同じ KnowledgeBaseStack に置いた（IngestionStack と分けるとスタック間循環になることを synth で確認）
+- get_article の引数は URL ではなく search_aws_updates が返す s3_key にした（URL → キーの対応表を持たないため。README 20.2.3 に判断を記載）
+- 未確認事項（実機確認待ち）: S3 Vectors + KB の実デプロイと対応リージョン（既定 us-west-2）、CfnIndex の nonFilterableMetadataKeys=['AMAZON_BEDROCK_TEXT'] の要否（公開サンプル由来）、Cognito アクセストークン + mcp-remote での Gateway 接続（DCR 未対応のため Claude Desktop 直接続は不可の前提）、StartIngestionJob の同時 1 ジョブ制約の再キュー動作
+
+## 全章ファクトチェック（2026-09-08）
+
+全章の事実主張を、AWS 公式ドキュメント（AgentCore devguide の getting-started-custom / runtime-getting-started / runtime-get-started-cli）、章 venv の strands-agents ソース、本ファイルに記録済みの既往裏取りと突き合わせて照合した。
+
+- 修正 1 件: 09 章の料金例 `PRICE_OUT_PER_MTOK` が通番化の機械置換で 15.0 → 11.0 に壊れていたのを検出し復旧（README と run_eval.py の docstring）
+- 要修正として報告 1 件: troubleshooting.md と本ファイル過去エントリの「AgentCore の CDK に L2 は無い」。aws-cdk-lib 本体に L1 しか無いのは正しいが、公式 alpha パッケージ `@aws-cdk/aws-bedrock-agentcore-alpha`（npm で 2.268.0-alpha.0 を確認）に L2 `Runtime` / `Memory` 等が公開されており、「L2 は存在しない」と読める記述には alpha の存在を 1 文添えるべき
+- 16.1.3 の AgentCore CLI（create → dev → deploy、CodeZip 既定、内部で CDK）は公式 devguide と一致することを確認
+- 16.1.2 のコンテナ契約 3 点は正確だが、protocolConfiguration（MCP は 8000 /mcp 等）の既定時である旨の但し書きを推奨
+- 詳細はファクトチェックレポート（Artifact）に記録
 
 ## 章番号の通番化と部の再配分（2026-09-07）
 

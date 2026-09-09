@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "aws-news-kb": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "<NewsGatewayStack の出力 GatewayUrl>",
+        "--header",
+        "Authorization: Bearer ${AWS_NEWS_KB_TOKEN}"
+      ],
+      "env": {
+        "AWS_NEWS_KB_TOKEN": "<16.7 で取得したアクセストークン>"
+      }
+    }
+  }
+}

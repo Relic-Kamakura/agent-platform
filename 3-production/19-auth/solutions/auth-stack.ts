@@ -1,11 +1,11 @@
-// 第18章の模範解答。18-auth/lib/auth-stack.ts として配置する。
+// 第19章の模範解答。19-auth/lib/auth-stack.ts として配置する。
 import { CfnOutput, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import type { Construct } from 'constructs';
 
 /**
  * Cognito User Pool と App Client。
- * ここが発行するアクセストークンを、Route Handler（第19章）と
+ * ここが発行するアクセストークンを、Route Handler（第20章）と
  * AgentCore Runtime の JWT authorizer の両方が検証する。
  */
 export class AuthStack extends Stack {

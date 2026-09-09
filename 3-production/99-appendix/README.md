@@ -26,7 +26,7 @@ Bedrock Knowledge Bases は、S3 のドキュメント取り込み、ベクト�
 前提を保持するには記憶の設計が要ります。AgentCore Memory は短期（セッション内）と
 長期（セッション横断）の記憶をマネージドで提供します。
 
-セッションの単位は `InvokeAgentRuntime` の runtimeSessionId（第16章）で、
+セッションの単位は `InvokeAgentRuntime` の runtimeSessionId（第17章）で、
 東京リージョンにも対応済みです。
 入口は AgentCore Memory の開発者ガイドと Strands の session_manager です。
 
@@ -38,7 +38,7 @@ OTel 形式のトレースを CloudWatch で可視化します。
 
 導入は `aws-opentelemetry-distro` を Dockerfile に足し、
 `opentelemetry-instrument` 経由で起動します（公式ドキュメントの手順）。
-イメージサイズとコールドスタート（第16章の実測値は versions.md）への影響を実測してから、
+イメージサイズとコールドスタート（第17章の実測値は versions.md）への影響を実測してから、
 本番採用を判断してください。
 
 ## D. AgentCore Gateway（既存 API の MCP 化）

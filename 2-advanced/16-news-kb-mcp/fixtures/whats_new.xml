@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+<title>AWS What's New (fixture)</title>
+<item>
+  <title>Amazon Bedrock AgentCore Gateway adds sample feature</title>
+  <link>https://aws.amazon.com/about-aws/whats-new/2026/09/agentcore-gateway-sample/</link>
+  <guid>whats-new-0001</guid>
+  <pubDate>Mon, 01 Sep 2026 12:00:00 GMT</pubDate>
+  <category>Amazon Bedrock</category>
+  <description>AgentCore Gateway now supports a sample feature for hands-on learning.</description>
+</item>
+<item>
+  <title>Amazon S3 Vectors is now available in additional regions</title>
+  <link>https://aws.amazon.com/about-aws/whats-new/2026/09/s3-vectors-regions/</link>
+  <guid>whats-new-0002</guid>
+  <pubDate>Tue, 02 Sep 2026 09:30:00 GMT</pubDate>
+  <category>Amazon S3</category>
+  <description>S3 Vectors expands regional availability.</description>
+</item>
+<item>
+  <title>AWS Lambda increases sample quota</title>
+  <link>https://aws.amazon.com/about-aws/whats-new/2026/09/lambda-sample-quota/</link>
+  <guid>whats-new-0003</guid>
+  <pubDate>Wed, 03 Sep 2026 15:45:00 GMT</pubDate>
+  <category>AWS Lambda</category>
+  <description>Lambda raises a sample quota for the hands-on fixture.</description>
+</item>
+</channel></rss>

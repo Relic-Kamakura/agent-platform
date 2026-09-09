@@ -1,0 +1,13 @@
+{
+  "app": "npx tsx bin/app.ts",
+  "watch": {
+    "include": ["**"],
+    "exclude": ["node_modules", "cdk.out", "dist"]
+  },
+  "context": {
+    "@aws-cdk/core:newStyleStackSynthesis": true,
+    "region": "us-west-2",
+    "embeddingDimension": 1024,
+    "scheduleHours": 6
+  }
+}

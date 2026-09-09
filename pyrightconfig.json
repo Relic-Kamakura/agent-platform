@@ -13,6 +13,7 @@
     { "root": "2-advanced/12-prompt-caching", "extraPaths": ["2-advanced/12-prompt-caching/exercises"] },
     { "root": "2-advanced/13-guardrails", "extraPaths": ["2-advanced/13-guardrails/exercises"] },
     { "root": "2-advanced/14-hitl", "extraPaths": ["2-advanced/14-hitl/exercises"] },
+    { "root": "2-advanced/16-news-kb-mcp", "extraPaths": ["2-advanced/16-news-kb-mcp/exercises"] },
     { "root": "2-advanced/15-structured-output", "extraPaths": ["2-advanced/15-structured-output/exercises"] }
   ]
 }

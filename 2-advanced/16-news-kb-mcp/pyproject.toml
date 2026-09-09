@@ -1,0 +1,12 @@
+[project]
+name = "chapter17-news-kb-mcp"
+version = "0.1.0"
+description = "第16章: AWS 更新情報ナレッジベースと MCP 読み取り経路（穴埋めハンズオン）"
+requires-python = ">=3.12"
+dependencies = ["boto3", "botocore[crt]"]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["verify"]

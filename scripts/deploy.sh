@@ -16,13 +16,13 @@ cd "$REPO_ROOT"
 
 step() { printf '\n\033[1m==> %s\033[0m\n' "$1"; }
 
-REGION="${AWS_REGION:-$(cd 3-production/17-infra-as-code && npx --no-install cdk context --json 2>/dev/null | jq -r '.region // empty' 2>/dev/null || true)}"
+REGION="${AWS_REGION:-$(cd 3-production/18-infra-as-code && npx --no-install cdk context --json 2>/dev/null | jq -r '.region // empty' 2>/dev/null || true)}"
 REGION="${REGION:-$(aws configure get region)}"
 [ -n "$REGION" ] || { echo "リージョンが決まりません。AWS_REGION を設定してください。" >&2; exit 1; }
 
 ACCOUNT="$(aws sts get-caller-identity --query Account --output text)"
-REPO_NAME="$(jq -r '.context.ecrRepositoryName' 3-production/17-infra-as-code/cdk.json)"
-IMAGE_TAG="$(jq -r '.context.imageTag' 3-production/17-infra-as-code/cdk.json)"
+REPO_NAME="$(jq -r '.context.ecrRepositoryName' 3-production/18-infra-as-code/cdk.json)"
+IMAGE_TAG="$(jq -r '.context.imageTag' 3-production/18-infra-as-code/cdk.json)"
 REGISTRY="${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com"
 IMAGE_URI="${REGISTRY}/${REPO_NAME}:${IMAGE_TAG}"
 
@@ -34,7 +34,7 @@ step "0/3 前提条件チェック"
 ./scripts/check_env.sh
 
 step "1/3 ECR スタックをデプロイ"
-(cd 3-production/17-infra-as-code && npx cdk deploy AgentPlatformEcrStack -c region="$REGION" --require-approval never)
+(cd 3-production/18-infra-as-code && npx cdk deploy AgentPlatformEcrStack -c region="$REGION" --require-approval never)
 
 step "2/3 ARM64 イメージをビルドして push"
 # --platform linux/arm64 は必須。AgentCore Runtime は arm64 のイメージしか起動できない。
@@ -47,7 +47,7 @@ docker buildx build \
   1-basic/07-full-app
 
 step "3/3 Runtime スタックをデプロイ"
-(cd 3-production/17-infra-as-code && npx cdk deploy AgentPlatformRuntimeStack -c region="$REGION" --require-approval never)
+(cd 3-production/18-infra-as-code && npx cdk deploy AgentPlatformRuntimeStack -c region="$REGION" --require-approval never)
 
 step "完了"
 RUNTIME_ARN="$(aws cloudformation describe-stacks \

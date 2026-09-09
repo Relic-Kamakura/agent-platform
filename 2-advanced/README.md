@@ -1,7 +1,8 @@
 # 第2部 応用編
 
 基礎編（`1-basic/`）で作ったエージェントを、実務の品質へ仕上げる部です。
-RAG、評価、インジェクション耐性、MCP、キャッシュ、内容フィルタ、承認ゲート、構造化出力の 8 章で、どの順で進めてもかまいません（root README の「順序と前提」参照）。
+RAG、評価、インジェクション耐性、MCP、キャッシュ、内容フィルタ、承認ゲート、構造化出力の 8 章に加え、それらを組み合わせて検索基盤を作る第16章があります。
+どの順で進めてもかまいません（root README の「順序と前提」参照）。
 デプロイ、IaC、認証、フロントエンドは第3部 本番運用基盤（`3-production/`）にあります。
 
 ## 章の一覧
@@ -16,28 +17,10 @@ RAG、評価、インジェクション耐性、MCP、キャッシュ、内容�
 | [13-guardrails](13-guardrails/) | マネージド層の内容フィルタ |
 | [14-hitl](14-hitl/) | 取り消せない操作の承認ゲート |
 | [15-structured-output](15-structured-output/) | 構造化出力とパースの撤去 |
+| [16-news-kb-mcp](16-news-kb-mcp/) | KB 取り込みと Gateway 検索基盤 |
 
-## 準備中: ニュース検索基盤（第20〜21章）
+## 第16章の位置づけ
 
-複数の AWS サービスを組み合わせ、AWS アップデート情報の収集と検索を行う基盤を作る章を準備しています。
-取り込み（書き込み専任）と読み取り（読み取り専任）を分離した構成です。
-
-```mermaid
-graph LR
-    subgraph W["書き込み側（第20章）"]
-        SC["EventBridge Scheduler (6h)"] --> FL["Fetch Lambda<br/>RSS 差分取得"]
-        FL --> S3["S3 news/YYYY/MM/"]
-        S3 --> SQ["SQS"] --> IT["Ingest Trigger Lambda"]
-        IT --> KB["Bedrock Knowledge Base<br/>(S3 Vectors + Titan Embed v2)"]
-    end
-    subgraph R["読み取り側（第21章）"]
-        CL["Claude Desktop / Code"] --> GW["AgentCore Gateway<br/>(Cognito JWT)"]
-        GW --> TL["Lambda ツール"] --> RT["Retrieve<br/>(メタデータフィルタ)"]
-    end
-    KB -.-> RT
-```
-
-第20章（20-ingest-pipeline）は GUID による冪等な差分取得、S3 イベント → SQS → StartIngestionJob の同期トリガ、DLQ とアラームによる失敗の通知を扱います。
-第21章（21-gateway-tools）は Cognito JWT で認可された AgentCore Gateway に検索ツールを載せ、Retrieve のメタデータフィルタで結果を絞ります。
-前提は第17章（CDK。第3部）と第8章（ナレッジベース）で、第21章はさらに第3章、第18章（第3部）、第11章を使います。
-章の実体は設計が確定した Phase で追加します。設計の経緯と未確認事項は docs/plan.md を参照してください。
+第16章は、第8章（KB）、第11章（MCP）、第18章（CDK）、第19章（Cognito と JWT）で学んだ要素を 1 つの検索基盤に組み上げる章です。
+AWS の更新情報 RSS を Knowledge Base へ取り込み、AgentCore Gateway 経由の MCP ツールとして Claude Code などから検索します。
+取り込み（書き込み専任）と読み取り（読み取り専任）を S3 と KB だけでつなぐ疎結合の構成で、第3部を終えていなくても、前提の 4 章が済んでいれば進められます。

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 第18章の合格判定。型チェックと synth の結果を検査する。
+# 第19章の合格判定。型チェックと synth の結果を検査する。
 set -uo pipefail
 
 CHAPTER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -11,15 +11,15 @@ ng() { printf '  \033[31mNG\033[0m    %s\n' "$1"; FAILED=1; }
 
 echo "1. 前提"
 if [ ! -d node_modules ]; then
-  ng "依存が入っていません。18-auth で npm ci を実行してください"
+  ng "依存が入っていません。19-auth で npm ci を実行してください"
   exit 1
 fi
 if [ ! -f lib/auth-stack.ts ]; then
-  ng "lib/auth-stack.ts がありません。exercises/auth-stack.ts をコピーして TODO を埋めてください（18.3.1）"
+  ng "lib/auth-stack.ts がありません。exercises/auth-stack.ts をコピーして TODO を埋めてください（19.3.1）"
   exit 1
 fi
 if grep -q "TODO" lib/auth-stack.ts; then
-  ng "lib/auth-stack.ts に TODO が残っています。README 18.3 に沿って実装し、終わったら TODO コメントを消してください"
+  ng "lib/auth-stack.ts に TODO が残っています。README 19.3 に沿って実装し、終わったら TODO コメントを消してください"
   exit 1
 fi
 ok "lib/auth-stack.ts がある"
@@ -34,19 +34,19 @@ fi
 echo "3. synth"
 SYNTH="$(npx cdk synth AgentPlatformAuthStack 2>/dev/null || true)"
 echo "$SYNTH" | grep -q "AWS::Cognito::UserPool" && ok "UserPool が定義されている" \
-  || ng "UserPool がありません（18.3.1 TODO(1)）"
+  || ng "UserPool がありません（19.3.1 TODO(1)）"
 echo "$SYNTH" | grep -q "AWS::Cognito::UserPoolClient" && ok "UserPoolClient が定義されている" \
-  || ng "App Client がありません（18.3.1 TODO(2)）"
+  || ng "App Client がありません（19.3.1 TODO(2)）"
 echo "$SYNTH" | grep -q "USER_PASSWORD_AUTH" && ok "USER_PASSWORD_AUTH が有効" \
-  || ng "authFlows の userPassword を有効にしてください（18.4 の CLI ログインで使う）"
+  || ng "authFlows の userPassword を有効にしてください（19.4 の CLI ログインで使う）"
 echo "$SYNTH" | grep -q "well-known/openid-configuration" && ok "DiscoveryUrl が OIDC 形式" \
-  || ng "discoveryUrl は /.well-known/openid-configuration まで含めてください（18.1.3）"
+  || ng "discoveryUrl は /.well-known/openid-configuration まで含めてください（19.1.3）"
 echo "$SYNTH" | grep -q "UserPoolId" && ok "CfnOutput がある" \
-  || ng "UserPoolId などの CfnOutput を出してください（18.3.1 TODO(4)）"
+  || ng "UserPoolId などの CfnOutput を出してください（19.3.1 TODO(4)）"
 
 echo
 if [ "$FAILED" = "0" ]; then
-  printf '\033[32m第18章 合格。\033[0m\n'
+  printf '\033[32m第19章 合格。\033[0m\n'
 else
   printf '\033[31m未達の項目があります。\033[0m\n'
 fi

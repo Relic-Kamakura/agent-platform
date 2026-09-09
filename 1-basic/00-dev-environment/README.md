@@ -4,12 +4,12 @@
 
 ## 0.1 概要
 
-本教材は Python 製のエージェント本体（第1〜7章）と TypeScript 製の CDK（第17章）の
+本教材は Python 製のエージェント本体（第1〜7章）と TypeScript 製の CDK（第18章）の
 両方を扱うため、2 つのツールチェーンを先に揃えます。
 
 - uv は Python の実行環境と依存パッケージを管理します。venv の activate は不要です
 - AWS CLI はモデル一覧の確認とデプロイに使います
-- Node.js と npm は CDK（第17章）で使います
+- Node.js と npm は CDK（第18章）で使います
 
 ## 0.2 ハンズオン: 開発環境を構築する
 
@@ -50,7 +50,7 @@ aws configure get region
 
 費用は、第1〜7章はモデル呼び出しの従量課金のみで固定費はありません。第1章は
 1 回 0.1 円未満、第2章以降も 1 リクエスト数円〜数十円です。デプロイを伴う
-第16章以降で AgentCore Runtime と ECR の課金が加わります。
+第17章以降で AgentCore Runtime と ECR の課金が加わります。
 
 ### 0.2.3 エージェント本体のテストを通す
 
@@ -69,7 +69,7 @@ uv run pytest -q
 ### 0.2.4 CDK の依存を入れる
 
 ```bash
-cd ../17-infra-as-code
+cd ../../3-production/18-infra-as-code
 npm ci
 ```
 

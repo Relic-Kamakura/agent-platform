@@ -2,9 +2,9 @@
 
 エージェント開発の学習リポジトリ。Strands Agents (Python 3.12+/uv) を Amazon Bedrock
 AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js を組み合わせる。
-教材は 3 部制。**第1部 基礎編（`1-basic/` = 00〜07章）、第2部 応用編（`2-advanced/` = 08〜15章）、第3部 本番運用基盤（`3-production/` = 16〜19章と付録）**で、どの部も番号付きディレクトリが学習の章。章番号は 3 部を通した通番。`1-basic/07-full-app` と `3-production/17-infra-as-code` は
+教材は 3 部制。**第1部 基礎編（`1-basic/` = 00〜07章）、第2部 応用編（`2-advanced/` = 08〜16章）、第3部 本番運用基盤（`3-production/` = 17〜20章と付録）**で、どの部も番号付きディレクトリが学習の章。章番号は 3 部を通した通番。`1-basic/07-full-app` と `3-production/18-infra-as-code` は
 章であると同時に動くコードの本体。題材は競合リサーチエージェント。
-応用編にはニュース検索基盤の章（20〜21）を追加予定（入口は 2-advanced/README.md）。
+応用編の第16章（news-kb-mcp）は、RSS 取り込みと AgentCore Gateway 検索基盤を組み上げる統合章。
 
 ## 詳細ドキュメント
 
@@ -24,7 +24,7 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
   - `src/main.py` エントリポイント（HTTP 契約はここだけ）/ `src/config.py` 環境変数を読む唯一の場所
   - `src/agents/` オーケストレータと専門エージェント / `src/tools/` 1 ファイル 1 ツール
   - `src/errors.py` 例外定義 / `src/guards.py` 上限ガードとトークン計測
-- `3-production/17-infra-as-code/` — CDK。`lib/config.ts` が context を読む唯一の場所
+- `3-production/18-infra-as-code/` — CDK。`lib/config.ts` が context を読む唯一の場所
 - `scripts/check_env.sh` — 前提条件チェック。困ったらまずこれ
 - 応用編の章は knowledge-base / evaluation / prompt-injection / mcp /
   prompt-caching / guardrails / hitl / structured-output（08〜15）。
@@ -39,12 +39,12 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
 - ローカル起動: `uv run python -m src.main`（`:8080`。塞がっていたら `SERVER_PORT=8181`）
 - コンテナ: `docker buildx build --platform linux/arm64 -t agent-platform/agent .`
 
-### 3-production/17-infra-as-code/
+### 3-production/18-infra-as-code/
 
 - 依存解決: `npm ci` / 型: `npx tsc --noEmit`
 - 差分・デプロイ: `npx cdk diff` / `npx cdk deploy --all`（直接 --all は禁止。deploy.sh を使う）
 
-### 3-production/19-streaming/
+### 3-production/20-streaming/
 
 - 依存解決: `npm ci` / 型: `npm run typecheck` / 開発サーバ: `npm run dev`
 
@@ -54,7 +54,7 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
 - デプロイ一式: `./scripts/deploy.sh`（ECR → イメージ push → Runtime の順序を保証）
 - 章の合格判定: 各章ディレクトリで `uv run pytest -q`。例外は
   09 章（ルートから `uv run --project 1-basic/07-full-app pytest 2-advanced/09-evaluation/verify -q`）、
-  16〜19 章（`<章>/verify/verify.sh`）、13 章（verify.sh と章内 pytest の両方）
+  17〜20 章（`<章>/verify/verify.sh`）、13・16 章（verify.sh と章内 pytest の両方）
 
 ## 必ず守る規約
 
@@ -62,7 +62,7 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
   `docker buildx` に `--platform linux/arm64` を明示する。
 - **リージョン・実行ロール ARN・Bedrock モデル ID をハードコードしない。**
   Python は `.env` 経由で `1-basic/07-full-app/src/config.py` から、CDK は context 経由で
-  `3-production/17-infra-as-code/lib/config.ts` から読む。テスト・例・章の教材コードも例外にしない。
+  `3-production/18-infra-as-code/lib/config.ts` から読む。テスト・例・章の教材コードも例外にしない。
 - **ツール呼び出し上限とターン数上限を外さない。** 上限値は `.env` で変えてよいが、
   ガード自体を無効化・削除しない。ガードなしのエージェントを新設しない。
 - **ツールの docstring は「LLM がツールを選択するための仕様書」として書く。**

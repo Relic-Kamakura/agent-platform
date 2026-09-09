@@ -169,4 +169,4 @@ uv run 02_structured_call.py
 
 ## 次の章
 
-[第16章 AgentCore Runtime にデプロイする](../../3-production/16-agentcore-deploy/)（第3部 本番運用基盤）。エージェントの中身を扱う章はこの第15章までです。
+[第16章 更新情報ナレッジベースと MCP 読み取り経路](../16-news-kb-mcp/)
