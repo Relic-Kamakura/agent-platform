@@ -16,11 +16,14 @@ G4 向け AI エージェント開発基盤ひな形。競合リサーチエー�
 
 **実行すると壊れていた箇所（本体 07-full-app）**: `str(result.message)` は dict の文字列表現を返すため報告本文が dict になり、ReviewAgent が常に revise を返していた。`src/agents/results.py` の `result_text()` に集約して修正。Orchestrator と SearchAgent を 1 インスタンス共有していたが、Strands の Agent は同一インスタンスの並行実行を ConcurrencyException で拒否し、履歴とメトリクスも混ざる。Agent はリクエストごとに `build_agent()` で作り、`BedrockModel` だけ共有する形に変更した。`MaxTokensReachedException` を捕まえておらず 500 で終わっていたので、途中までの本文を救出して `truncated: true` で返すようにした。`BedrockModel` に `boto_client_config`（読み取りタイムアウトと `max_attempts: 1`）を渡し、タイムアウト後の自動再送による二重生成を止めた。ログから検索クエリと観点の本文を外し、長さだけ記録する。テストは 38 件から 41 件になった。
 
-**各章の技術的な修正**: 第2章のメトリクス（`accumulated_usage` と `cycle_count` は Agent の生涯累計）、第3章の toolSpec の例（`Args:` 節以外は description に入り、properties の description は `"Parameter url"` になる）と httpx の接続失敗の変換、第4章と第15章の「出力上限は例外にならない」の誤り（`MaxTokensReachedException` が送出される）、第5章の専門エージェントの共有インスタンス、第9章の料金例の単価、第10章の閉じタグ無害化を演習として実装、第11章の Gateway のターゲット 3 種、第12章のキャッシュ無効化の範囲（変更点より後ろのキャッシュポイントだけが無効）、第13章の Standard tier と cross-Region の guardrail profile（CLASSIC は英語・フランス語・スペイン語のみで日本語の PROMPT_ATTACK が発動しない）、第14章の `interrupt`、第16章の `greaterThanOrEquals` は number 専用（`published_epoch` を追加）と埋め込み次元の一致と `maxReceiveCount`、第17章の bind 判定（`/.dockerenv` か `DOCKER_CONTAINER` があれば 0.0.0.0）とプロトコル別の契約、第18章の実行ロール（公式の最小構成へ拡張）と ARN 2 種と VPC モード、第19章の `allowedClients`（Cognito のアクセストークンは `client_id` を持ち `aud` を持たない）、第20章のクライアントのリトライとタイムアウト。
+**各章の技術的な修正**: 第2章のメトリクス（`accumulated_usage` と `cycle_count` は Agent の生涯累計）、第3章の toolSpec の例（`Args:` 節以外は description に入り、properties の description は `"Parameter url"` になる）と httpx の接続失敗の変換、第4章と第15章の「出力上限は例外にならない」の誤り（`MaxTokensReachedException` が送出される）、第5章の専門エージェントの共有インスタンス、第9章の料金例の単価、第10章の閉じタグ無害化を演習として実装、第11章の Gateway のターゲット 3 種、第12章のキャッシュ無効化の範囲（変更点より後ろのキャッシュポイントだけが無効）、第13章の Standard tier と cross-Region の guardrail profile（CLASSIC は英語・フランス語・スペイン語のみで日本語の PROMPT_ATTACK が発動しない）、第14章の `interrupt`、第16章の `greaterThanOrEquals` は number 専用（`published_epoch` を追加）と埋め込み次元の一致と `maxReceiveCount`、第17章の bind 判定（`/.dockerenv` か `DOCKER_CONTAINER` があれば 0.0.0.0）とプロトコルごとのポートとパス、第18章の実行ロール（公式の最小構成へ拡張）と ARN 2 種と VPC モード、第19章の `allowedClients`（Cognito のアクセストークンは `client_id` を持ち `aud` を持たない）、第20章のクライアントのリトライとタイムアウト。
 
 - **aws-cdk-lib 2.264.0 に L2 `Runtime` が存在する**（`aws-bedrockagentcore/lib/runtime/runtime.d.ts`）。`AgentRuntimeArtifact.fromAsset` は deploy 時に CDK がイメージを push するため、ECR を先に作る順序制約が無い。第18章 18.1.1 に 1 段落で追記し、CLAUDE.md の禁止事項にも「この制約は L1 と自前 ECR の構成のもの」と限定を添えた
 - リンク切れ 3 件（root README の付録、第7章の troubleshooting、付録の第8章）を修正。通番化の残骸（Dockerfile の「8.4」、verify の「演習 08 / 09」、package.json と uv.lock の章名）も回収した
-- 裏取りできず書かなかったこと: MCP プロトコル契約での `GET /ping` の要否、`structured_output` が None になる具体条件、STANDARD tier の対応言語の明示リスト、S3 Vectors と KB の対応リージョン
+- 裏取りできず書かなかったこと: MCP で Runtime が `GET /ping` を求めるかどうか、`structured_output` が None になる具体条件、STANDARD tier の対応言語の明示リスト、S3 Vectors と KB の対応リージョン
+- 用語の言い換え: 「HTTP 契約」「コンテナ契約」は初見で意味が取れないため、「Runtime がコンテナに要求する条件」「HTTP のエンドポイント定義」のように、その文が指すものを具体語で書く形に置き換えた（AWS との契約を指す「モデルと契約で変わる」は残す）
+- 「自分の言葉で答えてください（記述・任意）」の設問（第7章 7.4 確認、第18章 18.3.4）を削除した。機械判定が無く、到達点は手を動かした結果で書く規定に合わないため
+- Mermaid 図を古いレンダラでも通る形に統一した（連結矢印を 1 行 1 辺に分割、ノードと辺のラベルを二重引用符で囲む、sequenceDiagram の participant から `<br/>` と括弧を除去）。mermaid 11.17.2 で全 16 ブロックの解析が通ることを確認済み
 - 実機確認は未実施（AWS を呼ぶ工程は各章のハンズオンでユーザーが実行する）
 
 ## 第20章を第16章に繰り上げ（通番の再割り当て。2026-09-08）
