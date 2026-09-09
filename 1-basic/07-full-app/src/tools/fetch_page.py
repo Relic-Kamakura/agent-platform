@@ -1,4 +1,4 @@
-"""Web ページ本文の取得ツール。第3章の題材で、章内ハンズオンで同等物を自作する。
+"""Web ページ本文の取得ツール。
 1 ツール 1 責務: 「URL を受け取り、本文テキストを返す」のみ。要約・抽出はしない。
 """
 
@@ -22,6 +22,13 @@ class PageFetchError(ToolError):
 
     retryable = False
     hint = "この URL の本文は取得できません。検索結果のスニペットの範囲で報告してください。"
+
+
+class PageFetchUnavailable(PageFetchError):
+    """接続そのものに失敗した。相手側の一時的な事情のことがあるので retryable。"""
+
+    retryable = True
+    hint = "接続できませんでした。時間を置いて再試行するか、別の出典を使ってください。"
 
 
 def build_fetch_page_tool(settings: Settings):
@@ -62,6 +69,9 @@ def build_fetch_page_tool(settings: Settings):
                     response = client.get(url)
             except httpx.TimeoutException as exc:
                 last_error = exc
+            except httpx.HTTPError as exc:
+                # 接続失敗など。相手側の一時的な事情のことがあるのでリトライ対象にする
+                last_error = exc
             else:
                 if response.status_code >= 500:
                     last_error = PageFetchError(f"{url} が {response.status_code} を返しました。")
@@ -83,6 +93,10 @@ def build_fetch_page_tool(settings: Settings):
                 SearchProviderTimeout(
                     f"{url} の取得が {max_retries + 1} 回ともタイムアウトしました。"
                 )
+            )
+        if isinstance(last_error, httpx.HTTPError):
+            return format_tool_error(
+                PageFetchUnavailable(f"{url} に接続できませんでした: {last_error}")
             )
         return format_tool_error(PageFetchError(f"{url} の取得に失敗しました: {last_error}"))
 
