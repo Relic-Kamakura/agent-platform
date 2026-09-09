@@ -5,7 +5,7 @@ import type { Construct } from 'constructs';
 
 /**
  * Cognito User Pool と App Client。
- * ここが発行するアクセストークンを、Route Handler（第20章）と
+ * ここが発行するアクセストークンを、アプリ側の Route Handler と
  * AgentCore Runtime の JWT authorizer の両方が検証する。
  */
 export class AuthStack extends Stack {
