@@ -35,7 +35,8 @@ log_event(
 if (warning := _settings.prefix_warning()) is not None:
     log_event(logger, logging.WARNING, "model_id_prefix_warning", detail=warning)
 
-# Orchestrator はコールドスタート時に 1 度だけ構築する。
+# コールドスタート時に作るのはモデル（boto3 クライアント）まで。Strands の Agent は
+# リクエストごとに run() の中で作る（同一インスタンスの並行実行は ConcurrencyException になる）。
 _orchestrator = ResearchOrchestrator(_settings)
 
 
@@ -75,6 +76,7 @@ def invoke(payload: dict) -> dict | Iterator[dict]:
 
 
 if __name__ == "__main__":
-    # BedrockAgentCoreApp.run() は host 省略時に 127.0.0.1 へ bind するため、
-    # コンテナ契約 (0.0.0.0:8080) を満たすよう明示する。SERVER_PORT はローカル開発用の逃し先
+    # BedrockAgentCoreApp.run() は host 省略時、/.dockerenv か環境変数 DOCKER_CONTAINER が
+    # あれば 0.0.0.0、無ければ 127.0.0.1 に bind する。自動判定に任せず契約の 0.0.0.0:8080 を
+    # 明示する。SERVER_PORT はローカル開発用の逃し先
     app.run(host=_settings.server_host, port=_settings.server_port)

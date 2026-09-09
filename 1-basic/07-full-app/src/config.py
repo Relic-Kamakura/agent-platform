@@ -74,9 +74,19 @@ class Settings(BaseSettings):
     model_id_search_full: str | None = None
     model_id_review_full: str | None = None
 
+    # 出力上限。上限に達すると Strands は MaxTokensReachedException を送出する
+    # （応答が途中で切れた状態では返らない）。orchestrator.py が途中までの本文を救出する。
     max_tokens_orchestrator: int = 4096
     max_tokens_search: int = 2048
     max_tokens_review: int = 2048
+
+    # --- Bedrock クライアント -----------------------------------------------
+    # 読み取りタイムアウトは 1 回の生成が終わるまでの待ち時間。長い報告では 60 秒を超える。
+    # 自動リトライは 1 回（= 再送なし）にする。タイムアウト後に boto3 が再送すると、
+    # 同じ生成がもう 1 回走って課金も二重になるため。
+    bedrock_read_timeout_seconds: int = Field(default=150, ge=1)
+    bedrock_connect_timeout_seconds: int = Field(default=10, ge=1)
+    bedrock_max_attempts: int = Field(default=1, ge=1)
 
     # --- コスト・暴走対策 -------------------------------------------------
     # 上限に達したらツールを実行せずエージェントに通知する。デバッグ時も値を上げるだけにし、
@@ -84,8 +94,6 @@ class Settings(BaseSettings):
     max_tool_calls_total: int = Field(default=12, ge=1)
     max_tool_calls_per_tool: int = Field(default=6, ge=1)
     max_agent_turns: int = Field(default=10, ge=1)
-
-
 
     # --- 検索プロバイダ ---------------------------------------------------
     # 既定 mock: API キー無しでローカル実行とテストが完結するようにするため。
@@ -100,7 +108,7 @@ class Settings(BaseSettings):
 
     # --- サーバ -----------------------------------------------------------
     # AgentCore Runtime のコンテナ契約は 0.0.0.0:8080 固定。既定値を変えてはいけない。
-    # BedrockAgentCoreApp.run() は host 未指定だと 127.0.0.1 に bind するため明示している。
+    # BedrockAgentCoreApp.run() は host 未指定だと実行環境を見て bind 先を決めるため明示している。
     # ローカル開発で 8080 が塞がっている場合に限り SERVER_PORT を変更する
     # （macOS では Docker Desktop が 127.0.0.1:8080 を使うことがある）。
     server_host: str = "0.0.0.0"  # noqa: S104 - AgentCore の契約

@@ -7,6 +7,11 @@
 Orchestrator からは「ツール」として呼ばれる (agents-as-tools)。
 どの観点を何回調べるかは Orchestrator の裁量に委ねたいため、決定的な呼び出しにしていない。
 
+Agent はツール呼び出しごとに新しく作る。Strands の Agent は同じインスタンスの並行実行を
+ConcurrencyException で拒否するため、Orchestrator が同一ターンで investigate を 2 回要求すると
+共有インスタンスでは 2 回目が失敗する。会話履歴が呼び出し間で引き継がれるのも避けたい。
+BedrockModel（boto3 クライアント）はスレッドセーフなので共有する。
+
 
 """
 
@@ -15,6 +20,7 @@ from __future__ import annotations
 import logging
 
 from strands import Agent, tool
+from strands.models import BedrockModel
 
 from ..config import Settings
 from ..guards import build_guards
@@ -22,6 +28,7 @@ from ..observability import log_event
 from ..tools.providers import build_search_provider
 from ..tools.web_search import build_web_search_tool
 from .models import build_model
+from .results import result_text
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +45,12 @@ SYSTEM_PROMPT = """\
 """
 
 
-def build_search_agent(settings: Settings) -> Agent:
+def build_search_agent(settings: Settings, model: BedrockModel | None = None) -> Agent:
     provider = build_search_provider(settings)
     guards = build_guards(settings, role="search")
     return Agent(
         name="SearchAgent",
-        model=build_model(settings, "search"),
+        model=model or build_model(settings, "search"),
         system_prompt=SYSTEM_PROMPT,
         tools=[build_web_search_tool(provider, settings)],
         hooks=guards.hooks,
@@ -51,10 +58,10 @@ def build_search_agent(settings: Settings) -> Agent:
     )
 
 
-def build_search_agent_tool(settings: Settings):
+def build_search_agent_tool(settings: Settings, model: BedrockModel | None = None):
     """SearchAgent を Orchestrator 向けのツールとして公開する。"""
 
-    agent = build_search_agent(settings)
+    shared_model = model or build_model(settings, "search")
 
     @tool
     def investigate(topic: str) -> str:
@@ -76,13 +83,15 @@ def build_search_agent_tool(settings: Settings):
             - 出典の無い推測。
             - 調査観点の分解。渡された観点をそのまま調べるだけ。
         """
+        agent = build_search_agent(settings, model=shared_model)
         result = agent(topic)
-        text = str(result.message)
+        text = result_text(result)
+        # 本文（観点の文言）はログに出さない。長さと周回数だけ記録する。
         log_event(
             logger,
             logging.INFO,
             "search_agent_invoked",
-            topic=topic,
+            topic_length=len(topic),
             cycles=getattr(result.metrics, "cycle_count", None),
         )
         return text

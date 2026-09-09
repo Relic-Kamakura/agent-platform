@@ -21,6 +21,7 @@ from ..config import Settings
 from ..guards import build_guards
 from ..observability import log_event
 from .models import build_model
+from .results import result_text
 
 logger = logging.getLogger(__name__)
 
@@ -51,13 +52,19 @@ class ReviewOutcome:
 
 
 class ReviewAgent:
+    """検証を 1 回実行する。Agent は review() ごとに作り、モデルだけ共有する。"""
+
     def __init__(self, settings: Settings) -> None:
-        self._guards = build_guards(settings, role="review")
-        self._agent = Agent(
+        self._settings = settings
+        self._model = build_model(settings, "review")
+
+    def _build_agent(self) -> Agent:
+        guards = build_guards(self._settings, role="review")
+        return Agent(
             name="ReviewAgent",
-            model=build_model(settings, "review"),
+            model=self._model,
             system_prompt=SYSTEM_PROMPT,
-            hooks=self._guards.hooks,
+            hooks=guards.hooks,
             callback_handler=None,
         )
 
@@ -65,7 +72,7 @@ class ReviewAgent:
         prompt = (
             f"# 元の調査依頼\n{question}\n\n# 検証対象の報告\n{report}\n\n上記を検証してください。"
         )
-        text = str(self._agent(prompt).message).strip()
+        text = result_text(self._build_agent()(prompt))
         verdict = _parse_verdict(text)
         log_event(logger, logging.INFO, "review_completed", verdict=verdict)
         return ReviewOutcome(verdict=verdict, notes=text)

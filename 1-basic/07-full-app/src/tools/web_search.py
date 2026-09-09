@@ -60,7 +60,7 @@ def build_web_search_tool(provider: SearchProvider, settings: Settings):
                 logging.WARNING,
                 "web_search_failed",
                 provider=provider.name,
-                query=query,
+                query_length=len(query),
                 error=type(exc).__name__,
             )
             return format_tool_error(exc)
@@ -70,7 +70,7 @@ def build_web_search_tool(provider: SearchProvider, settings: Settings):
             logging.INFO,
             "web_search",
             provider=provider.name,
-            query=query,
+            query_length=len(query),
             hits=len(results),
         )
 

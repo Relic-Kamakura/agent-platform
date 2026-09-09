@@ -12,7 +12,11 @@
 3 の修正回数を 1 回に固定しているのは、ターン数とコストの上限を予測可能にするため。
 修正しても直らない場合は、指摘を最終成果物に添えて返し、人が判断できるようにする。
 
-
+Agent の寿命:
+    Strands の Agent は会話履歴とメトリクスを持ち、同じインスタンスの並行実行を
+    ConcurrencyException で拒否する。AgentCore Runtime は /invocations をスレッドプールで
+    並列に処理するので、Agent はリクエスト（run() の呼び出し）ごとに作る。
+    BedrockModel（boto3 クライアント）はスレッドセーフなので、プロセスで 1 つを共有する。
 """
 
 from __future__ import annotations
@@ -22,11 +26,13 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from strands import Agent
+from strands.types.exceptions import MaxTokensReachedException
 
 from ..config import Settings
-from ..guards import build_guards
+from ..guards import Guards, build_guards
 from ..observability import log_event
 from .models import build_model
+from .results import partial_text, result_text
 from .review_agent import ReviewAgent, ReviewOutcome
 from .search_agent import build_search_agent_tool
 
@@ -50,6 +56,8 @@ SYSTEM_PROMPT = """\
 3. 確認できなかったこと
 """
 
+TRUNCATED_NOTICE = "（出力がトークン上限に達したため、報告はここで打ち切られています）"
+
 
 @dataclass
 class ResearchReport:
@@ -57,6 +65,8 @@ class ResearchReport:
     report: str
     review: ReviewOutcome
     revised: bool = False
+    truncated: bool = False
+    tool_calls: int = 0
     usage: dict[str, int] = field(default_factory=dict)
 
     def to_payload(self) -> dict[str, object]:
@@ -65,6 +75,8 @@ class ResearchReport:
             "report": self.report,
             "review": {"verdict": self.review.verdict, "notes": self.review.notes},
             "revised": self.revised,
+            "truncated": self.truncated,
+            "tool_calls": self.tool_calls,
             "usage": self.usage,
         }
 
@@ -72,28 +84,37 @@ class ResearchReport:
 class ResearchOrchestrator:
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
-        self._guards = build_guards(settings, role="orchestrator")
-        self._agent = Agent(
+        # モデルはプロセスで 1 つ。Agent は run() ごとに build_agent() で作る。
+        self._orchestrator_model = build_model(settings, "orchestrator")
+        self._search_model = build_model(settings, "search")
+        self._reviewer = ReviewAgent(settings)
+
+    def build_agent(self) -> tuple[Agent, Guards]:
+        """1 リクエスト分の Orchestrator Agent とガード一式を作る。"""
+        guards = build_guards(self._settings, role="orchestrator")
+        agent = Agent(
             name="OrchestratorAgent",
-            model=build_model(settings, "orchestrator"),
+            model=self._orchestrator_model,
             system_prompt=SYSTEM_PROMPT,
-            tools=[build_search_agent_tool(settings)],
-            hooks=self._guards.hooks,
+            tools=[build_search_agent_tool(self._settings, model=self._search_model)],
+            hooks=guards.hooks,
             callback_handler=None,
         )
-        self._reviewer = ReviewAgent(settings)
+        return agent, guards
 
     def run(self, question: str, on_stage: Callable[[str], None] | None = None) -> ResearchReport:
         """調査を 1 回実行する。
 
         on_stage: 進捗ステージ ("research" / "review" / "revise") ごとに呼ばれる。
-        ストリーミング応答（第20章）が UI へ進捗を流すために使う。
+        ストリーミング応答が UI へ進捗を渡すために使う。
         """
         notify = on_stage or (lambda _stage: None)
+        agent, guards = self.build_agent()
 
         notify("research")
-        result = self._agent(question)
-        report = str(result.message)
+        report, truncated = _invoke(agent, question)
+        # ツール呼び出し回数は Agent の呼び出しごとに 0 に戻るので、ここで退避する
+        tool_calls = guards.tool_limiter.total_calls
 
         notify("review")
         review = self._reviewer.review(question, report)
@@ -108,19 +129,40 @@ class ResearchOrchestrator:
                 "指摘を反映した報告を出力してください。追加の調査は行わず、"
                 "手持ちの情報の範囲で修正してください。"
             )
-            report = str(self._agent(revision_prompt).message)
+            report, truncated = _invoke(agent, revision_prompt)
             revised = True
 
-        usage = self._guards.usage_logger.last_usage
+        usage = guards.usage_logger.last_usage
         log_event(
             logger,
             logging.INFO,
             "research_completed",
             verdict=review.verdict,
             revised=revised,
-            tool_calls=self._guards.tool_limiter.total_calls,
-            turns=self._guards.turn_limiter.turns,
+            truncated=truncated,
+            tool_calls=tool_calls,
+            turns=guards.turn_limiter.turns,
         )
         return ResearchReport(
-            question=question, report=report, review=review, revised=revised, usage=usage
+            question=question,
+            report=report,
+            review=review,
+            revised=revised,
+            truncated=truncated,
+            tool_calls=tool_calls,
+            usage=usage,
         )
+
+
+def _invoke(agent: Agent, prompt: str) -> tuple[str, bool]:
+    """Agent を 1 回呼び、本文と「出力上限で打ち切られたか」を返す。
+
+    Strands は max_tokens に達すると MaxTokensReachedException を送出する。
+    途中までの本文は agent.messages に残っているので、それを救出して報告に使う。
+    黙って 500 にするより、途中までの内容と打ち切りの事実を返すほうが利用者は次の判断ができる。
+    """
+    try:
+        return result_text(agent(prompt)), False
+    except MaxTokensReachedException:
+        log_event(logger, logging.WARNING, "max_tokens_reached", agent=agent.name)
+        return f"{partial_text(agent)}\n\n{TRUNCATED_NOTICE}".strip(), True
