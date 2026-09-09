@@ -11,7 +11,7 @@ from approval_gate import ApprovalGate
 
 
 def fire(gate: ApprovalGate, tool_name: str, tool_input: dict) -> BeforeToolCallEvent:
-    """ツール実行直前のイベントを手で作ってゲートに通す（第4章と同じ技法）。"""
+    """ツール実行直前のイベントを手で作ってゲートに渡す。"""
     event = BeforeToolCallEvent(
         agent=None,
         selected_tool=None,

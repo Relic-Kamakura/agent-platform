@@ -13,7 +13,7 @@ from strands.models import BedrockModel
 
 from approval_gate import ApprovalGate
 
-# モデル ID。第1章 1.3 の手順で確認した、自分のリージョンで呼べる ID に合わせる
+# モデル ID。aws bedrock list-inference-profiles で確認した、自分のリージョンで呼べる ID に合わせる
 MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
 
@@ -31,7 +31,7 @@ def send_email(to: str, subject: str, body: str) -> str:
 
 @dataclass
 class ToolCallLimiter:
-    """ツール呼び出し回数の上限。承認ゲートとは別の、暴走を止める側のガード（第4章）。"""
+    """ツール呼び出し回数の上限。承認ゲートとは別に、呼び出し回数を抑える側のガード。"""
 
     max_calls: int
     _calls: int = field(default=0, init=False)

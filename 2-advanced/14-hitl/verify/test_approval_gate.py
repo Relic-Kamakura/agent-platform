@@ -1,4 +1,4 @@
-"""演習 18 の合格判定。承認・否認の両パスを検査する（完全オフライン）。"""
+"""第14章の合格判定。承認と否認の両方の経路を検査する（モデルを呼ばない）。"""
 
 from __future__ import annotations
 
@@ -54,7 +54,7 @@ def test_denied_tool_is_cancelled_with_reason(approval_gate_cls) -> None:
     gate = approval_gate_cls(requires_approval={"send_email"}, approver=lambda name, tool_input: False)
     event = _fire(gate, "send_email", {"to": "a@example.com"})
     assert isinstance(event.cancel_tool, str), (
-        "否認時は bool ではなく理由の文字列を cancel_tool に入れてください（第4章と同じ設計）。"
+        "否認時は bool ではなく理由の文字列を cancel_tool に入れてください（README 14.2.2）。"
     )
     assert "send_email" in event.cancel_tool, "理由にツール名を含めてください。"
     assert "承認" in event.cancel_tool, "人間の承認が得られなかったことを理由に書いてください。"
