@@ -65,8 +65,8 @@ if [ -z "$REGION" ]; then
 else
   ok "リージョン: $REGION"
 fi
-# AgentCore Runtime が使えるリージョンか（2026-08 時点の公式表より）
-AGENTCORE_REGIONS="us-east-1 us-east-2 us-west-2 eu-central-1 eu-west-1 eu-west-2 eu-south-1 eu-west-3 eu-south-2 eu-north-1 ap-southeast-5 ap-south-1 ap-southeast-1 ap-southeast-2 ap-southeast-7 ap-northeast-1 ap-northeast-2 ca-central-1 sa-east-1 us-gov-west-1"
+# AgentCore Runtime (microVM) が使えるリージョンか（公式の Supported AWS Regions より。2026-09-10 確認）
+AGENTCORE_REGIONS="us-east-1 us-east-2 us-west-1 us-west-2 eu-central-1 eu-west-1 eu-west-2 eu-south-1 eu-west-3 eu-south-2 eu-north-1 ap-southeast-5 ap-south-1 ap-south-2 ap-southeast-1 ap-southeast-2 ap-southeast-7 ap-northeast-1 ap-northeast-2 ca-central-1 sa-east-1 us-gov-west-1"
 if echo "$AGENTCORE_REGIONS" | tr ' ' '\n' | grep -qx "$REGION"; then
   ok "AgentCore Runtime に対応しているリージョン"
 else
@@ -81,15 +81,23 @@ ENV_FILE="$REPO_ROOT/1-basic/07-full-app/.env"
 [ -f "$ENV_FILE" ] || ENV_FILE="$REPO_ROOT/1-basic/07-full-app/.env.example"
 get_env() { grep -E "^$1=" "$ENV_FILE" 2>/dev/null | tail -1 | cut -d= -f2-; }
 
+# 導出規則は 1-basic/07-full-app/src/config.py の derive_inference_prefix と同じにする。
 PREFIX="$(get_env BEDROCK_MODEL_ID_PREFIX)"
 if [ -z "$PREFIX" ]; then
   case "$REGION" in
-    ap-*) PREFIX="apac" ;;
     us-gov-*) PREFIX="us-gov" ;;
+    ap-*) PREFIX="apac" ;;
     *) PREFIX="$(echo "$REGION" | cut -d- -f1)" ;;
   esac
+  ok "推論プロファイル接頭辞: $PREFIX (リージョンから導出)"
+  # 東京は地理接頭辞 apac ではなく国別の jp プロファイルのみのモデルがある。
+  # 導出では jp を組み立てられないので、明示を促す。
+  if [ "$REGION" = "ap-northeast-1" ]; then
+    warn "ap-northeast-1 では jp. プロファイルのみのモデルがあります。.env に BEDROCK_MODEL_ID_PREFIX=jp を設定してください"
+  fi
+else
+  ok "推論プロファイル接頭辞: $PREFIX (.env の BEDROCK_MODEL_ID_PREFIX)"
 fi
-ok "推論プロファイル接頭辞: $PREFIX (リージョンから導出)"
 
 PROFILES="$(aws bedrock list-inference-profiles --region "$REGION" --output json 2>/dev/null)"
 if echo "$PROFILES" | jq -e '.inferenceProfileSummaries' >/dev/null 2>&1; then

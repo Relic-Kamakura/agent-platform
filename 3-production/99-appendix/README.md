@@ -11,12 +11,11 @@
 外部の公開情報を引くのに対し、RAG は自分たちのデータを引きます。
 Bedrock Knowledge Bases は、S3 のドキュメント取り込み、ベクトル化、検索 API までを
 マネージドで提供する AWS 版の RAG 基盤です。
-仕組みの基礎と最小の retrieve ツールは [第8章](../08-knowledge-base/) が本編で扱います。
+仕組みの基礎と最小の retrieve ツールは [第8章](../../2-advanced/08-knowledge-base/) が本編で扱います。
 この節は第8章の先、KB + S3 + ベクトル検索を組み合わせた本格構成に
 進むときの入口です。
 
-本編との接続は第3章のツール設計で、Retrieve API をツールとして包めば
-このエージェントは社内文書も引けるようになります（第8章で実装します）。
+Retrieve API をツールとして包めば、エージェントは社内文書も引けるようになります。
 入口は Bedrock Knowledge Bases の開発者ガイドです。
 本編の題材（Web 検索型）とは混ぜず、別モジュールとして作ってください。
 
@@ -27,7 +26,8 @@ Bedrock Knowledge Bases は、S3 のドキュメント取り込み、ベクト�
 長期（セッション横断）の記憶をマネージドで提供します。
 
 セッションの単位は `InvokeAgentRuntime` の runtimeSessionId（第17章）で、
-東京リージョンにも対応済みです。
+東京リージョンにも対応済みです。イベントの保持期間（EventExpirationDuration）は
+7 日から 365 日の範囲で指定します。
 入口は AgentCore Memory の開発者ガイドと Strands の session_manager です。
 
 ## C. オブザーバビリティ（OpenTelemetry / AgentCore Observability）
@@ -38,6 +38,8 @@ OTel 形式のトレースを CloudWatch で可視化します。
 
 導入は `aws-opentelemetry-distro` を Dockerfile に足し、
 `opentelemetry-instrument` 経由で起動します（公式ドキュメントの手順）。
+トレースの送信先は X-Ray なので、Runtime の実行ロールに xray と cloudwatch の権限が要ります
+（第18章で入れてあります）。
 イメージサイズとコールドスタート（第17章の実測値は versions.md）への影響を実測してから、
 本番採用を判断してください。
 
@@ -47,9 +49,9 @@ OTel 形式のトレースを CloudWatch で可視化します。
 第11章で自作した MCP サーバと同じ役割を、サーバの実装と運用を AWS 側に任せる形で
 提供します。
 
-第11章の発展にあたります。自作 MCP サーバとの使い分けは、変換ロジックが要るなら自作、
+第16章が Lambda ターゲットの Gateway を Cognito の JWT 認可付きで実装する本編なので、
+この節は入口ではなく補足です。自作 MCP サーバとの使い分けは、変換ロジックが要るなら自作、
 既存 API をそのままツールとして公開するだけなら Gateway です。
-入口は AgentCore Gateway の開発者ガイド（東京リージョン対応済み）です。
 
 ## E. 用語集
 

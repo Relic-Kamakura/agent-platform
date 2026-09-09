@@ -3,7 +3,7 @@
 教材の本文にはこの表の値を書かない。本文からは「versions.md を参照」の形で参照する。
 モデルの世代交代やライブラリの更新で変わるのはこのファイルだけにする。
 
-最終確認日: 2026-08-30
+最終確認日: 2026-09-10
 
 ## モデル
 
@@ -40,9 +40,16 @@
 | 同期呼び出し | 15 分 |
 | ストリーミング | 60 分 |
 | 非同期ジョブ | 8 時間 |
-| セッション | 既定 15 分、最長 8 時間 |
+| セッションの idle | 既定 15 分 |
+| セッションの最長 | 8 時間 |
 | ペイロード | 100 MB |
+| コンテナイメージ | 2 GB |
 | セッション ID の最小長 | 33 文字 |
+
+セッションの idle と最長は Runtime の `LifecycleConfiguration`
+（`idleRuntimeSessionTimeout` と `maxLifetime`）で調整できる。
+それ以外の実行上限とコンテナイメージのサイズは引き上げできない。
+出典: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html（2026-09-10 確認）
 
 ## AgentCore Runtime のクォータ（既定値）
 
@@ -103,6 +110,7 @@ us-east-1 / us-west-2 が 5,000、他リージョンが 2,500。引き上げは 
 | --- | --- |
 | Python | 3.12 以上 |
 | strands-agents | 1.53.0 |
+| bedrock-agentcore | 1.21.0 |
 | aws-cdk-lib | 2.264.0 |
 
 `strands-agents` には `max_turns` 相当の引数が無い（1.52.0 で確認）。

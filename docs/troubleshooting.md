@@ -39,8 +39,11 @@ macOS の Docker Desktop が `127.0.0.1:8080` を LISTEN していることが�
 ### 症状: コンテナ外から `/ping` に到達できない
 
 **原因**
-`BedrockAgentCoreApp.run()` は `host` を省略すると `127.0.0.1` に bind する。
-AgentCore Runtime のコンテナ契約は `0.0.0.0:8080` なので、既定のままでは契約を満たさない。
+`BedrockAgentCoreApp.run()` は `host` を省略すると、`/.dockerenv` の有無と環境変数
+`DOCKER_CONTAINER` を見て bind 先を決める。どちらも見つからなければ `127.0.0.1` に bind する
+（bedrock-agentcore 1.21.0 の `bedrock_agentcore/runtime/app.py` で確認）。
+AgentCore Runtime の microVM にこのファイルがあるかは公開されていないので、自動判定に依存すると
+コンテナ契約の `0.0.0.0:8080` を満たすかどうかが環境任せになる。
 
 **対処**
 `src/main.py` で `app.run(host=..., port=...)` を明示している（既定 `0.0.0.0:8080`）。
