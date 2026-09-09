@@ -60,7 +60,6 @@ graph TB
 | ナレッジベース | 検索拡張生成(RAG) | 第8章 |
 | プロンプトマネジメント | 版管理と退行検知 | 第9章 |
 | ガードレール | 入出力の内容フィルタ | 第13章 |
-| 自動推論チェック | ハルシネーション検出 | 第13章 |
 | フロー | 処理をノードで繋ぐ | 対象外 |
 | データオートメーション | 非構造化文書の情報抽出 | 対象外 |
 
@@ -95,7 +94,6 @@ graph TB
 | [14-hitl](2-advanced/14-hitl/) | 取り消せない操作の承認ゲート |
 | [15-structured-output](2-advanced/15-structured-output/) | 構造化出力とパースの撤去 |
 | [16-news-kb-mcp](2-advanced/16-news-kb-mcp/) | KB 取り込みと Gateway 検索基盤 |
-| [99-appendix](2-advanced/99-appendix/) | 発展領域の入口と用語集 |
 
 第3部 本番運用基盤（エージェントを外へ届ける側。詳細は [3-production/README.md](3-production/README.md)）。
 
@@ -105,6 +103,7 @@ graph TB
 | [18-infra-as-code](3-production/18-infra-as-code/) | CDK と IAM ロール設計 |
 | [19-auth](3-production/19-auth/) | Cognito と JWT による認可 |
 | [20-streaming](3-production/20-streaming/) | Next.js とストリーミング表示 |
+| [99-appendix](3-production/99-appendix/) | 発展領域の入口と用語集 |
 
 Tier 分けと習得判定は [docs/learning-roadmap.md](docs/learning-roadmap.md) に、
 モデル ID や単価などバージョンで変わる値は [docs/versions.md](docs/versions.md) にあります。
@@ -127,13 +126,11 @@ graph LR
 
 工程のうち作業量が多いのはツール設計（第3章）と評価（第9章）です。
 
-## 順序と前提
+## 順序
 
-- 第1部（00〜07）は番号順に進める（06 は第3章で作ったものと同じツールにテストを書く）
-- 第2部のうち 08 は 01 まで終えていれば独立に進められる。09〜15 はどの順で進めてもよい。
-  16 は 08・11・18・19 を終えてから進める
-- 第3部の 17・18 は 03 まで終えていれば、第1部の残りや第2部と並行して進められる。
-  19 は独立に進められ（デプロイして試す工程だけ 18 が前提）、20 は 19 の後に進める
+どの章も、その章のディレクトリで `uv sync` か `npm ci` を実行すれば単独で始められます。
+他の章を先に終えている必要はありません。番号順は、概念が積み上がる順に並べた推奨の順序です。
+第0章は AWS CLI と Docker の確認だけなので、環境が整っている人は飛ばしてかまいません。
 
 ## 困ったら
 

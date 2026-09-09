@@ -88,6 +88,10 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
   として置き、完成形を `solutions/` に置く。README は概要節に TODO を埋めるための
   具体構造を書き、ハンズオン節末に開閉式（`<details>`）の解答例を付ける。
   verify は TODO の残存を検出して該当節へ誘導する
+- **章はその章だけで完結させる。** 冒頭にその章のセットアップを置き、他章を先に終えている前提や
+  「第N章で学ぶ」「第N章参照」を書かない（他章への参照は文末の「次の章」リンクだけ）。
+  分量は概要 + 実装のポイントで日本語 1,200 字以内、README 200 行以内を目安にする
+  （詳細は writing-style.md「章内完結と分量」）
 - 合格判定は機械実行できる形にする（pytest かスクリプト）。「読んだら終わり」の章を作らない
 - verify は solutions を適用した状態で全パスすることを確認してから追加する
 - 空のプレースホルダディレクトリを作らない。実体ができる Phase で章を追加する
@@ -99,6 +103,8 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
 - `docs/troubleshooting.md` に一般的なトラブル集を書かない。実際に遭遇した事象のみ。
 - 秘密情報をコミットしない（`.env` / トークン / アカウント ID 直書き）。
 - ECR と AgentCore Runtime を同一デプロイで新規作成しない（deploy.sh の順序を守る）。
+  この制約は本リポジトリの構成（L1 CfnRuntime + 自前 ECR）のもの。L2 `Runtime` の
+  `AgentRuntimeArtifact.fromAsset` を使う構成では CDK がイメージを push するため生じない。
 - 生成物（`.venv/` `node_modules/` `cdk.out/` `__pycache__/`）をコミットしない。
 
 ## 進め方

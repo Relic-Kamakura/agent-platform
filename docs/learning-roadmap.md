@@ -1,7 +1,7 @@
 # 学習ロードマップ
 
 この教材で「何を・どの順で」身につけるかの計画。育成の進捗管理にもこの表を使う。
-**実体は `1-basic/`（00〜07章）、`2-advanced/`（08〜15章）、`3-production/`（16〜19章と付録）配下の章ディレクトリ**（README.md の章一覧参照）。本表の項目と章の対応:
+**実体は `1-basic/`（00〜07章）、`2-advanced/`（08〜16章）、`3-production/`（17〜20章と付録）配下の章ディレクトリ**（README.md の章一覧参照）。本表の項目と章の対応:
 
 | Tier 項目 | 章 |
 | --- | --- |
@@ -16,7 +16,7 @@
 | 1-9 インジェクション耐性 | 10-prompt-injection |
 | 1-10 ストリーミング | 20-streaming |
 | Tier 2 各項目 | 11-mcp / 12-prompt-caching / 13-guardrails / 14-hitl / 15-structured-output |
-| Tier 3-1 の基礎（RAG / Knowledge Bases） | 08-knowledge-base |
+| Tier 3-1（RAG / Knowledge Bases） | 08-knowledge-base（基礎） / 16-news-kb-mcp（KB 取り込みと検索基盤） |
 | Tier 3 各項目 | 99-appendix（入口ドキュメント） |
 
 - 対象: エージェント開発案件への参画を目指す部内メンバー（G4）
@@ -68,10 +68,10 @@
 
 | # | 項目 | 備考 |
 | --- | --- | --- |
-| 3-1 | RAG + Bedrock Knowledge Bases | 頻出。仕組みの基礎と最小の retrieve は第8章で扱う。KB + S3 + ベクトル検索の本格構成は引き続き**別モジュール**として作る（本教材の題材と混ぜない） |
+| 3-1 | RAG + Bedrock Knowledge Bases | 仕組みの基礎と最小の retrieve は第8章、S3 + ベクトル検索を含む取り込みと検索の基盤は第16章で扱う |
 | 3-2 | マルチターン会話 / AgentCore Memory | 現状のワンショット構成を会話型に拡張する題材 |
 | 3-3 | オブザーバビリティ（OTel / AgentCore Observability） | 分散トレース。運用フェーズの案件に入る前に |
-| 3-4 | AgentCore Gateway | 既存 API の MCP ツール化 |
+| 3-4 | AgentCore Gateway | 既存 API の MCP ツール化。Lambda ターゲットでの実装は第16章で扱う |
 
 ## Tier 4: 現時点では優先しない（保留）
 
