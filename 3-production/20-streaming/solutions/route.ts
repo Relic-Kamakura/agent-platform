@@ -14,7 +14,7 @@ const verifier =
     ? CognitoJwtVerifier.create({
         userPoolId: process.env.COGNITO_USER_POOL_ID,
         clientId: process.env.COGNITO_CLIENT_ID,
-        tokenUse: 'access', // API の認可に使うのはアクセストークン（第19章 19.1.3）
+        tokenUse: 'access', // API の認可に使うのはアクセストークン（ID トークンではない）
       })
     : null;
 
@@ -37,7 +37,7 @@ async function authorize(request: NextRequest): Promise<Response | null> {
   }
 
   try {
-    await verifier.verify(token); // 署名・iss・client_id・有効期限を検証
+    await verifier.verify(token); // 署名と iss と client_id と有効期限を検証
     return null;
   } catch {
     return Response.json({ error: 'トークンが無効です。' }, { status: 401 });

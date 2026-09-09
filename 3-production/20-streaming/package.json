@@ -1,5 +1,5 @@
 {
-  "name": "chapter16-streaming",
+  "name": "chapter20-streaming",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-agentcore": "^3.1108.0",
+    "@smithy/node-http-handler": "^4.10.0",
     "aws-jwt-verify": "^5.2.1",
     "next": "15.5.23",
     "react": "19.0.8",

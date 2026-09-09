@@ -13,7 +13,7 @@ const verifier =
     ? CognitoJwtVerifier.create({
         userPoolId: process.env.COGNITO_USER_POOL_ID,
         clientId: process.env.COGNITO_CLIENT_ID,
-        tokenUse: 'access', // API の認可に使うのはアクセストークン（第19章 19.1.3）
+        tokenUse: 'access', // API の認可に使うのはアクセストークン（ID トークンではない）
       })
     : null;
 

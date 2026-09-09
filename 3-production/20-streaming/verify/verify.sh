@@ -16,11 +16,11 @@ ok "npm ci 済み"
 echo "2. Route Handler の存在と内容"
 ROUTE="app/api/invoke/route.ts"
 if [ ! -f "$ROUTE" ]; then
-  ng "$ROUTE がありません。exercises/route.ts をコピーして README の 20.3 に沿って埋めてください"
+  ng "$ROUTE がありません。exercises/route.ts をコピーして README の 20.3.1 に沿って埋めてください"
   exit 1
 fi
 if grep -q "TODO" "$ROUTE"; then
-  ng "TODO が残っています。README の 20.3 に沿って実装し、終わったら TODO コメントを消してください"
+  ng "TODO が残っています。README の 20.3.1 に沿って実装し、終わったら TODO コメントを消してください"
 else
   ok "TODO が残っていない"
 fi

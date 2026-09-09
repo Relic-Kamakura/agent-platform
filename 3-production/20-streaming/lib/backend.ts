@@ -1,12 +1,17 @@
-// エージェント基盤への転送ヘルパー（提供コード。第20章のハンズオン対象は route.ts 側）。
+// エージェント基盤への転送ヘルパー（提供コード。ハンズオン対象は route.ts 側）。
 //
-// LOCAL_AGENT_URL が設定されていればローカルの 07-full-app（:8080）へ、
+// LOCAL_AGENT_URL が設定されていればローカルのエージェント（:8080）へ、
 // 無ければ AgentCore Runtime（AGENT_RUNTIME_ARN）へ転送する。
 // どちらもレスポンスはストリームのまま返し、Route Handler がブラウザへ返す。
 import {
   BedrockAgentCoreClient,
   InvokeAgentRuntimeCommand,
 } from '@aws-sdk/client-bedrock-agentcore';
+import { NodeHttpHandler } from '@smithy/node-http-handler';
+
+// リクエスト全体の上限。既定の requestTimeout は 0（無制限）なので明示する。
+// ストリーミングは同期呼び出しより長く待てるため、ストリーミング前提なら伸ばす
+const REQUEST_TIMEOUT_MS = 15 * 60 * 1000;
 
 export interface InvokePayload {
   prompt: string;
@@ -14,7 +19,7 @@ export interface InvokePayload {
   request_id?: string;
 }
 
-/** ローカルの 07-full-app へ転送する（開発時）。 */
+/** ローカルで起動したエージェントへ転送する（開発時）。 */
 async function invokeLocal(baseUrl: string, payload: InvokePayload): Promise<Response> {
   return fetch(`${baseUrl}/invocations`, {
     method: 'POST',
@@ -33,10 +38,20 @@ async function invokeRuntime(payload: InvokePayload): Promise<Response> {
     );
   }
 
-  const client = new BedrockAgentCoreClient({ region: process.env.AWS_REGION });
+  const client = new BedrockAgentCoreClient({
+    region: process.env.AWS_REGION,
+    // JS SDK の既定は maxAttempts 3。5xx や 409 を再試行されると同じ runtimeSessionId で
+    // エージェントが二重に走り、Bedrock のトークン費用も二重に出る。再試行は呼び出し側で決める
+    maxAttempts: 1,
+    requestHandler: new NodeHttpHandler({
+      connectionTimeout: 5_000,
+      requestTimeout: REQUEST_TIMEOUT_MS,
+    }),
+  });
   const command = new InvokeAgentRuntimeCommand({
     agentRuntimeArn: arn,
-    // セッション ID は 33 文字以上が必要（第17章）。UUID + 時刻で満たす
+    // セッション ID は 33 文字以上必要。UUID と時刻で満たす。
+    // ワンショット設計なので毎リクエスト新しく作る。会話を続けるなら会話単位で使い回す
     runtimeSessionId: `${crypto.randomUUID().replaceAll('-', '')}${Date.now()}`,
     payload: new TextEncoder().encode(JSON.stringify(payload)),
   });
