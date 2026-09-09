@@ -12,7 +12,7 @@ from strands.models import BedrockModel
 from specialist import build_specialist_tool
 from tool_call_limiter import ToolCallLimiter
 
-# モデル ID。第1章 1.3 の手順で確認した、自分のリージョンで呼べる ID に合わせる
+# モデル ID。aws bedrock list-inference-profiles で確認した、自分のリージョンで呼べる ID に合わせる
 MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
 orchestrator = Agent(

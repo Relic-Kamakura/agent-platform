@@ -13,10 +13,10 @@ from strands.models import BedrockModel
 
 from tool_call_limiter import ToolCallLimiter
 
-# モデル ID。第1章 1.3 の手順で確認した、自分のリージョンで呼べる ID に合わせる
+# モデル ID。aws bedrock list-inference-profiles で確認した、自分のリージョンで呼べる ID に合わせる
 MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
-# 専門エージェントが検索する固定データ。実案件では外部 API や DB になる部分
+# 専門エージェントが検索する固定データ。外部 API や DB に置き換わる部分
 PRICING_DATA = {
     "Acme Analytics": {"Free": "$0", "Pro": "$29/月", "Enterprise": "要問い合わせ"},
     "Globex Insights": {"Starter": "$19/月", "Business": "$99/月"},
@@ -60,11 +60,24 @@ def lookup_pricing(company: str) -> str:
     return "\n".join(f"{plan}: {price}" for plan, price in PRICING_DATA[company].items())
 
 
-def build_specialist_agent() -> Agent:
-    """価格調査の専門エージェントを組み立てて返す。"""
+def build_model() -> BedrockModel:
+    """専門エージェントが使うモデル。
+
+    BedrockModel は boto3 クライアントを内包していてスレッドセーフなので、
+    ツールの呼び出し間で共有してよい（共有しないのは Agent のほう）。
+    """
+    return BedrockModel(
+        region_name=os.environ.get("AWS_REGION", "us-east-1"),
+        model_id=MODEL_ID,
+        max_tokens=1024,
+    )
+
+
+def build_specialist_agent(model: BedrockModel) -> Agent:
+    """価格調査の専門エージェントを 1 つ組み立てて返す。"""
     # TODO(1): Agent を組み立てて返す。
-    #   - model: BedrockModel(region_name=os.environ.get("AWS_REGION", "us-east-1"),
-    #                         model_id=MODEL_ID, max_tokens=1024)
+    #   - name: "PricingSpecialist"
+    #   - model: 引数で受け取った model
     #     価格の検索と表への整形は定型処理なので、軽量モデル（Haiku）で足りる
     #   - system_prompt: SYSTEM_PROMPT
     #   - tools: [lookup_pricing]
@@ -75,17 +88,20 @@ def build_specialist_agent() -> Agent:
 
 def build_specialist_tool():
     """専門エージェントをツールとして返す。オーケストレータはこれを tools に載せる。"""
-    agent = build_specialist_agent()
+    model = build_model()
 
     @tool
     def compare_pricing(companies: str) -> str:
-        """TODO(2): docstring を第3章の 3 節構成で書く（3.2.1 参照）。
+        """TODO(2): docstring を 3 節構成で書く（5.2.2 参照）。
 
         使い方の制約（カンマ区切りで 2 社以上）と、このツールが価格以外を
         調べないことまで、docstring がオーケストレータのモデルに教える。
         """
-        # TODO(3): agent に「次の企業の価格を比較してください: {companies}」を渡し、
-        #   結果を str(...) で文字列にして返す
+        # TODO(3): 呼び出しごとに build_specialist_agent(model) で Agent を作り、
+        #   「次の企業の価格を比較してください: {companies}」を渡して、
+        #   結果を str(...) で文字列にして返す。
+        #   Agent は会話履歴とメトリクスを持ち、同一インスタンスの並行実行を拒否するので、
+        #   ここで作らずに使い回すと例外になるか、前の依頼の履歴が混ざる（5.2.2）
         ...
 
     return compare_pricing

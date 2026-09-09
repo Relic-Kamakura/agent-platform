@@ -9,10 +9,10 @@ from strands.models import BedrockModel
 
 from tool_call_limiter import ToolCallLimiter
 
-# モデル ID。第1章 1.3 の手順で確認した、自分のリージョンで呼べる ID に合わせる
+# モデル ID。aws bedrock list-inference-profiles で確認した、自分のリージョンで呼べる ID に合わせる
 MODEL_ID = os.environ.get("MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
-# 専門エージェントが検索する固定データ。実案件では外部 API や DB になる部分
+# 専門エージェントが検索する固定データ。外部 API や DB に置き換わる部分
 PRICING_DATA = {
     "Acme Analytics": {"Free": "$0", "Pro": "$29/月", "Enterprise": "要問い合わせ"},
     "Globex Insights": {"Starter": "$19/月", "Business": "$99/月"},
@@ -56,17 +56,26 @@ def lookup_pricing(company: str) -> str:
     return "\n".join(f"{plan}: {price}" for plan, price in PRICING_DATA[company].items())
 
 
-def build_specialist_agent() -> Agent:
-    """価格調査の専門エージェントを組み立てて返す。"""
+def build_model() -> BedrockModel:
+    """専門エージェントが使うモデル。
+
+    BedrockModel は boto3 クライアントを内包していてスレッドセーフなので、
+    ツールの呼び出し間で共有してよい（共有しないのは Agent のほう）。
+    """
+    return BedrockModel(
+        region_name=os.environ.get("AWS_REGION", "us-east-1"),
+        model_id=MODEL_ID,
+        max_tokens=1024,
+    )
+
+
+def build_specialist_agent(model: BedrockModel) -> Agent:
+    """価格調査の専門エージェントを 1 つ組み立てて返す。"""
     return Agent(
         name="PricingSpecialist",
         # 価格の検索と表への整形は定型処理なので、軽量モデル（Haiku）で足りる。
         # 「どの企業を比較すべきか」の判断は呼び出し側（オーケストレータ）の仕事
-        model=BedrockModel(
-            region_name=os.environ.get("AWS_REGION", "us-east-1"),
-            model_id=MODEL_ID,
-            max_tokens=1024,
-        ),
+        model=model,
         system_prompt=SYSTEM_PROMPT,
         tools=[lookup_pricing],
         hooks=[ToolCallLimiter(max_calls=4)],  # ガードなしのエージェントを新設しない
@@ -76,7 +85,7 @@ def build_specialist_agent() -> Agent:
 
 def build_specialist_tool():
     """専門エージェントをツールとして返す。オーケストレータはこれを tools に載せる。"""
-    agent = build_specialist_agent()
+    model = build_model()  # BedrockModel はスレッドセーフなので共有してよい
 
     @tool
     def compare_pricing(companies: str) -> str:
@@ -95,6 +104,8 @@ def build_specialist_tool():
             - 価格以外の情報（機能や評判）。
             - どの企業が安い・優れているかの判断。判断はあなた（呼び出し側）の仕事。
         """
+        # Agent は会話履歴とメトリクスを持ち、並行実行を拒否する。呼び出しごとに作る
+        agent = build_specialist_agent(model)
         result = agent(f"次の企業の価格を比較してください: {companies}")
         return str(result)
 
