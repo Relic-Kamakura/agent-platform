@@ -1,6 +1,6 @@
 """AgentCore Runtime エントリポイント。
 
-このファイルだけが AgentCore の HTTP 契約に触れる。
+このファイルだけが AgentCore の HTTP エンドポイント（POST /invocations と GET /ping）に触れる。
 BedrockAgentCoreApp が POST /invocations と GET /ping を 0.0.0.0:8080 で提供する。
 """
 
@@ -77,6 +77,6 @@ def invoke(payload: dict) -> dict | Iterator[dict]:
 
 if __name__ == "__main__":
     # BedrockAgentCoreApp.run() は host 省略時、/.dockerenv か環境変数 DOCKER_CONTAINER が
-    # あれば 0.0.0.0、無ければ 127.0.0.1 に bind する。自動判定に任せず契約の 0.0.0.0:8080 を
+    # あれば 0.0.0.0、無ければ 127.0.0.1 に bind する。自動判定に任せず Runtime が要求する 0.0.0.0:8080 を
     # 明示する。SERVER_PORT はローカル開発用の逃し先
     app.run(host=_settings.server_host, port=_settings.server_port)

@@ -22,7 +22,7 @@ COPY src ./src
 # プロジェクト自体をインストールする（src レイヤの後なので依存は再解決されない）
 RUN uv sync --frozen --no-dev
 
-# AgentCore Runtime のコンテナ契約: 0.0.0.0:8080 で /invocations と /ping を提供する
+# AgentCore Runtime の要求: 0.0.0.0:8080 で /invocations と /ping を提供する
 EXPOSE 8080
 
 # --no-sync: これが無いと起動のたびに uv がプロジェクトを再ビルドし、

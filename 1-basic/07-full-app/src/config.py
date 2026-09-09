@@ -107,11 +107,11 @@ class Settings(BaseSettings):
     http_max_retries: int = Field(default=2, ge=0)
 
     # --- サーバ -----------------------------------------------------------
-    # AgentCore Runtime のコンテナ契約は 0.0.0.0:8080 固定。既定値を変えてはいけない。
+    # AgentCore Runtime が要求する bind 先は 0.0.0.0:8080 固定。既定値を変えてはいけない。
     # BedrockAgentCoreApp.run() は host 未指定だと実行環境を見て bind 先を決めるため明示している。
     # ローカル開発で 8080 が塞がっている場合に限り SERVER_PORT を変更する
     # （macOS では Docker Desktop が 127.0.0.1:8080 を使うことがある）。
-    server_host: str = "0.0.0.0"  # noqa: S104 - AgentCore の契約
+    server_host: str = "0.0.0.0"  # noqa: S104 - AgentCore Runtime の要求
     server_port: int = 8080
 
     # --- 運用 -------------------------------------------------------------

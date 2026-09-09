@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 第17章の合格判定: ARM64 ビルドと AgentCore コンテナ契約の検証。
+# 第17章の合格判定: ARM64 ビルドと AgentCore Runtime の要求条件の検証。
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -37,7 +37,7 @@ else
   ng "アーキテクチャが $ARCH です。AgentCore Runtime は linux/arm64 のみ受け付けます"
 fi
 
-echo "3. コンテナ契約 (/ping と /invocations)"
+echo "3. Runtime が呼ぶ 2 エンドポイント (/ping と /invocations)"
 cleanup
 docker run -d --name "$CONTAINER" -p "$PORT:8080" \
   -e AWS_ACCESS_KEY_ID=dummy -e AWS_SECRET_ACCESS_KEY=dummy \
