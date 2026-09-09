@@ -1,6 +1,6 @@
 # 第17章 AgentCore Runtime にデプロイする
 
-この章を終えると、AgentCore Runtime が受け付けるコンテナの条件を説明でき、その条件を満たす Dockerfile を自分で書いて、デプロイ前にローカルで契約を検証できるようになります。
+この章を終えると、AgentCore Runtime が受け付けるコンテナの条件を説明でき、それを満たす Dockerfile を自分で書いて、デプロイ前にローカルで検証できるようになります。
 
 章のディレクトリへ移動します。追加で入れる依存はありません。
 
@@ -26,10 +26,10 @@ docker buildx inspect --bootstrap
 
 VPC を用意しなくても外部へ出られるため、このリポジトリはネットワークをマネージドに任せています。実行時間、ペイロード、イメージサイズの上限は versions.md にまとめてあります。
 
-AgentCore CLI（`agentcore create` から `agentcore deploy`）でも同じコンテナ契約に載ります。
+AgentCore CLI（`agentcore create` から `agentcore deploy`）でも、コンテナに要求される条件は同じです。
 この章は自分で ARM64 イメージを作って ECR に push し、実行ロールとデプロイ順序を CDK で書く方法を採ります。
 
-### 17.1.2 コンテナ契約
+### 17.1.2 Runtime がコンテナに要求する条件
 
 Runtime がコンテナに要求するのは 3 点です。
 
@@ -41,16 +41,16 @@ Runtime がコンテナに要求するのは 3 点です。
 MCP を選ぶと 8000 番の `/mcp`、A2A を選ぶと 9000 番の `/` に変わります。
 `0.0.0.0` に bind することと ARM64 であることは、どのプロトコルでも共通です。
 
-契約はこれだけで、フレームワークは指定されていません。中身は Strands でも LangGraph でも自作でもよく、乗り換えるときに書き換えるのはエントリポイントの 1 ファイルだけです。
+要求はこの 3 点だけで、フレームワークは指定されていません。中身は Strands でも LangGraph でも自作でもよく、乗り換えるときに書き換えるのはエントリポイントの 1 ファイルだけです。
 
-`bedrock_agentcore.runtime.BedrockAgentCoreApp` がこの契約を実装しており、`@app.entrypoint` を付けた関数を書くだけで 2 つのエンドポイントが用意されます。
+`bedrock_agentcore.runtime.BedrockAgentCoreApp` がこの 3 点を実装しており、`@app.entrypoint` を付けた関数を書くだけで 2 つのエンドポイントが用意されます。
 
 `app.run()` は host を省略すると、`/.dockerenv` の有無と環境変数 `DOCKER_CONTAINER` を見て bind 先を決め、どちらも見つからなければ 127.0.0.1 に bind します（bedrock-agentcore のソースで確認。バージョンは versions.md）。
 Runtime の microVM に `/.dockerenv` があるかは公開されていないので、自動判定には任せず `host="0.0.0.0"` を明示します。
 
 ## 17.2 実装のポイント
 
-契約をイメージの側で満たすのが Dockerfile です。30 行ほどですが、各行に理由があります。
+この 3 点をイメージの側で満たすのが Dockerfile です。30 行ほどですが、各行に理由があります。
 
 `FROM --platform=linux/arm64` でプラットフォームを固定します。x86 マシンで誤って amd64 のイメージを作ると、デプロイして起動するまで気づけません。
 
@@ -60,9 +60,9 @@ Runtime の microVM に `/.dockerenv` があるかは公開されていないの
 付けた場合と付けない場合のコールドスタートの実測値は versions.md にあります。
 コールドスタートは新しいセッションの初回応答にそのまま乗るので、この差は利用者の待ち時間の差です。
 
-## 17.3 ハンズオン: 本体イメージをビルドして契約を検証する
+## 17.3 ハンズオン: 本体イメージをビルドして要求条件を検証する
 
-完成形のエージェント（`1-basic/07-full-app`）をイメージにして、契約の 3 点をローカルで検査します。この本体は Strands のエージェントを `BedrockAgentCoreApp` で包んだもので、Dockerfile も同梱されています。
+完成形のエージェント（`1-basic/07-full-app`）をイメージにして、17.1.2 の 3 点をローカルで検査します。この本体は Strands のエージェントを `BedrockAgentCoreApp` で包んだもので、Dockerfile も同梱されています。
 
 ### 17.3.1 ARM64 イメージをビルドする
 
@@ -76,7 +76,7 @@ docker image inspect agent-platform/agent:local --format '{{.Os}}/{{.Architectur
 
 `linux/arm64` と出るはずです。
 
-### 17.3.2 契約の 2 エンドポイントを呼ぶ
+### 17.3.2 /ping と /invocations が応答することを確かめる
 
 ```bash
 docker run -d --name agent-local -p 8181:8080 \
@@ -96,7 +96,7 @@ curl -XPOST http://127.0.0.1:8181/invocations \
   -H 'Content-Type: application/json' -d '{"prompt":""}'
 ```
 
-`{"error": "payload に 'prompt' が必要です。", ...}` が返るはずです。空プロンプトはモデルを呼ばずにエラー応答を返す設計なので、ローカルのコンテナだけで契約を検証できます。終わったら片付けます。
+`{"error": "payload に 'prompt' が必要です。", ...}` が返るはずです。空プロンプトはモデルを呼ばずにエラー応答を返す設計なので、ローカルのコンテナだけで 2 つのエンドポイントを検証できます。終わったら片付けます。
 
 ```bash
 docker rm -f agent-local
@@ -104,7 +104,7 @@ docker rm -f agent-local
 
 ## 17.4 ハンズオン: Dockerfile を自分で書く
 
-今度は契約を自分の手で満たします。`hello-agent/` に LLM を呼ばないミニエージェント（app.py と pyproject.toml）を用意してあり、無いのは Dockerfile だけです。
+今度は 17.1.2 の 3 点を自分の手で満たします。`hello-agent/` に LLM を呼ばないミニエージェント（app.py と pyproject.toml）を用意してあり、無いのは Dockerfile だけです。
 
 ### 17.4.1 TODO を 4 個埋める
 
@@ -117,7 +117,7 @@ WORKDIR と ENV は書いてあり、TODO が 4 つ残っています。
 
 1. FROM で uv の Python ベースイメージ（バージョンは versions.md）を linux/arm64 に固定する
 2. 依存レイヤを分離する。pyproject.toml と uv.lock を先に入れ、app.py は後から別レイヤで COPY する
-3. EXPOSE で契約のポート 8080 を宣言する
+3. EXPOSE で Runtime が接続するポート 8080 を宣言する
 4. CMD で uv run から app.py を起動する。コールドスタート対策も入れる
 
 埋める材料はすべて 17.2 にあります。埋めたら TODO コメントは消してください。
@@ -194,7 +194,7 @@ Runtime は作成時点で ECR にイメージがあることを要求するの�
 ## 17.6 まとめ
 
 AgentCore Runtime が決めているのは arm64、2 エンドポイント、`0.0.0.0:8080` の 3 点だけで、コンテナの中身には関与しません。
-契約が短いからこそデプロイ前にローカルで検証を済ませられ、契約を満たさないイメージを push してから気づく事態を避けられます。
+要求が 3 点だけなのでデプロイ前にローカルで検証を済ませられ、条件を満たさないイメージを push してから気づく事態を避けられます。
 `verify/verify.sh` を通してから次へ進んでください。
 
 ## 次の章

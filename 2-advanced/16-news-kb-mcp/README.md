@@ -18,11 +18,17 @@ AWS What's New と AWS ブログの RSS を 6 時間ごとに取得し、新着�
 
 ```mermaid
 graph LR
-    SC["Scheduler<br/>6 時間ごと"] --> FL["Fetch Lambda<br/>RSS 差分取得"] --> DB["DynamoDB<br/>処理済み GUID"]
-    FL --> S3["S3 記事バケット"] --> SQ["SQS + DLQ"] --> IT["Ingest Trigger"] --> KB["Knowledge Base<br/>S3 Vectors"]
-    CL["MCP クライアント"] --> GW["Gateway<br/>Cognito JWT"] --> TL["ツール Lambda"] --> RT["Retrieve<br/>メタデータフィルタ"]
+    SC["Scheduler<br/>6 時間ごと"] --> FL["Fetch Lambda<br/>RSS 差分取得"]
+    FL --> DB["DynamoDB<br/>処理済み GUID"]
+    FL --> S3["S3 記事バケット"]
+    S3 --> SQ["SQS + DLQ"]
+    SQ --> IT["Ingest Trigger"]
+    IT --> KB["Knowledge Base<br/>S3 Vectors"]
+    CL["MCP クライアント"] --> GW["Gateway<br/>Cognito JWT"]
+    GW --> TL["ツール Lambda"]
+    TL --> RT["Retrieve<br/>メタデータフィルタ"]
     KB -.-> RT
-    S3 -.->|全文| TL
+    S3 -.->|"全文"| TL
 ```
 
 書き込み側と読み取り側は S3 と Knowledge Base だけを接点にしています。片側を作り直しても、もう片側に影響しません。
@@ -58,7 +64,7 @@ RSS は毎回全件を返すので、処理済み GUID を DynamoDB に記録し
 
 ### 16.3.1 TODO を 4 つ埋める
 
-`exercises/fetch_articles.py` を開いてください。RSS の解析と slug 化は書いてあり、S3 キーの組み立て、Markdown、metadata の 6 キー、処理済み GUID のスキップが TODO として残っています。
+`exercises/fetch_articles.py` を開いてください。RSS の解析と slug 化（タイトルをファイル名に使える文字列へ変換する処理）は書いてあり、S3 キーの組み立て、Markdown、metadata の 6 キー、処理済み GUID のスキップが TODO として残っています。
 埋め終わったら TODO コメントを消してください。
 
 ### 16.3.2 実行する
@@ -287,7 +293,7 @@ npx cdk destroy --all
 ## 16.7 まとめ
 
 書き込み側と読み取り側を S3 と Knowledge Base だけでつなぐと、取り込みの失敗が検索を止めず、検索の負荷が取り込みに影響しません。
-検索条件を成立させているのは metadata.json の契約で、日付で絞れるかどうかは `published_epoch` を数値で置いたかどうかで決まります。
+検索条件を成立させているのは metadata.json に何を書くかの取り決めで、日付で絞れるかどうかは `published_epoch` を数値で置いたかどうかで決まります。
 回答の生成をクライアント側の LLM に任せたので、サーバ側は Lambda 2 つ分の従量課金だけでこの検索基盤が動き続けます。
 
 ## 次の章

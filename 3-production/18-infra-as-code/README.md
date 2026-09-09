@@ -1,7 +1,7 @@
 # 第18章 基盤をコードで定義する
 
 この章は CDK (TypeScript) の本体です。
-終えると、AgentCore Runtime の実行ロールに何を書くべきかを説明でき、スタックを分けてデプロイ順序を外部化する理由を自分の言葉で言えるようになります。
+終えると、AgentCore Runtime の実行ロールに必要な権限と context の受け渡しを自分で書き、`npx cdk synth` の出力で反映を確認できるようになります。
 
 章のディレクトリへ移動して依存を入れてください。以降のコマンドはすべてこの場所で実行します。
 
@@ -22,7 +22,8 @@ npm ci
 
 ```mermaid
 graph LR
-    TS["lib/*.ts<br/>(TypeScript)"] -->|cdk synth| CF["CloudFormation<br/>テンプレート"] -->|cdk deploy| R[AWS リソース]
+    TS["lib/*.ts<br/>(TypeScript)"] -->|"cdk synth"| CF["CloudFormation<br/>テンプレート"]
+    CF -->|"cdk deploy"| R["AWS リソース"]
 ```
 
 コンストラクトには、既定値とヘルパー付きの L2（`ecr.Repository` など）と、CloudFormation リソースと 1 対 1 の L1（`Cfn` 始まり）の 2 階層があります。
@@ -131,9 +132,6 @@ CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth AgentPlatformRuntimeStack | grep 
 ```bash
 ./verify/verify.sh
 ```
-
-考えてみてください（記述・任意）。
-`-c logLevel=DEBUG` と、エージェント本体の `.env` の `LOG_LEVEL=DEBUG` は、それぞれどちらのログ設定に反映されるでしょうか。
 
 <details>
 <summary>解答例</summary>

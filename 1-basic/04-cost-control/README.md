@@ -26,9 +26,9 @@ uv sync
 ```mermaid
 graph LR
     A["依頼"] --> B["モデル呼び出し<br/>(トークン課金)"]
-    B -->|ツールが要ると判断| C["ツール実行"]
+    B -->|"ツールが要ると判断"| C["ツール実行"]
     C --> B
-    B -->|完了と判断| D["応答"]
+    B -->|"完了と判断"| D["応答"]
 ```
 
 ### 4.1.2 上限が無いと何が起きるか
@@ -50,7 +50,7 @@ graph LR
 `max_tokens` が第一手なのは、引数 1 つで 1 回あたりの最悪値が決まるからです（`BedrockModel(max_tokens=...)`）。
 既定のままだと、モデルの最大出力（docs/versions.md）まで出しうる状態になります。
 
-上限に達すると、Strands では途中まで書かれた応答が返るのではなく`MaxTokensReachedException` が送出され、`agent(...)` の呼び出しが例外で終わります。
+上限に達すると、Strands では途中まで書かれた応答が返るのではなく `MaxTokensReachedException` が送出され、`agent(...)` の呼び出しが例外で終わります。
 途中までの本文は `agent.messages` の末尾に残るので、例外を捕まえて救出するか、`max_tokens` を上げるかの二択です。
 既定値に頼らず、`max_tokens` は常に明示します。
 
@@ -72,13 +72,13 @@ Strands では、`register_hooks` メソッドを持つクラスを `Agent(hooks
 | `BeforeToolCallEvent` | ツール実行直前 | ツール回数の上限 |
 | `AfterInvocationEvent` | リクエスト完了 | トークン消費のログ |
 
-上限を掛けるのは `BeforeModelCallEvent` の `event.cancel` と`BeforeToolCallEvent` の `event.cancel_tool` です。
+上限を掛けるのは `BeforeModelCallEvent` の `event.cancel` と `BeforeToolCallEvent` の `event.cancel_tool` です。
 割り込む位置はこうなります。
 
 ```mermaid
 sequenceDiagram
     participant L as Agent のループ
-    participant H as hooks<br/>（この章で書く CostLimiter）
+    participant H as hooks
     participant M as モデル
 
     L->>H: BeforeInvocationEvent
@@ -93,7 +93,9 @@ sequenceDiagram
     end
 ```
 
-Strands には max_turns のような組み込みの上限設定がありません（確認したバージョンはdocs/versions.md）。
+H はこの章で書く CostLimiter です。
+
+Strands には max_turns のような組み込みの上限設定がありません（確認したバージョンは docs/versions.md）。
 この章のハンズオンでは、その無い機能を hooks で足します。
 
 ### 4.2.2 中断理由の渡し方

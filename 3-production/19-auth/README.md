@@ -25,7 +25,7 @@ npm ci
 
 ```mermaid
 graph TD
-    B[ブラウザ] -->|"①ログイン"| C["Cognito<br/>(トークンを発行)"]
+    B["ブラウザ"] -->|"①ログイン"| C["Cognito<br/>(トークンを発行)"]
     B -->|"②アクセストークン付きで POST /api/invoke"| H["Next.js Route Handler<br/>③JWT を検証"]
     H -->|"④AWS SDK で InvokeAgentRuntime"| RT["AgentCore Runtime<br/>⑤JWT authorizer が検証"]
 ```

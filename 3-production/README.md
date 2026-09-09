@@ -7,7 +7,7 @@
 
 | 章 | 学べること |
 | --- | --- |
-| [17-agentcore-deploy](17-agentcore-deploy/) | コンテナ契約とデプロイ |
+| [17-agentcore-deploy](17-agentcore-deploy/) | コンテナの要求条件とデプロイ |
 | [18-infra-as-code](18-infra-as-code/) | CDK と IAM ロール設計 |
 | [19-auth](19-auth/) | Cognito と JWT による認可 |
 | [20-streaming](20-streaming/) | Next.js とストリーミング表示 |

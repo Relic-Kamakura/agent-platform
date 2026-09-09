@@ -80,7 +80,7 @@ result = AgentResult(
 
 ## 6.3 ハンズオン: ツールにテストを書く
 
-テスト対象は `target/fetch_page.py`（URL を受け取り本文を返すツール）と`target/verdict.py`（Agent の応答から判定を読む関数）です。
+テスト対象は `target/fetch_page.py`（URL を受け取り本文を返すツール）と `target/verdict.py`（Agent の応答から判定を読む関数）です。
 どちらも編集不要です。
 
 要件は 3 つです。

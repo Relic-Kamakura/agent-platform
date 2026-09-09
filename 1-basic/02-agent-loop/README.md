@@ -1,6 +1,6 @@
 # 第2章 はじめてのエージェント
 
-この章を終えると、ツール付きのエージェントを自分の手で書き、実行ログの各行がReAct のどのステップかを言い当てられるようになります。
+この章を終えると、ツール付きのエージェントを自分の手で書き、実行ログの各行が ReAct のどのステップかを言い当てられるようになります。
 
 この章は独立した uv プロジェクトです。
 最初に依存を入れてください。
@@ -12,7 +12,7 @@ uv sync
 
 ハンズオンは `exercises/` の TODO を実装して実行する形式で、完成形は `solutions/` にあります。
 モデル ID は `MODEL_ID`、リージョンは `AWS_REGION` で上書きできます。
-自分のリージョンで呼べる ID は`aws bedrock list-inference-profiles --region <リージョン>` で確認できます。
+自分のリージョンで呼べる ID は `aws bedrock list-inference-profiles --region <リージョン>` で確認できます。
 
 ## 2.1 概要
 
@@ -33,7 +33,7 @@ uv sync
 3. 応答が「ツール X を引数 Y で使いたい」なら、X を実行し、結果を履歴に足して 1 へ戻る
 
 内部では Converse API のマルチターンが動いています。
-ツール要求は `toolUse` ブロック（`toolUseId` 付き）で返り、呼び出し側は実行結果を`toolResult` ブロックとして次のリクエストに追加します。
+ツール要求は `toolUse` ブロック（`toolUseId` 付き）で返り、呼び出し側は実行結果を `toolResult` ブロックとして次のリクエストに追加します。
 ツールを実行するのはモデルではなく、モデルを呼び出している側のコードです。
 
 2.3 で書くエージェント（now ツール 1 つ）の往復は次のようになります。
@@ -41,8 +41,8 @@ uv sync
 
 ```mermaid
 sequenceDiagram
-    participant Code as 自分の Python コード<br/>(Strands Agent)
-    participant Model as Bedrock<br/>(モデル)
+    participant Code as Python コード
+    participant Model as Bedrock
     participant Tool as now ツール
 
     Code->>Model: 1 周目: 質問 + ツール一覧
@@ -54,6 +54,8 @@ sequenceDiagram
     Model-->>Code: テキスト応答 = 最終回答
     Note over Code,Model: 応答が toolUse である限り<br/>この往復が繰り返される
 ```
+
+Code は Strands の `Agent` を動かす自分の Python コード、Model は Bedrock のモデルです。
 
 ### 2.1.3 ReAct と CoT
 

@@ -28,14 +28,14 @@ SearchAgent は Orchestrator がツールとして呼びます（agents-as-tools
 
 ```mermaid
 graph LR
-    CL[クライアント] -->|POST /invocations| M["src/main.py"]
+    CL["クライアント"] -->|"POST /invocations"| M["src/main.py"]
     M --> O["Orchestrator"]
-    O -->|investigate ツール| S["SearchAgent"]
-    S -->|web_search| P[検索プロバイダ]
-    O -.->|コードで必ず 1 回| R["ReviewAgent"]
+    O -->|"investigate ツール"| S["SearchAgent"]
+    S -->|"web_search"| P["検索プロバイダ"]
+    O -.->|"コードで必ず 1 回"| R["ReviewAgent"]
 ```
 
-1. `src/main.py` が POST /invocations を受ける。HTTP 契約を知るのはこのファイルだけ
+1. `src/main.py` が POST /invocations を受ける。POST /invocations と GET /ping の形を知るのはこのファイルだけ
 2. `ResearchOrchestrator.run()` が `build_agent()` でこのリクエスト用の Agent を作る
 3. Orchestrator が依頼を調査観点に分解する
 4. 観点ごとに investigate ツール（実体は SearchAgent）が web_search で調べ、事実と出典を返す
@@ -65,12 +65,12 @@ graph LR
 ### 7.2.2 Agent とモデルの寿命
 
 `BedrockModel` は boto3 クライアントを内包していてスレッドセーフなので、`ResearchOrchestrator.__init__` で役割ごとに 1 つずつ作り、プロセスで共有します。
-`Agent` は会話履歴とメトリクスを持ち、同一インスタンスの並行実行を`ConcurrencyException` で拒否するため、リクエストごとに `build_agent()` で作ります。
+`Agent` は会話履歴とメトリクスを持ち、同一インスタンスの並行実行を `ConcurrencyException` で拒否するため、リクエストごとに `build_agent()` で作ります。
 AgentCore Runtime は `/invocations` をスレッドプールで並列に処理するので、この分け方が要ります。
 
 `BedrockModel` には `boto_client_config` を渡しています。
 既定のままだと、長い生成が読み取りタイムアウトで切れたときに botocore が同じリクエストを自動で再送し、同じ生成が二重に走ります。
-値は `.env` の `BEDROCK_READ_TIMEOUT_SECONDS` / `BEDROCK_CONNECT_TIMEOUT_SECONDS` /`BEDROCK_MAX_ATTEMPTS` で変えます。
+値は `.env` の `BEDROCK_READ_TIMEOUT_SECONDS` / `BEDROCK_CONNECT_TIMEOUT_SECONDS` / `BEDROCK_MAX_ATTEMPTS` で変えます。
 
 ### 7.2.3 応答の取り出しと打ち切り
 
@@ -86,7 +86,7 @@ payload には `report` と `review` のほかに、この `truncated` と、使
 
 ### 7.2.4 読む順番
 
-`src/main.py`（全体の流れが読める）→ `orchestrator.py`（処理の中心）→`config.py`（設定の出どころ）の順が最短です。
+`src/main.py`（全体の流れが読める）→ `orchestrator.py`（処理の中心）→ `config.py`（設定の出どころ）の順が最短です。
 残りは対応する章を進めるときに精読すれば足ります。
 
 ### 7.2.5 普段のコマンド
@@ -103,9 +103,9 @@ uv run ruff check . && uv run mypy src
 各値の根拠は `.env.example` のコメントにあります。
 `.env` はコミットしないでください。
 
-## 7.3 ハンズオン: 起動して HTTP 契約を確かめる
+## 7.3 ハンズオン: 起動してヘルスチェックを確かめる
 
-7.1.2 の入口である `src/main.py` を起動し、コンテナ契約のヘルスチェックが応答することを確認します。
+7.1.2 の入口である `src/main.py` を起動し、AgentCore Runtime が呼ぶヘルスチェック `GET /ping` が応答することを確認します。
 
 ```bash
 uv run python -m src.main
@@ -128,17 +128,9 @@ curl http://127.0.0.1:8080/ping
 SERVER_PORT=8181 uv run python -m src.main
 ```
 
-## 7.4 確認
+## 7.4 まとめ
 
-コードを見ながら、次の 3 つを自分の言葉で答えてください（記述・任意）。
-
-1. POST /invocations から応答が返るまで、どのファイルを順に通るか
-2. ツール呼び出しの上限を変えたいとき、どのファイルを開くか
-3. ReviewAgent がツールではなくコードから呼ばれているのはなぜか
-
-## 7.5 まとめ
-
-HTTP 契約は main.py、環境変数は config.py、上限ガードは guards.py と、知る場所を 1 つに絞ってあります。
+HTTP のエンドポイント定義は main.py、環境変数は config.py、上限ガードは guards.py と、知る場所を 1 つに絞ってあります。
 Agent はリクエストごと、モデルはプロセスで 1 つという寿命の分け方も、`orchestrator.py` の docstring に理由付きで書いてあります。
 どのファイルがどの章に対応するかは 7.2.1 の表にあり、章を進めるたびにここへ戻れます。
 

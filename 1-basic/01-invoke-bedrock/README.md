@@ -112,7 +112,7 @@ ID の差し替えだけでモデルを乗り換えられる状態を保つた�
 
 クライアントには読み取りタイムアウトと自動リトライの設定を渡します。
 既定のままだと、長い生成が読み取りタイムアウトで切れたときに botocore が同じリクエストを自動で再送し、同じ生成が二重に走ります（課金も二重）。
-`boto3.client("bedrock-runtime", config=Config(read_timeout=150, retries={"max_attempts": 1}))`で自動再送を止め、失敗は失敗として扱います。
+`boto3.client("bedrock-runtime", config=Config(read_timeout=150, retries={"max_attempts": 1}))` で自動再送を止め、失敗は失敗として扱います。
 
 ## 1.3 ハンズオン: 呼べるモデル ID を確認する
 
@@ -287,11 +287,11 @@ uv run pytest -q
 
 ## 1.7 まとめ
 
-Converse API は、モデルが違っても `messages` と `inferenceConfig` と `usage` の3 つで呼べるようにする層です。
+Converse API は、モデルが違っても `messages` と `inferenceConfig` と `usage` の 3 つで呼べるようにする層です。
 1 回の料金は `usage` の入出力トークン数から計算でき、1.5 で見たとおり金額を決めるのは出力の長さです。
 同期とストリーミングの差は最初の 1 文字が出るまでの時間に現れ、1.6 の first_token と total の開きがそれです。
 
-呼ぶ前に ID の実在を確認し、呼んだ後に usage を見る。
+呼ぶ前に ID の実在を確認し、呼んだ後に usage を見ます。
 この 2 つが、この先すべてのモデル呼び出しの前提になります。
 
 ## 次の章

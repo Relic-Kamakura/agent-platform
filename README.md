@@ -1,6 +1,6 @@
 # agent-platform
 
-AI エージェント開発を、動くコードを改造しながら習得するリポジトリです。3 部制です。
+AI エージェント開発を、動くコードを自分で書きながら習得するリポジトリです。3 部制です。
 
 第1部 基礎編（`1-basic/`）は第0〜7章です。競合リサーチエージェントを題材に、環境構築 → モデル呼び出し → エージェントループ → ツール設計 → コスト制御 → マルチエージェント → テストと進み、完成形を通読します（[1-basic/README.md](1-basic/README.md)）。
 第2部 応用編（`2-advanced/`）は第8〜16章で、RAG、評価、インジェクション耐性、MCP などエージェントの中身を仕上げるテーマ別の章です（[2-advanced/README.md](2-advanced/README.md)）。
@@ -13,15 +13,13 @@ AI エージェント開発を、動くコードを改造しながら習得す�
 3. 動かす。実行して「〜が出るはずです」と照合する
 4. 判定。verify が機械的に確認する。何を検査するかは章ごとに違い、実行結果まで見る章と、実装の形だけを見る章がある
 
-「書く」は穴埋め方式です。各章の `exercises/` にある TODO 付きの骨組みを実装し、
-章直下のスクリプトや verify で動かして確かめます。完成形は `solutions/` にあります。
-ハンズオンは章のディレクトリ内で完結し、本体 `07-full-app/` は完成形として
-読む・動かす対象です（第7章は通読、第18章は CDK コードを直接編集する形です）。
+「書く」は穴埋め方式です。各章の `exercises/` にある TODO 付きの骨組みを実装し、章直下のスクリプトや verify で動かして確かめます。
+完成形は `solutions/` にあります。
+ハンズオンは章のディレクトリ内で完結し、本体 `07-full-app/` は完成形として読む・動かす対象です（第7章は通読、第18章は CDK コードを直接編集する形です）。
 
 ## 始め方
 
-1. fork するか個人ブランチを切る。ハンズオンでは各章の `exercises/` など
-   リポジトリ内のファイルを直接編集するので、共有の main を変更しない作業場所を先に作る
+1. fork するか個人ブランチを切る。ハンズオンではリポジトリ内のファイルを直接編集するので、共有の main を変更しない作業場所を先に作る
 2. `1-basic/00-dev-environment/README.md` を開き、指示どおりに環境を作る
 3. 以降は番号順。詰まったら各章の `solutions/` を見てよい
 
@@ -33,8 +31,7 @@ uv run --project 1-basic/07-full-app pytest 1-basic/03-tool-design/verify -q
 ## Bedrock の機能の位置づけ
 
 Bedrock はモデル呼び出しの上に周辺機能が載る構造です。
-この教材が主に使うのはモデル呼び出しと AgentCore で、エージェント自体は
-マネージドの Bedrock Agents ではなく Strands Agents で自前実装します。
+この教材が主に使うのはモデル呼び出しと AgentCore です。エージェント自体は、マネージドの Bedrock Agents ではなく Strands Agents で自前実装します。
 
 ```mermaid
 graph TB
@@ -50,21 +47,20 @@ graph TB
     end
     AC["AgentCore<br/>(エージェントの実行基盤)"]
     features --> API
-    AC -->|エージェントをホストし<br/>モデルを呼ぶ| API
+    AC -->|"エージェントをホストし<br/>モデルを呼ぶ"| API
 ```
 
 | 機能 | 何をするものか | 扱う章 |
 | --- | --- | --- |
 | AgentCore | エージェントの実行基盤 | 第17章 |
 | エージェント | ツールを呼んで進む仕組み | 第2〜7章 |
-| ナレッジベース | 検索拡張生成(RAG) | 第8章 |
+| ナレッジベース | 検索拡張生成（RAG） | 第8章 |
 | プロンプトマネジメント | 版管理と退行検知 | 第9章 |
 | ガードレール | 入出力の内容フィルタ | 第13章 |
 | フロー | 処理をノードで繋ぐ | 対象外 |
 | データオートメーション | 非構造化文書の情報抽出 | 対象外 |
 
-フローとデータオートメーションを対象外にしたのは、この教材が処理の流れを
-コードで制御するからです。
+フローとデータオートメーションを対象外にしたのは、この教材が処理の流れをコードで制御するからです。
 
 ## 章の一覧
 
@@ -99,14 +95,13 @@ graph TB
 
 | 章 | 学べること |
 | --- | --- |
-| [17-agentcore-deploy](3-production/17-agentcore-deploy/) | コンテナ契約とデプロイ |
+| [17-agentcore-deploy](3-production/17-agentcore-deploy/) | コンテナの要求条件とデプロイ |
 | [18-infra-as-code](3-production/18-infra-as-code/) | CDK と IAM ロール設計 |
 | [19-auth](3-production/19-auth/) | Cognito と JWT による認可 |
 | [20-streaming](3-production/20-streaming/) | Next.js とストリーミング表示 |
 | [99-appendix](3-production/99-appendix/) | 発展領域の入口と用語集 |
 
-Tier 分けと習得判定は [docs/learning-roadmap.md](docs/learning-roadmap.md) に、
-モデル ID や単価などバージョンで変わる値は [docs/versions.md](docs/versions.md) にあります。
+Tier 分けと習得判定は [docs/learning-roadmap.md](docs/learning-roadmap.md) に、モデル ID や単価などバージョンで変わる値は [docs/versions.md](docs/versions.md) にあります。
 
 ## 開発の工程と章の対応
 
