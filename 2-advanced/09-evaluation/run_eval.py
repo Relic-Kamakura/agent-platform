@@ -5,8 +5,8 @@
     uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py --only pricing-comparison
 
 コスト概算を出す場合は 100 万トークンあたりの単価を環境変数で渡す:
-    PRICE_IN_PER_MTOK=3.0 PRICE_OUT_PER_MTOK=15.0 uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py
-（単価はモデルと契約で変わるため、このリポジトリにはハードコードしない）
+    PRICE_IN_PER_MTOK=1.0 PRICE_OUT_PER_MTOK=5.0 uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py
+（値は docs/versions.md を参照。単価はモデルと契約で変わるため、このリポジトリにはハードコードしない）
 """
 
 from __future__ import annotations
@@ -18,8 +18,8 @@ import pathlib
 import sys
 
 CHAPTER_DIR = pathlib.Path(__file__).resolve().parent
-sys.path.insert(0, str(CHAPTER_DIR))          # judges.py
-sys.path.insert(0, str(CHAPTER_DIR.parent / "07-full-app"))  # src.*
+sys.path.insert(0, str(CHAPTER_DIR))  # judges.py
+# src.* は --project 1-basic/07-full-app の venv にパッケージとして入っているので、パス追加は不要
 
 from judges import judge_case  # noqa: E402
 
@@ -52,7 +52,7 @@ def main() -> int:
 
     for case in cases:
         result = orchestrator.run(case["prompt"])
-        tool_calls = orchestrator._guards.tool_limiter.total_calls
+        tool_calls = result.tool_calls
         failures = judge_case(
             report=result.report,
             usage=result.usage,

@@ -61,7 +61,7 @@ def test_limits() -> None:
 def test_failures_are_messages_not_bools() -> None:
     failures = judge_case("r", {}, 0, {"contains": ["x"]})
     assert all(isinstance(f, str) and len(f) > 5 for f in failures), (
-        "判定は bool ではなく、理由が読める文字列で返してください（9.3 の設計方針）。"
+        "判定は bool ではなく、理由が読める文字列で返してください（9.2.3 の設計方針）。"
     )
 
 

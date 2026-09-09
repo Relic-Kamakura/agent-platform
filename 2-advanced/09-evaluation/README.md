@@ -1,10 +1,8 @@
 # 第9章 評価と改善ループ
 
-この章を終えると、判定関数と評価ケースを自分で書き、「プロンプトを変えたら eval を実行して退行を確認する」という改善ループを自分で進められるようになります。
+この章を終えると、判定関数と評価ケースを自分で書き、プロンプトを変えたら eval を実行して退行を確認する、という改善ループを自分で進められるようになります。
 
-第6章のテストが守るのは決定的な部分でした。
-この章が扱うのは残りの半分、モデルが良い報告を書けるかという確率的な品質です。
-実行には本体 07-full-app の環境を使います。最初に本体の依存を入れてください。コマンドはすべてリポジトリルートから実行します。
+評価の対象は `1-basic/07-full-app` のエージェントで、この章のハーネスがそのコードを import して実行します。そのため先に本体の依存を入れてください。コマンドはすべてリポジトリルートから実行します。
 
 ```bash
 uv sync --project 1-basic/07-full-app
@@ -14,19 +12,17 @@ uv sync --project 1-basic/07-full-app
 
 ### 9.1.1 evals が解決する問題
 
-エージェントの出力の精度を上げたいとき、何を測って何を直すかを決めるのが評価（evals）です。
-evals が無いと、プロンプトを変えた影響は目視で確認した数例の範囲しか分かりません。確認しなかったケースが失敗していても、その場では気づけません。
+エージェントの出力の精度を上げたいとき、何を測って何を直すかを決めるのが評価（evals）です。evals が無いと、プロンプトを変えた影響は目視で確認した数例の範囲しか分かりません。確認しなかったケースが失敗していても、その場では気づけません。
 
-evals はこれを、ケース集合に対する機械判定に置き換えます。仕組みは 3 部品だけです。
+evals はこれを、ケース集合に対する機械判定に置き換えます。この章で使う部品は 3 つです。
 
 - `cases.jsonl` は評価ケース（入力と期待条件）
 - `judges.py` は期待条件を検査する判定関数（この章で自分で書く）
 - `run_eval.py` は全ケースを実行して判定と集計を行うハーネス（提供済み）
 
-### 9.1.2 プロンプトマネジメントとの関係
+### 9.1.2 改善ループ
 
-プロンプトマネジメントとは、プロンプトの版管理と、変更時の退行検知のことです。
-やることは Git で版管理し、evals で退行を検知する、の 2 つで、この章の改善ループがそれに当たります。
+プロンプトは Git で版管理し、変更のたびに evals を実行して退行を検知します。
 
 ```mermaid
 graph LR
@@ -36,60 +32,25 @@ graph LR
     J -->|"FAIL の理由"| P
 ```
 
-マネージドツール（Bedrock Prompt Management）を検討するのは、このループが動くようになった後です。
-ループ無しでツールだけ入れても、退行は検知できません。
-
-Git と Bedrock 側のどちらにプロンプトを置くかは、誰が編集するかで決まります。
-エンジニアだけが触るなら Git が速く、差分もレビューも CI も既存の仕組みに乗ります。
-企画や CS の担当者が文面を直す運用なら、画面で編集して版を切れる置き場が要ります。
-その場合も、変更のたびに evals を実行する導線は別に用意しないと、退行は誰も見ません。
-
 ## 9.2 実装のポイント
 
 ### 9.2.1 ケース設計
 
-ケースは 3 分類で考えます。既に 3 件のベースケースが `cases.jsonl` にあります。
+`cases.jsonl` には 3 件のベースケースがあります。典型は主要ユースケースで、`pricing-comparison` が該当します。mock プロバイダの固定データ（49 ドルと 99 ドル）が報告に出るはず、という検証です。境界は、情報が部分的にしか無い、観点が多い、といった典型から外れる入力を指します。悪意と想定外は、存在しない会社を聞かれる、調査と無関係な依頼を投げる、といったケースで、`unknown-topic-honesty` がこれに当たります。
 
-典型は主要ユースケースで、`pricing-comparison` が該当します。
-mock プロバイダの固定データ（49 ドル・99 ドル）が報告に出るはず、という検証です。
-境界は、情報が部分的にしか無い、観点が多い、といった典型から外れる入力を指します。
+期待条件は、「良い報告」という曖昧な基準を検証可能な条件に翻訳して書きます。「価格が正確」ではなく `contains: ["49", "99"]`、「出典がある」ではなく `require_source: true` と書きます。翻訳できない品質基準は、この段階では評価できません。
 
-悪意と想定外は、存在しない会社を聞かれる、調査と無関係な依頼を投げる、といったケースです。
-`unknown-topic-honesty` が該当し、でっち上げずに「確認できず」と言えるかを見ます。
-
-期待条件を書くコツは、「良い報告」という曖昧な基準を検証可能な条件に翻訳することです。
-「価格が正確」ではなく `contains: ["49", "99"]`。「出典がある」ではなく `require_source: true`。
-翻訳できない品質基準は、この段階では評価できません。
-
-コストと効率も期待条件に含めます（`max_tool_calls` / `max_total_tokens`）。
-品質が上がってもコストが 3 倍になっていたら、それは退行です。
-
-ケースの観点は、AWS のブログが挙げる 5 つの評価指標でも点検できます。
-ツール選択精度、パラメータ抽出精度、拒否精度、レイテンシー（P50 / P95）、クエリあたりのトークン数で、公式の例として示された目標値は versions.md にあります。
-このうち拒否精度は `unknown-topic-honesty` と同じ発想で、答えるべきでない問いに答えないことをケースにしたものです。
-自作ケースを追加するときは、5 指標のどれを測るかを先に決めてから期待条件を書きます。
-出典: https://aws.amazon.com/jp/blogs/news/ai-agents-in-enterprises-best-practices-with-amazon-bedrock-agentcore/
+コストと効率も期待条件に入れます（`max_tool_calls` と `max_total_tokens`）。品質が上がってもトークン消費が 3 倍になっていれば、それは退行です。
 
 ### 9.2.2 ルール判定と LLM-as-judge
 
-この章の判定はすべてルールベースです。文字列の包含と数値の上限は決定的で、速く、費用も掛かりません。
-一方「要約が原文に忠実か」のような基準はルールに翻訳できず、LLM に判定させる LLM-as-judge が要ります。
-使い分けの原則は、ルールで書けるものはルールで書く。judge 用の LLM 呼び出しにもコストと不確実性があるからです。
-LLM-as-judge は発展課題とします（`judges.py` に judge 関数を 1 つ足すだけで組み込める設計です）。
+この章の判定はすべてルールベースです。文字列の包含と数値の上限は決定的で、速く、費用も掛かりません。一方「要約が原文に忠実か」のような基準はルールに翻訳できないため、LLM に判定させる LLM-as-judge が要ります。ルールで書けるものはルールで書きます。judge 用の LLM 呼び出しにも、コストと判定のばらつきがあるためです。
 
-Bedrock にはマネージドの評価機能（モデル評価ジョブ）もあります。
-データセットを渡すと、自動採点か人手評価でスコア表を出してくれます。
-測る対象はモデル単体の応答なので、ツールを何度も呼んで組み立てるこの章の報告をそのまま渡すものではありません。
-
-使いどころはモデルを差し替えるときの判断材料です。
-Haiku を Sonnet に上げる価値があるかをこの章の evals だけで示そうとすると、エージェント全体を毎回実行することになり、時間もコストも掛かります。
-モデル単体の性能差を先に出しておくと、上げる上げないの説明が短くなります。
+LLM-as-judge は発展課題とします。`judges.py` に judge 関数を 1 つ足せば組み込める形にしてあります。Strands には評価パッケージ `strands-agents-evals` があり、LLM-as-judge とツール呼び出し軌跡の評価を提供しています。
 
 ### 9.2.3 判定関数が何を返すか
 
-判定は bool ではなく、失敗メッセージのリストを返します（空 = 合格）。
-FAIL の理由がそのまま run_eval.py のレポートに出るようにするためです。
-骨組みに完成済みで置いてある `judge_contains` がこの形の見本です。
+判定は bool ではなく、失敗メッセージのリストを返します（空 = 合格）。FAIL の理由がそのまま `run_eval.py` のレポートに出るようにするためです。骨組みに完成済みで置いてある `judge_contains` がその見本です。
 
 ```python
 def judge_contains(report: str, terms: list[str]) -> list[str]:
@@ -101,34 +62,29 @@ def judge_contains(report: str, terms: list[str]) -> list[str]:
 
 ## 9.3 ハンズオン: 判定関数を実装する
 
-期待条件を検査する判定関数群を作ります。
-編集するのは、章直下にコピーした `judges.py` の 1 ファイルだけです。
+### 9.3.1 TODO を 5 個埋める
 
-### 9.3.1 骨組みをコピーする
+骨組みを章直下にコピーします。
 
 ```bash
 cp 2-advanced/09-evaluation/exercises/judges.py 2-advanced/09-evaluation/judges.py
 ```
 
-`run_eval.py` が import するのは章直下の `judges.py` です。exercises の中に置いたままでは使われません。
+ハーネスが import するのは章直下の `judges.py` です。`exercises/` に置いたままでは使われません。
 
-### 9.3.2 TODO を 5 つ埋める
+コピーした `judges.py` を開いてください。見本の `judge_contains` は完成しており、TODO が 5 つ残っています。
 
-`09-evaluation/judges.py` を開いてください。
-見本の `judge_contains` は完成しており、TODO が 5 つ残っています。
-
-1. `judge_not_contains` は含んではいけない語を検査する。でっち上げや禁止表現の検出
+1. `judge_not_contains` は含んではいけない語を検査する
 2. `judge_source` は出典 URL（`http://` か `https://`）の有無を検査する
 3. `judge_tool_calls` はツール呼び出し数の上限を検査する
 4. `judge_tokens` はトークン消費（`usage["totalTokens"]`）の上限を検査する
-5. `judge_case` は expect のキーに応じて 1〜4 を呼び分ける入口。書かれていないルールは適用しない
+5. `judge_case` は expect のキーに応じて 1 から 4 を呼び分ける入口。書かれていないルールは適用しない
 
-先に判定テスト `verify/test_judges.py` を読むと分かりやすくなります。要求仕様そのものになっています。
+判定テスト `verify/test_judges.py` が要求仕様そのものです。先に読んでから実装し、終わったら TODO コメントを消してください。
 
-### 9.3.3 見本の報告で判定を確認する
+### 9.3.2 実行する
 
-実装できたら TODO コメントを消し、判定の前に動かします。
-良い報告と悪い報告を 1 件ずつ judge_case に渡すスクリプトを用意してあります（編集不要）。モデルは呼びません。
+良い報告と悪い報告を 1 件ずつ `judge_case` に渡すスクリプトを用意してあります（編集不要。モデルは呼びません）。
 
 ```bash
 uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/01_judge_dry_run.py
@@ -145,41 +101,16 @@ uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/01_judge_dr
        - トークン消費が多すぎる: 42000 > 30000
 ```
 
-run_eval.py が FAIL したケースに出すのは、いまあなたが書いたこのメッセージです。
+`run_eval.py` が FAIL したケースに出すのも、このメッセージです。
 
-<details>
-<summary>解答例</summary>
+<details><summary>解答例</summary>
 
 ```python
 def judge_not_contains(report: str, terms: list[str]) -> list[str]:
-    """含んではいけない語。でっち上げ・禁止表現を検出する。"""
     return [f"含んではいけない語がある: {term!r}" for term in terms if term in report]
 
 
-def judge_source(report: str) -> list[str]:
-    """出典 URL の有無。出典の無い報告は検証できない。"""
-    if "http://" in report or "https://" in report:
-        return []
-    return ["出典 URL が 1 つも無い"]
-
-
-def judge_tool_calls(tool_calls: int, limit: int) -> list[str]:
-    """ツール呼び出し数の上限。調査の暴走・非効率を検出する。"""
-    if tool_calls <= limit:
-        return []
-    return [f"ツール呼び出しが多すぎる: {tool_calls} > {limit}"]
-
-
-def judge_tokens(usage: dict, limit: int) -> list[str]:
-    """トークン消費の上限。コスト退行を検出する。"""
-    total = usage.get("totalTokens", 0)
-    if total <= limit:
-        return []
-    return [f"トークン消費が多すぎる: {total} > {limit}"]
-
-
 def judge_case(report: str, usage: dict, tool_calls: int, expect: dict) -> list[str]:
-    """1 ケース分の判定。expect に書かれたルールだけを適用する。"""
     failures: list[str] = []
     if "contains" in expect:
         failures += judge_contains(report, expect["contains"])
@@ -194,16 +125,40 @@ def judge_case(report: str, usage: dict, tool_calls: int, expect: dict) -> list[
     return failures
 ```
 
-全文は `solutions/judges.py` にあります。
+`judge_source` と `judge_tool_calls` と `judge_tokens` を含む全文は `solutions/judges.py` にあります。
 
 </details>
 
-## 9.4 ハンズオン: 評価ケースを 2 件追加する
+### 9.3.3 合格判定
 
-`cases.jsonl` に自作ケースを 2 件以上追加してください。1 件は境界、1 件は悪意/想定外の分類から。
-mock プロバイダの固定データは `1-basic/07-full-app/src/tools/providers/mock.py` にあるので、それを前提に期待条件を書きます。
+判定関数の検査だけを先に実行します。
 
-書けたら判定します。判定関数の挙動と、ケースの構造・追加数を検査します。
+```bash
+uv run --project 1-basic/07-full-app pytest 2-advanced/09-evaluation/verify -q -k "not learner_added"
+```
+
+`5 passed, 1 deselected` になれば 9.3 は完了です。
+
+## 9.4 ハンズオン: 評価ケースを追加する
+
+### 9.4.1 ケースを 2 件追加する
+
+`cases.jsonl` に自作ケースを 2 件以上追加してください。1 件は境界、1 件は悪意と想定外の分類から選びます。mock プロバイダの固定データは `1-basic/07-full-app/src/tools/providers/mock.py` にあるので、それを前提に期待条件を書きます。
+
+<details><summary>追記例</summary>
+
+```jsonl
+{"id": "market-partial-info", "prompt": "国内 BI ツール市場の成長率と、Acme の市場シェアを調べて", "expect": {"contains": ["12"], "require_source": true, "max_tool_calls": 8, "max_total_tokens": 30000}}
+{"id": "future-pricing-honesty", "prompt": "Acme の 2027 年の料金改定予定を調べて", "expect": {"contains": ["確認できず"], "require_source": false, "max_tool_calls": 8, "max_total_tokens": 30000}}
+```
+
+1 件目が境界です。mock の固定データには市場の成長率（12%）はありますが Acme のシェアは無いので、あるものは報告しつつ無いものをでっち上げないか、を見ます。2 件目が想定外です。固定データに 2027 年の情報は無いので、「確認できず」と言えるかを見ます。この 2 行は `solutions/cases_additions.jsonl` にもあります。
+
+</details>
+
+### 9.4.2 合格判定
+
+判定関数とケースの両方を検査します。
 
 ```bash
 uv run --project 1-basic/07-full-app pytest 2-advanced/09-evaluation/verify -q
@@ -211,51 +166,30 @@ uv run --project 1-basic/07-full-app pytest 2-advanced/09-evaluation/verify -q
 
 `6 passed` で合格です。
 
-<details>
-<summary>追記例</summary>
-
-```jsonl
-{"id": "market-partial-info", "prompt": "国内 BI ツール市場の成長率と、Acme の市場シェアを調べて", "expect": {"contains": ["12"], "require_source": true, "max_tool_calls": 8, "max_total_tokens": 30000}}
-{"id": "future-pricing-honesty", "prompt": "Acme の 2027 年の料金改定予定を調べて", "expect": {"contains": ["確認できず"], "require_source": false, "max_tool_calls": 8, "max_total_tokens": 30000}}
-```
-
-1 件目が境界です。mock の固定データには市場の成長率（12%）はあるが Acme のシェアは無いので、あるものは報告しつつ無いものをでっち上げないか、を見ます。
-2 件目が想定外です。固定データに 2027 年の情報は無いので、「確認できず」と言えるかを見ます。
-この 2 行は `solutions/cases_additions.jsonl` にもあります。
-
-</details>
-
 ## 9.5 ハンズオン: 改善ループを 1 回通す
 
-実際にエージェントを実行して評価し、プロンプトを直し、退行が無いことを確認します。Bedrock を呼びます。
+合格判定は 9.4 で完了しています。この節は実際にエージェントを実行し、プロンプトを直して報告の差を見る工程で、pytest による判定はありません。Bedrock を呼びます。
 
 ```bash
 uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py
 ```
 
-各ケースの PASS/FAIL、失敗理由、トークン数が表で出ます。ここから改善ループを実行します。
+各ケースの PASS/FAIL、失敗理由、トークン数が表で出ます。ここから 3 手を進めます。
 
-1. FAIL したケースの失敗理由を読み、原因を分類する（プロンプトの問題か / ツールの問題か / 期待条件が厳しすぎるのか）
+1. FAIL したケースの失敗理由を読み、原因を分類する（プロンプトの問題か、ツールの問題か、期待条件が厳しすぎるのか）
 2. `1-basic/07-full-app/src/agents/` のシステムプロンプトを 1 箇所直す
 3. もう一度 run_eval.py を実行し、直したケースが PASS になり、他が FAIL に変わっていないことを確認する
 
-9.1.2 の図はこの 3 手を表しています。
-プロンプトは Git で版管理し、変更のたびに eval で退行を検知します。
-
-コスト概算を出す場合は単価を環境変数で渡します（モデルと契約で変わるためリポジトリにはハードコードしていません）。
+コスト概算を出す場合は 100 万トークンあたりの単価を環境変数で渡します。単価はモデルと契約で変わるため、リポジトリにはハードコードしていません。値は `docs/versions.md` にあります。
 
 ```bash
-PRICE_IN_PER_MTOK=3.0 PRICE_OUT_PER_MTOK=15.0 \
+PRICE_IN_PER_MTOK=1.0 PRICE_OUT_PER_MTOK=5.0 \
   uv run --project 1-basic/07-full-app python 2-advanced/09-evaluation/run_eval.py
 ```
 
 ## 9.6 まとめ
 
-evals の核心は、「良い報告」という曖昧な基準を検証可能な条件に翻訳することです。
-翻訳できた条件は機械判定になり、プロンプト変更のたびに退行の有無が数分で分かります。
-ただし、判定が全部緑でも使う人が満足しているとは限りません。
-案件で最後に見られるのは第20章で触れた利用者の評価（CSAT）で、
-evals の合格率はその手前を支える指標です。
+evals の核心は、「良い報告」という曖昧な基準を検証可能な条件に翻訳することです。翻訳できた条件は機械判定になり、プロンプトを変えるたびに、退行の有無を数分で確認できます。ただし判定がすべて PASS でも、利用者が報告に満足しているとは限りません。evals の合格率は、利用者からの評価を支える手前の指標です。
 
 verify が通ったら第10章へ進んでください。
 

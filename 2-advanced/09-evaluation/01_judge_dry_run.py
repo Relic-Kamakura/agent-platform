@@ -34,7 +34,7 @@ BAD_REPORT = "Acme は月額 49 ドルで、Globex より安い。"
 def show(name: str, report: str, usage: dict, tool_calls: int) -> None:
     failures = judge_case(report=report, usage=usage, tool_calls=tool_calls, expect=EXPECT)
     if not isinstance(failures, list):
-        print("judge_case がリストを返していません。TODO(5) を実装してください（README 9.3.2）。")
+        print("judge_case がリストを返していません。TODO(5) を実装してください（README 9.3.1）。")
         sys.exit(1)
     status = "PASS" if not failures else "FAIL"
     print(f"[{status}] {name}  tools={tool_calls}  total={usage['totalTokens']}")
