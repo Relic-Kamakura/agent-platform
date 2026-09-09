@@ -21,8 +21,9 @@ def build_retrieval_filter(
     if source:
         conditions.append({"equals": {"key": "source", "value": source}})
     if since_days:
-        since = (now - timedelta(days=since_days)).isoformat()
-        conditions.append({"greaterThanOrEquals": {"key": "published_at", "value": since}})
+        # greaterThanOrEquals は数値にしか効かないので、UNIX 秒で比較する
+        since = int((now - timedelta(days=since_days)).timestamp())
+        conditions.append({"greaterThanOrEquals": {"key": "published_epoch", "value": since}})
 
     if not conditions:
         return None

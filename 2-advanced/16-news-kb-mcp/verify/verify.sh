@@ -17,7 +17,7 @@ if [ ! -d node_modules ]; then
 fi
 for f in knowledge-base-stack gateway-stack; do
   if [ ! -f "lib/$f.ts" ]; then
-    ng "lib/$f.ts がありません。exercises/$f.ts をコピーして TODO を埋めてください（README 16.5 / 16.6）"
+    ng "lib/$f.ts がありません。exercises/$f.ts をコピーして TODO を埋めてください（README 16.5.1）"
     exit 1
   fi
   if grep -q "TODO" "lib/$f.ts"; then
@@ -27,7 +27,7 @@ for f in knowledge-base-stack gateway-stack; do
 done
 ok "lib/ の 2 ファイルがある"
 if [ ! -f lambda_src/tools/tools_handler.py ]; then
-  ng "lambda_src/tools/tools_handler.py がありません。pytest 合格後に exercises/tools_handler.py をコピーしてください（16.6.2）"
+  ng "lambda_src/tools/tools_handler.py がありません。pytest 合格後に exercises/tools_handler.py をコピーしてください（16.5.1）"
 elif grep -q "TODO" lambda_src/tools/tools_handler.py; then
   ng "lambda_src/tools/tools_handler.py に TODO が残っています"
 else
@@ -45,17 +45,19 @@ echo "3. synth"
 CDK_DEFAULT_ACCOUNT=111111111111 npx cdk synth >/dev/null 2>&1 || true
 SYNTH="$(cat cdk.out/*.template.json 2>/dev/null || true)"
 echo "$SYNTH" | grep -q "AWS::S3Vectors::Index" && ok "S3 Vectors のインデックスがある" \
-  || ng "CfnVectorBucket / CfnIndex を作ってください（16.5.1 TODO(1)）"
+  || ng "CfnVectorBucket / CfnIndex を作ってください（16.5.1 knowledge-base-stack.ts の TODO(1)）"
 echo "$SYNTH" | grep -q "S3_VECTORS" && ok "KB のストアが S3_VECTORS" \
-  || ng "CfnKnowledgeBase の storageConfiguration を S3_VECTORS にしてください（16.5.1 TODO(2)）"
+  || ng "CfnKnowledgeBase の storageConfiguration を S3_VECTORS にしてください（16.5.1 knowledge-base-stack.ts の TODO(2)）"
+echo "$SYNTH" | grep -q "FLOAT32" && ok "埋め込みの次元数を KB に明示している" \
+  || ng "vectorKnowledgeBaseConfiguration に embeddingModelConfiguration を足してください（16.5.1 knowledge-base-stack.ts の TODO(2)）"
 echo "$SYNTH" | grep -q "AWS::Bedrock::DataSource" && ok "データソースがある" \
-  || ng "CfnDataSource を作ってください（16.5.1 TODO(3)）"
+  || ng "CfnDataSource を作ってください（16.5.1 knowledge-base-stack.ts の TODO(3)）"
 echo "$SYNTH" | grep -q "AWS::BedrockAgentCore::Gateway" && ok "Gateway がある" \
-  || ng "CfnGateway を作ってください（16.6.1 TODO(1)）"
+  || ng "CfnGateway を作ってください（16.5.1 gateway-stack.ts の TODO(1)）"
 echo "$SYNTH" | grep -q "CUSTOM_JWT" && ok "JWT インバウンド認可がある" \
-  || ng "authorizerType CUSTOM_JWT と customJwtAuthorizer を設定してください（16.6.1 TODO(1)）"
+  || ng "authorizerType CUSTOM_JWT と customJwtAuthorizer を設定してください（16.5.1 gateway-stack.ts の TODO(1)）"
 echo "$SYNTH" | grep -q "search_aws_updates" && ok "ツール定義が公開されている" \
-  || ng "CfnGatewayTarget の toolSchema に 2 ツールを定義してください（16.6.1 TODO(2)）"
+  || ng "CfnGatewayTarget の toolSchema に 2 ツールを定義してください（16.5.1 gateway-stack.ts の TODO(2)）"
 echo "$SYNTH" | grep -q "AWS::Scheduler::Schedule" && ok "取り込みのスケジュールがある（完成品）" \
   || ng "ingestion-stack が synth されていません。bin/app.ts を変更していないか確認してください"
 

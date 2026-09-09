@@ -1,6 +1,6 @@
 // ハンズオン 16.5: S3 Vectors を使う Knowledge Base の定義。
-// S3 Vectors / Knowledge Base / DataSource はどれも L2 がまだ無く、L1（Cfn*）で書く。
-// プロパティ名は CloudFormation リファレンスと同じ（第18章 18.1.1 の読み方がそのまま使える）。
+// S3 Vectors / Knowledge Base / DataSource には aws-cdk-lib 本体に L1（Cfn*）だけがあるので、
+// L1 で書く。L1 のプロパティ名は CloudFormation リファレンスの記載と 1 対 1 で対応する。
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
@@ -29,13 +29,15 @@ export class NewsKnowledgeBaseStack extends cdk.Stack {
 
 
     // S3 → SQS の追加キュー（完成済み）。通知設定はバケットと同じスタックに置く必要があるため、
-    // キューもここに作り、取り込みスタックへ渡す。失敗 4 回で DLQ へ
+    // キューもここに作り、取り込みスタックへ渡す。取り込みジョブの実行中は
+    // Ingest Trigger がバッチ全件を失敗として返すので、可視性タイムアウト 5 分 ×
+    // maxReceiveCount 12 = 約 60 分ぶんの再配信を許し、ジョブ 1 回が終わるのを待てるようにする
     this.ingestDlq = new sqs.Queue(this, 'IngestDlq', {
       retentionPeriod: cdk.Duration.days(14),
     });
     this.ingestQueue = new sqs.Queue(this, 'IngestQueue', {
       visibilityTimeout: cdk.Duration.minutes(5),
-      deadLetterQueue: { queue: this.ingestDlq, maxReceiveCount: 4 },
+      deadLetterQueue: { queue: this.ingestDlq, maxReceiveCount: 12 },
     });
     this.articleBucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,
@@ -70,7 +72,11 @@ export class NewsKnowledgeBaseStack extends cdk.Stack {
     // TODO(2): bedrock.CfnKnowledgeBase を作る。
     //   - name / roleArn: kbRole.roleArn
     //   - knowledgeBaseConfiguration: { type: 'VECTOR', vectorKnowledgeBaseConfiguration:
-    //       { embeddingModelArn: Titan Text Embeddings V2 の ARN（上の kbRole と同じ ARN 文字列） } }
+    //       { embeddingModelArn: Titan Text Embeddings V2 の ARN（上の kbRole と同じ ARN 文字列）,
+    //         embeddingModelConfiguration: { bedrockEmbeddingModelConfiguration:
+    //           { dimensions: 上の dimension, embeddingDataType: 'FLOAT32' } } } }
+    //     （Titan V2 は 1024 / 512 / 256 を出し分けられる。CfnIndex の dimension と
+    //       食い違うと取り込みが失敗するので、同じ値を両方に渡す）
     //   - storageConfiguration: { type: 'S3_VECTORS', s3VectorsConfiguration:
     //       { indexArn: index.attrIndexArn } }
 
@@ -81,7 +87,7 @@ export class NewsKnowledgeBaseStack extends cdk.Stack {
     //   - vectorIngestionConfiguration: { chunkingConfiguration: { chunkingStrategy: 'FIXED_SIZE',
     //       fixedSizeChunkingConfiguration: { maxTokens: 512, overlapPercentage: 20 } } }
     //   - this.knowledgeBaseId = kb.attrKnowledgeBaseId / this.dataSourceId = dataSource.attrDataSourceId
-    //   - CfnOutput で KnowledgeBaseId と DataSourceId を出力（16.7 の初回同期で使う）
+    //   - CfnOutput で KnowledgeBaseId と DataSourceId を出力（16.6 の初回同期で使う）
     this.knowledgeBaseId = '';
     this.dataSourceId = '';
   }

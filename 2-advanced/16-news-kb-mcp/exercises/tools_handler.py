@@ -3,8 +3,8 @@
 Gateway の Lambda ターゲットは、ツールの引数だけを event として渡し、
 どのツールが呼ばれたかは context.client_context.custom["bedrockAgentCoreToolName"]
 で渡してくる（ツール名には「ターゲット名___」の接頭辞が付く）。
-このファイルは boto3 クライアントを引数で受け取る。AWS もネットワークも呼ばない
-形でテストできる（第6章の技法）。
+このファイルは boto3 クライアントを引数で受け取るので、偽のクライアントを渡せば
+AWS もネットワークも呼ばずにテストできる。
 """
 
 from __future__ import annotations
@@ -25,15 +25,16 @@ def build_retrieval_filter(
     条件が 0 件なら None、1 件ならその条件そのもの、
     2 件以上なら {"andAll": [...]} を返す。
     使う演算子: category / source は equals、since_days は
-    published_at の greaterThanOrEquals（ISO 8601 文字列で比較する）。
+    published_epoch の greaterThanOrEquals。greaterThanOrEquals は数値にしか
+    効かないので、日付は ISO 8601 文字列ではなく UNIX 秒で比較する。
     """
     now = now or datetime.now(UTC)
     conditions: list[dict] = []
 
     # TODO(1): category と source が指定されていたら
     #   {"equals": {"key": "<キー名>", "value": <値>}} を conditions に足す。
-    #   since_days が指定されていたら now - timedelta(days=since_days) を ISO 8601 にして
-    #   {"greaterThanOrEquals": {"key": "published_at", "value": <ISO 文字列>}} を足す。
+    #   since_days が指定されていたら now - timedelta(days=since_days) の timestamp() を
+    #   int にして {"greaterThanOrEquals": {"key": "published_epoch", "value": <UNIX 秒>}} を足す。
     ...
 
     if not conditions:

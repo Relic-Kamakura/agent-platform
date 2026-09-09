@@ -67,7 +67,7 @@ def build_article(item: dict) -> Article:
 
     - key は news/YYYY/MM/<slug>.md（YYYY/MM は published_at から取る）
     - markdown は 1 行目に `# <title>`、空行、出典 URL、空行、description
-    - metadata は published_at / category / source / url / title の 5 キー
+    - metadata は published_at / published_epoch / category / source / url / title の 6 キー
     """
     # TODO(1): published_at（ISO 8601）から年と月を取り出し、
     #   news/YYYY/MM/<slug>.md 形式の key を組み立てる（slug は slugify(title)）。
@@ -82,8 +82,12 @@ def build_article(item: dict) -> Article:
     #   <description>
     markdown = ...
 
-    # TODO(3): metadata 辞書を組み立てる（published_at / category / source / url / title）。
-    #   S3 には <key>.metadata.json として置かれ、第16章の Retrieve フィルタの供給源になる。
+    # TODO(3): metadata 辞書を組み立てる。キーは published_at / published_epoch /
+    #   category / source / url / title の 6 つ。S3 には <key>.metadata.json として置かれ、
+    #   Knowledge Base の検索フィルタの供給源になる。
+    #   published_epoch は datetime.fromisoformat(published_at).timestamp() を int にした
+    #   UNIX 秒。日付の絞り込みに使う greaterThanOrEquals は数値にしか効かないため、
+    #   表示用の published_at（文字列）とは別にこの数値を持たせる。
     metadata = ...
 
     return Article(guid=item["guid"], key=key, markdown=markdown, metadata=metadata)

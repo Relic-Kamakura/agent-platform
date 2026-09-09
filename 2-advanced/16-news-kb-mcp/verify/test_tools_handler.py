@@ -33,6 +33,7 @@ class _FakeRetrieve:
                         "title": "S3 Vectors in additional regions",
                         "url": "https://aws.amazon.com/x",
                         "published_at": "2026-09-02T09:30:00+00:00",
+                        "published_epoch": 1788341400,
                     },
                     "location": {"s3Location": {"uri": "s3://articles/news/2026/09/s3-vectors.md"}},
                 }
@@ -77,8 +78,11 @@ def test_filter_combines_with_and_all() -> None:
     f = build_retrieval_filter(since_days=7, category="Amazon S3", now=NOW)
     assert set(f) == {"andAll"} and len(f["andAll"]) == 2, "2 件以上は andAll で束ねます（16.4.1 TODO(1)）"
     ge = [c for c in f["andAll"] if "greaterThanOrEquals" in c][0]["greaterThanOrEquals"]
-    assert ge["key"] == "published_at" and ge["value"].startswith("2026-09-03"), (
-        "since_days は published_at の greaterThanOrEquals にします（16.4.1 TODO(1)）"
+    assert ge["key"] == "published_epoch", (
+        "since_days は published_epoch の greaterThanOrEquals にします（16.4.1 TODO(1)）"
+    )
+    assert ge["value"] == int(datetime(2026, 9, 3, tzinfo=UTC).timestamp()), (
+        "greaterThanOrEquals は数値にしか効きません。UNIX 秒を渡します（16.4.1 TODO(1)）"
     )
 
 

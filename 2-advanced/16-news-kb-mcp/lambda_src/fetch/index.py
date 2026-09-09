@@ -13,7 +13,7 @@ import re
 import unicodedata
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import UTC
+from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 
 import boto3
@@ -75,6 +75,8 @@ def handler(event, context):  # noqa: ANN001
             markdown = f"# {item['title']}\n\n出典: {item['url']}\n\n{item['description']}\n"
             metadata = {
                 "published_at": item["published_at"],
+                # greaterThanOrEquals は数値にしか効かないため、絞り込み用に UNIX 秒も置く
+                "published_epoch": int(datetime.fromisoformat(item["published_at"]).timestamp()),
                 "category": item["category"],
                 "source": item["source"],
                 "url": item["url"],

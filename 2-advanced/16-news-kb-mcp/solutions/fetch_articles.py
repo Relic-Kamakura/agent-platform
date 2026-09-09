@@ -6,7 +6,7 @@ import re
 import unicodedata
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
-from datetime import UTC
+from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 
 
@@ -56,8 +56,11 @@ def build_article(item: dict) -> Article:
 
     markdown = f"# {item['title']}\n\n出典: {item['url']}\n\n{item['description']}\n"
 
+    # 日付の絞り込みに使う greaterThanOrEquals は数値にしか効かないため、
+    # 表示用の published_at（文字列）とは別に UNIX 秒を持たせる
     metadata = {
         "published_at": item["published_at"],
+        "published_epoch": int(datetime.fromisoformat(item["published_at"]).timestamp()),
         "category": item["category"],
         "source": item["source"],
         "url": item["url"],

@@ -26,13 +26,15 @@ export class NewsKnowledgeBaseStack extends cdk.Stack {
 
 
     // S3 → SQS の追加キュー（完成済み）。通知設定はバケットと同じスタックに置く必要があるため、
-    // キューもここに作り、取り込みスタックへ渡す。失敗 4 回で DLQ へ
+    // キューもここに作り、取り込みスタックへ渡す。取り込みジョブの実行中は
+    // Ingest Trigger がバッチ全件を失敗として返すので、可視性タイムアウト 5 分 ×
+    // maxReceiveCount 12 = 約 60 分ぶんの再配信を許し、ジョブ 1 回が終わるのを待てるようにする
     this.ingestDlq = new sqs.Queue(this, 'IngestDlq', {
       retentionPeriod: cdk.Duration.days(14),
     });
     this.ingestQueue = new sqs.Queue(this, 'IngestQueue', {
       visibilityTimeout: cdk.Duration.minutes(5),
-      deadLetterQueue: { queue: this.ingestDlq, maxReceiveCount: 4 },
+      deadLetterQueue: { queue: this.ingestDlq, maxReceiveCount: 12 },
     });
     this.articleBucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,
@@ -72,7 +74,14 @@ export class NewsKnowledgeBaseStack extends cdk.Stack {
       roleArn: kbRole.roleArn,
       knowledgeBaseConfiguration: {
         type: 'VECTOR',
-        vectorKnowledgeBaseConfiguration: { embeddingModelArn },
+        vectorKnowledgeBaseConfiguration: {
+          embeddingModelArn,
+          // 次元数を省くとモデルの既定値になり、CfnIndex の dimension と食い違うと
+          // 取り込みが失敗する。同じ値を両方に渡す
+          embeddingModelConfiguration: {
+            bedrockEmbeddingModelConfiguration: { dimensions: dimension, embeddingDataType: 'FLOAT32' },
+          },
+        },
       },
       storageConfiguration: {
         type: 'S3_VECTORS',

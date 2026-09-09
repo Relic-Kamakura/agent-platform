@@ -7,10 +7,10 @@
         "mcp-remote@latest",
         "<NewsGatewayStack の出力 GatewayUrl>",
         "--header",
-        "Authorization: Bearer ${AWS_NEWS_KB_TOKEN}"
+        "Authorization:${AUTH_HEADER}"
       ],
       "env": {
-        "AWS_NEWS_KB_TOKEN": "<16.7 で取得したアクセストークン>"
+        "AUTH_HEADER": "Bearer <16.6 で取得したアクセストークン>"
       }
     }
   }

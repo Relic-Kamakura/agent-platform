@@ -23,7 +23,7 @@ export class NewsGatewayStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
     const client = pool.addClient('McpClient', {
-      authFlows: { userPassword: true },
+      authFlows: { userPassword: true }, // 16.6 で CLI からトークンを取るため
       generateSecret: false,
     });
     const discoveryUrl = `${pool.userPoolProviderUrl}/.well-known/openid-configuration`;

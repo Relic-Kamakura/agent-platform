@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pathlib
+from datetime import datetime
 
 CHAPTER_DIR = pathlib.Path(__file__).resolve().parents[1]
 FIXTURE = (CHAPTER_DIR / "fixtures" / "whats_new.xml").read_text()
@@ -46,11 +47,19 @@ def test_metadata_has_filter_keys() -> None:
     from fetch_articles import build_article, parse_feed
 
     art = build_article(parse_feed(FIXTURE, source="whats-new")[2])
-    assert set(art.metadata) == {"published_at", "category", "source", "url", "title"}, (
-        "metadata のキーは published_at / category / source / url / title の 5 つです（16.3.1 TODO(3)）"
+    assert set(art.metadata) == {"published_at", "published_epoch", "category", "source", "url", "title"}, (
+        "metadata のキーは published_at / published_epoch / category / source / url / title の "
+        "6 つです（16.3.1 TODO(3)）"
     )
     assert art.metadata["source"] == "whats-new"
     assert art.metadata["published_at"].startswith("2026-09-03"), "published_at は ISO 8601 です"
+    epoch = art.metadata["published_epoch"]
+    assert isinstance(epoch, int) and not isinstance(epoch, bool), (
+        "published_epoch は数値です。greaterThanOrEquals は文字列に効きません（16.3.1 TODO(3)）"
+    )
+    assert epoch == int(datetime.fromisoformat(art.metadata["published_at"]).timestamp()), (
+        "published_epoch は published_at を UNIX 秒にした値です（16.3.1 TODO(3)）"
+    )
 
 
 def test_seen_guids_are_skipped() -> None:
