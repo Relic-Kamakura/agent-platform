@@ -1,15 +1,15 @@
 # 第0章 開発環境について
 
-終えると、本体のテスト 38 件と `scripts/check_env.sh` が通る環境が手元にでき、以降の章で失敗したときに環境の問題かコードの問題かを切り分けられる状態になります。
+終えると、本体のテスト 41 件と `scripts/check_env.sh` が通る環境が手元にでき、どの章でも失敗したときに環境の問題かコードの問題かを切り分けられる状態になります。
+uv、Docker、AWS CLI、Node.js がすでに揃っている人は、0.2.5 の環境チェックだけ実行して次へ進んでかまいません。
 
 ## 0.1 概要
 
-本教材は Python 製のエージェント本体（第1〜7章）と TypeScript 製の CDK（第18章）の
-両方を扱うため、2 つのツールチェーンを先に揃えます。
+この教材は Python 製のエージェント本体と TypeScript 製の CDK の両方を扱うため、2 つのツールチェーンを先に揃えます。
 
 - uv は Python の実行環境と依存パッケージを管理します。venv の activate は不要です
 - AWS CLI はモデル一覧の確認とデプロイに使います
-- Node.js と npm は CDK（第18章）で使います
+- Node.js と npm は CDK で使います
 
 ## 0.2 ハンズオン: 開発環境を構築する
 
@@ -41,18 +41,22 @@ Account と Arn が表示されるはずです。次にリージョンを確認�
 aws configure get region
 ```
 
-何も出なければ `aws configure set region us-east-1` のように自分のリージョンを
-設定します。リージョンによってモデル ID の地理接頭辞（`us.` / `apac.` / `eu.`）が
-変わるため、第1章 1.3 の手順で呼べる ID を確認し、`1-basic/07-full-app/.env` を合わせてください。
+何も出なければ `aws configure set region us-east-1` のように自分のリージョンを設定します。
+モデル ID の地理接頭辞（`us.` / `apac.` / `eu.` / 国別の `jp.`）はリージョンで変わるので、呼べる ID を一覧で確認します。
 
-最後に AWS コンソールの Bedrock → Model access で Claude 系モデルを有効化します。
-リージョンごとの設定です。未申請だと第1章で `AccessDeniedException` になります。
+```bash
+aws bedrock list-inference-profiles --region us-east-1 \
+  --query 'inferenceProfileSummaries[].inferenceProfileId' | grep anthropic
+```
 
-費用は、第1〜7章はモデル呼び出しの従量課金のみで固定費はありません。第1章は
-1 回 0.1 円未満、第2章以降も 1 リクエスト数円〜数十円です。デプロイを伴う
-第17章以降で AgentCore Runtime と ECR の課金が加わります。
+一覧に無い ID を使うと `ValidationException` になります。`1-basic/07-full-app/.env` のモデル ID を一覧にある値に合わせてください。
+最後に AWS コンソールの Bedrock → Model access で Claude 系モデルを有効化します。リージョンごとの設定で、未申請だと `AccessDeniedException` になります。
+
+費用はモデル呼び出しの従量課金だけで、固定費はありません。1 リクエストあたり数円から数十円です。デプロイを伴う章では AgentCore Runtime と ECR の課金が加わります。
 
 ### 0.2.3 エージェント本体のテストを通す
+
+本体 `1-basic/07-full-app` は競合リサーチエージェントの完成形です。テストはモデルを呼ばないので、AWS 接続に関係なく環境の確認に使えます。
 
 ```bash
 cd 1-basic/07-full-app
@@ -63,8 +67,7 @@ uv sync
 uv run pytest -q
 ```
 
-`38 passed` と出るはずです。botocore の例外で失敗したら
-`docs/troubleshooting.md` の先頭項目に原因と対処があります。
+`41 passed` と出るはずです。botocore の例外で失敗したら `docs/troubleshooting.md` の先頭項目に原因と対処があります。
 
 ### 0.2.4 CDK の依存を入れる
 
@@ -90,13 +93,11 @@ cd ../..
 
 ## 0.3 合格条件
 
-pytest 38 件が通り、check_env.sh の全セクションが OK になれば合格です。
+pytest 41 件が通り、check_env.sh の全セクションが OK になれば合格です。
 
 ## 0.4 まとめ
 
-ここで通した pytest 38 件と check_env.sh が、以降の全章で環境の問題かコードの問題かを切り分ける基準線になります。この先で原因の分からない失敗に当たったら、コードを疑う前に `./scripts/check_env.sh` に戻ってください。
-環境ができたら第1章へ進み、フレームワークを介さず SDK から Bedrock の
-Converse API を直接呼び出します。
+ここで通した pytest 41 件と check_env.sh が、環境の問題かコードの問題かを切り分ける基準線になります。原因の分からない失敗に当たったら、コードを疑う前に `./scripts/check_env.sh` に戻ってください。
 
 ## 次の章
 
