@@ -38,10 +38,14 @@ echo "$SYNTH" | grep -q "AWS::Bedrock::Guardrail" && ok "CfnGuardrail が定義�
   || ng "Guardrail がありません（13.3.1）"
 echo "$SYNTH" | grep -q "PROMPT_ATTACK" && ok "PROMPT_ATTACK フィルタがある" \
   || ng "contentPolicyConfig に PROMPT_ATTACK フィルタを入れてください（13.3.1 TODO(1)）"
+echo "$SYNTH" | grep -q "TierName: STANDARD" && ok "コンテンツフィルタが STANDARD tier" \
+  || ng "contentFiltersTierConfig の tierName を STANDARD にしてください（13.3.1 TODO(2)）"
+echo "$SYNTH" | grep -q "GuardrailProfileArn" && ok "guardrail profile を指定している" \
+  || ng "crossRegionConfig に guardrailProfileArn を渡してください（13.3.1 TODO(3)）"
 echo "$SYNTH" | grep -q "AWS::Bedrock::GuardrailVersion" && ok "版を発行している" \
-  || ng "CfnGuardrailVersion で版を発行してください（13.3.1 TODO(2)）"
+  || ng "CfnGuardrailVersion で版を発行してください（13.3.1 TODO(4)）"
 echo "$SYNTH" | grep -q "GuardrailId" && ok "CfnOutput がある" \
-  || ng "GuardrailId などの CfnOutput を出してください（13.3.1 TODO(3)）"
+  || ng "GuardrailId などの CfnOutput を出してください（13.3.1 TODO(5)）"
 
 echo
 if [ "$FAILED" = "0" ]; then
