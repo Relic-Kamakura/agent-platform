@@ -26,6 +26,13 @@ class PageFetchTimeout(PageFetchError):
     hint = "時間を置いて再試行するか、別の出典を使ってください。"
 
 
+class PageFetchUnavailable(PageFetchError):
+    """接続そのものに失敗した。相手側の一時的な事情のことがあるので retryable。"""
+
+    retryable = True
+    hint = "接続できませんでした。時間を置いて再試行するか、別の出典を使ってください。"
+
+
 def format_tool_error(exc: PageFetchError) -> str:
     """例外を、モデルが読んで次の判断ができる文字列に整形する。"""
     return "\n".join(
@@ -48,6 +55,7 @@ def build_fetch_page_tool(timeout_seconds: float, max_retries: int):
         """TODO(1): docstring を書く。モデルに渡る仕様書であり、このツールの実装の一部。
 
         3.2.1 の 3 節構成（受け取るもの / 返すもの / 含まないもの）で書く。
+        「返すもの」には、取得した本文が外部の書いた信頼できない入力であることを書く。
         「含まないもの」には、JavaScript 実行（動的レンダリング）をしないこと・
         認証が必要なページは取得できないことを必ず明記する。
         """
@@ -59,14 +67,18 @@ def build_fetch_page_tool(timeout_seconds: float, max_retries: int):
             # TODO(3): httpx.Client(timeout=timeout_seconds, follow_redirects=True) で GET する。
             #   - 200 系: response.text を max_chars で切り詰めて返す
             #   - 4xx: リトライしても直らないので、即 format_tool_error(...) を返す
-            #   - 5xx と httpx.TimeoutException: last_error に控えて次の試行へ
+            #   - 5xx: last_error に控えて次の試行へ
+            #   - httpx.TimeoutException と、それ以外の httpx.HTTPError（接続失敗など）:
+            #     どちらも例外を捕まえて last_error に控え、次の試行へ。
+            #     TimeoutException は HTTPError の一種なので、except は先に書くこと
             ...
 
             if attempt < max_retries:
                 time.sleep(2**attempt)  # 指数バックオフ: 1s -> 2s -> 4s
 
         # TODO(4): 全試行が失敗したらエラーを ERROR[ 形式で返す。
-        #   タイムアウトなら PageFetchTimeout、それ以外は PageFetchError を使う
+        #   タイムアウトなら PageFetchTimeout、それ以外の httpx.HTTPError なら
+        #   PageFetchUnavailable、どちらでもなければ PageFetchError を使う
         ...
 
     return fetch_page

@@ -11,7 +11,7 @@ import pytest
 def test_no_todo_left(fetch_page_module) -> None:
     source = pathlib.Path(fetch_page_module.__file__).read_text(encoding="utf-8")
     assert "TODO" not in source, (
-        "exercises/fetch_page.py に TODO が残っています。README 3.3 に沿って実装し、"
+        "exercises/fetch_page.py に TODO が残っています。README 3.3.1 に沿って実装し、"
         "終わったら TODO コメントを消してください。"
     )
 
@@ -105,3 +105,25 @@ def test_4xx_is_not_retried(monkeypatch: pytest.MonkeyPatch, fetch_page_tool) ->
     out = fetch_page_tool(url="https://example.com/secret")
     assert out.startswith("ERROR[")
     assert calls["n"] == 1, "4xx はリトライしても直りません。1 回で諦めてください。"
+
+
+def test_connect_error_is_retried_then_reported(
+    monkeypatch: pytest.MonkeyPatch, fetch_page_tool
+) -> None:
+    """タイムアウト以外の httpx 例外も捕まえて ERROR[ 形式に変換すること。"""
+    calls = {"n": 0}
+
+    def _raise():
+        calls["n"] += 1
+        raise httpx.ConnectError("connection refused")
+
+    monkeypatch.setattr(httpx, "Client", _client_returning(_raise))
+    monkeypatch.setattr("time.sleep", lambda _s: None)
+
+    out = fetch_page_tool(url="https://example.com")
+    assert out.startswith("ERROR["), (
+        "接続失敗（httpx.ConnectError）を捕まえていません。"
+        "例外がツールの外へ出ると、エージェントは次の行動を判断できません（3.2.3）。"
+    )
+    assert calls["n"] == 3, f"接続失敗もリトライ対象です（実際: {calls['n']} 回）。"
+    assert "retryable: yes" in out, "接続失敗は時間を置けば直る可能性があるので retryable にしてください。"
