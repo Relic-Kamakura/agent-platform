@@ -6,6 +6,15 @@ G4 向け AI エージェント開発基盤ひな形。競合リサーチエー�
 - ステータス: **全 20 章（00〜19）+ 付録の実装完了。実機確認は各章のハンズオン内で実施する**
 - 最終更新: 2026-09-10
 
+## 修正手順のスキル化とフックによる強制（2026-09-10）
+
+今回のレビューからコミットまでの手順を `.claude/skills/review-and-commit/` にまとめ、教材の修正は必ずこの手順で行うことにした。
+
+- SKILL.md: 着手の宣言（`scripts/start.sh`）→ 守ること（AWS を呼ばない、教材外の資料に言及しない、章内完結、分量、ハンズオンの型、記述式の設問を置かない、分かりにくい語を使わない）→ 確認 → 修正 → 検証 → 文体レビュー（stop-ai-slop-jp）→ plan.md への記録 → 章ごとの 1 文コミット（AI による作成の注記なし、push はしない）
+- scripts: `check_links.py`（相対リンク）、`measure_chapters.py`（行数と概要 + ポイントの字数）、`check_text.sh`（他章参照、予告、記述式設問、禁止表現、文中改行）、`check_mermaid.sh` + `check_mermaid.mjs`（mermaid と jsdom で全ブロックを解析）、`verify_roundtrip.sh <章>`（素 = 案内付き fail、一時ディレクトリで solutions 適用 = 全パス）
+- `.claude/hooks/require-review-skill.sh` を `.claude/settings.json` の PreToolUse（Edit / Write / MultiEdit / NotebookEdit）に登録した。章ディレクトリ、docs、scripts、ルートの README と CLAUDE.md への編集は、`start.sh` が置くマーカー（`.claude/.review-and-commit.active`、12 時間有効、.gitignore 済み）が無いと exit 2 で止まり、スキルを読むよう案内する。SessionStart でも同じ案内を出す
+- CLAUDE.md の「進め方」にこの手順を最上位の規約として追加した。`measure_chapters.py` の現時点の超過は第16章（301 行。2 プロジェクトと 6 本のハンズオンに解答例と期待出力を置いた結果）と第17・19章（各 202 行）
+
 ## 全章の章内完結化と分量削減、技術的な誤りの修正（2026-09-10）
 
 構成レビュー（分量・節構成・演習量）と技術レビュー（ライブラリのソースと AWS 公式での照合）を全 21 章に対して行い、その結果を反映した。
