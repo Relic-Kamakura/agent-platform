@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/require-review-skill.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '教材（章・docs・本体コード）の修正は review-and-commit スキルの手順で行う。着手時に Skill ツールで review-and-commit を読み、scripts/start.sh を実行してから編集する。コミットは 1 文・AI の記載なし・push はしない。'"
+          }
+        ]
+      }
+    ]
+  }
+}

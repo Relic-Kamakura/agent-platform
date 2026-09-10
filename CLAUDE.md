@@ -109,9 +109,15 @@ AgentCore Runtime にコンテナデプロイし、CDK (TypeScript) と Next.js 
 
 ## 進め方
 
+- **教材（章・docs・本体コード・scripts）の修正は必ず `review-and-commit` スキル
+  （`.claude/skills/review-and-commit/SKILL.md`）の手順で行う。** 着手時に Skill ツールで読み、
+  `scripts/start.sh` を実行してから編集する。`.claude/hooks/require-review-skill.sh` が
+  これを経ない編集を止める。手順には確認 → 修正 → 検証（verify のラウンドトリップ・リンク・
+  Mermaid・文体）→ plan.md への記録 → 章ごとの 1 文コミットが含まれる
 - 変更を入れたら、対応する層のテストと関係する章の verify を実行してから完了とする。
 - **README 等の md 文書を作成・変更したら、必ず `stop-ai-slop-jp` スキル
   （`.claude/skills/stop-ai-slop-jp/SKILL.md`）でレビューしてから完了とする。**
   writing-style.md のガイドと併用する（構成は writing-style、文の AI 臭は本スキル）。
+- コミットメッセージは日本語 1 文の短文にし、AI による作成の注記を書かない。push はしない
 - 事実確認が必要な仕様は推測で書かず、公式ドキュメントか実機の出力で確認する。
 - 確認できなかった点は `docs/plan.md` の未確認事項へ追記する。
